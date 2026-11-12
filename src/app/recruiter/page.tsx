@@ -12,7 +12,14 @@ import { formatDate } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Jobs" };
 
-const statusTone = { draft: "muted", published: "success", paused: "warning", closed: "muted", expired: "muted", removed: "danger" } as const;
+const statusTone = {
+  draft: "muted",
+  published: "success",
+  paused: "warning",
+  closed: "muted",
+  expired: "muted",
+  removed: "danger",
+} as const;
 
 export default async function RecruiterHome({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const sp = await searchParams;
@@ -58,20 +65,26 @@ export default async function RecruiterHome({ searchParams }: { searchParams: Pr
       <Flash searchParams={sp} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">{company.name} · Jobs</h1>
-        <Link href="/recruiter/jobs/new" className={buttonClasses()}>Post a job</Link>
+        <Link href="/recruiter/jobs/new" className={buttonClasses()}>
+          Post a job
+        </Link>
       </div>
-      <ul className="divide-y divide-border rounded-lg border border-border bg-card">
+      <ul className="divide-border border-border bg-card divide-y rounded-lg border">
         {(jobs ?? []).map((j) => (
           <li key={j.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
-            <Link href={`/recruiter/jobs/${j.id}`} className="font-medium hover:underline">{j.title}</Link>
+            <Link href={`/recruiter/jobs/${j.id}`} className="font-medium hover:underline">
+              {j.title}
+            </Link>
             <span className="flex items-center gap-3 text-sm">
               <span>{(j.applications as unknown as { count: number }[])[0]?.count ?? 0} applicants</span>
               <Badge tone={statusTone[j.status as keyof typeof statusTone]}>{j.status}</Badge>
-              <span className="text-muted-foreground">{j.published_at ? `Published ${formatDate(j.published_at)}` : "Not published"}</span>
+              <span className="text-muted-foreground">
+                {j.published_at ? `Published ${formatDate(j.published_at)}` : "Not published"}
+              </span>
             </span>
           </li>
         ))}
-        {!jobs?.length && <li className="px-4 py-6 text-sm text-muted-foreground">No jobs yet.</li>}
+        {!jobs?.length && <li className="text-muted-foreground px-4 py-6 text-sm">No jobs yet.</li>}
       </ul>
     </div>
   );

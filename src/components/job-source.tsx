@@ -8,7 +8,11 @@ type JobLike = {
 
 /** Sourced jobs are ALWAYS labeled. We never present ourselves as the employer. */
 export function JobSourceBadge({ job }: { job: JobLike }) {
-  return job.source_type === "sourced" ? <Badge tone="sourced">Sourced listing</Badge> : <Badge tone="success">Posted by employer</Badge>;
+  return job.source_type === "sourced" ? (
+    <Badge tone="sourced">Sourced listing</Badge>
+  ) : (
+    <Badge tone="success">Posted by employer</Badge>
+  );
 }
 
 export function SourcedNotice({ job }: { job: JobLike }) {
@@ -21,7 +25,9 @@ export function SourcedNotice({ job }: { job: JobLike }) {
           View original
         </a>
       )}
-      <span className="block text-xs opacity-80">This employer has not posted on our platform; the summary is written by us.</span>
+      <span className="block text-xs opacity-80">
+        This employer has not posted on our platform; the summary is written by us.
+      </span>
     </div>
   );
 }

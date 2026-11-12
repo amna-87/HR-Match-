@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { requireRecruiter } from "@/lib/auth/session";
 import { extractJob, saveJob } from "../../actions";
-import { JobEditor, emptyJob } from "@/components/job-editor";
+import { JobEditor } from "@/components/job-editor";
+import { emptyJob } from "@/lib/job-values";
 import { Flash } from "@/components/flash";
 
 export const metadata = { title: "Post a job" };

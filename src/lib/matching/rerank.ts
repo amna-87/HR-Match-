@@ -26,7 +26,13 @@ export class ClaudeReranker implements Reranker {
   ): ReturnType<Reranker["rerank"]> {
     const refs = items.map((it, i) => ({ ref: `c${i + 1}`, ...it }));
     const text = JSON.stringify({
-      job: { title: job.title, summary: job.description_summary, required: job.required_skills, nice: job.nice_skills, min_years: job.min_exp },
+      job: {
+        title: job.title,
+        summary: job.description_summary,
+        required: job.required_skills,
+        nice: job.nice_skills,
+        min_years: job.min_exp,
+      },
       candidates: refs.map((r) => ({ ref: r.ref, current_score: r.score, profile: r.profileText.slice(0, 2500) })),
     });
     const out = await extractStructured({ schema: RerankSchema, system: SYSTEM, documentLabel: "matches", text });

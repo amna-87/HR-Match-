@@ -57,7 +57,9 @@ export default async function EmailActionPage({
 
   // Viewing a sourced listing is not consent to anything; it only records that it was seen.
   if (purpose === "match_view" && m.status === "notified") {
-    await db.query("select public.respond_to_match($1, 'view', null, null, $2)", [matchId, candidateId]).catch(() => null);
+    await db
+      .query("select public.respond_to_match($1, 'view', null, null, $2)", [matchId, candidateId])
+      .catch(() => null);
   }
   const done = sp.done;
   const error = sp.error ? (REASONS[sp.error] ?? decodeURIComponent(sp.error)) : null;
@@ -73,7 +75,9 @@ export default async function EmailActionPage({
       </CardHeader>
       <CardContent className="space-y-4">
         {error && <Alert tone="error">{error}</Alert>}
-        {done === "applied" && <Alert tone="success">Done — your application was sent. The recruiter can now see your profile.</Alert>}
+        {done === "applied" && (
+          <Alert tone="success">Done — your application was sent. The recruiter can now see your profile.</Alert>
+        )}
         {done === "declined" && <Alert tone="success">Declined. We won&apos;t ask you about this job again.</Alert>}
         {done === "expired" && <Alert tone="warning">This match expired before it was answered.</Alert>}
 
@@ -81,7 +85,11 @@ export default async function EmailActionPage({
           <>
             <SourcedNotice job={m} />
             {applyHref(m.apply_method, m.apply_target) && (
-              <a href={applyHref(m.apply_method, m.apply_target)!} rel="noopener noreferrer nofollow" className="underline">
+              <a
+                href={applyHref(m.apply_method, m.apply_target)!}
+                rel="noopener noreferrer nofollow"
+                className="underline"
+              >
                 How to apply: {m.apply_target}
               </a>
             )}
@@ -93,12 +101,17 @@ export default async function EmailActionPage({
             <input type="hidden" name="token" value={decodeURIComponent(token)} />
             {purpose === "match_approve" ? (
               <>
-                <p className="text-sm">Approving sends your profile and resume to {m.company} for this role. You can&apos;t undo a sent application.</p>
+                <p className="text-sm">
+                  Approving sends your profile and resume to {m.company} for this role. You can&apos;t undo a sent
+                  application.
+                </p>
                 <SubmitButton pendingText="Sending…">Approve and apply</SubmitButton>
               </>
             ) : (
               <>
-                <p className="text-sm">Declining means we won&apos;t send your profile and won&apos;t ask about this job again.</p>
+                <p className="text-sm">
+                  Declining means we won&apos;t send your profile and won&apos;t ask about this job again.
+                </p>
                 <SubmitButton variant="outline">Decline this match</SubmitButton>
               </>
             )}

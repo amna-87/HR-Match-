@@ -2,7 +2,10 @@
 // We render with React (auto-escaped), but also strip markup/control chars so
 // stored text is clean and can't smuggle HTML into emails or LLM prompts.
 
-const CONTROL = new RegExp("[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F\\u200B-\\u200F\\u2028\\u2029\\uFEFF]", "g");
+const CONTROL = new RegExp(
+  "[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F\\u200B-\\u200F\\u2028\\u2029\\uFEFF]",
+  "g",
+);
 
 export function stripHtml(input: string): string {
   return input

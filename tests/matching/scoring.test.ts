@@ -15,7 +15,12 @@ const job: JobForScoring = {
   max_exp: 10,
 };
 
-const cand = (id: string, skills: string[], years: number, extra: Partial<CandidateForScoring> = {}): CandidateForScoring => ({
+const cand = (
+  id: string,
+  skills: string[],
+  years: number,
+  extra: Partial<CandidateForScoring> = {},
+): CandidateForScoring => ({
   id,
   experience_years: years,
   skills: skills.map((s) => ({ skill: s, source: "parsed", domain: null })),
@@ -31,15 +36,30 @@ describe("skills", () => {
   });
 
   it("computes required/nice overlap", () => {
-    const o = skillOverlap(job.required_skills, job.nice_skills, [{ skill: "Facebook Ads", weight: 1, verified: false }], 1.5);
+    const o = skillOverlap(
+      job.required_skills,
+      job.nice_skills,
+      [{ skill: "Facebook Ads", weight: 1, verified: false }],
+      1.5,
+    );
     expect(o.requiredMatched).toEqual(["meta ads"]);
     expect(o.requiredMissing).toEqual(["social media marketing", "content strategy"]);
     expect(o.requiredScore).toBeCloseTo(1 / 3);
   });
 
   it("verified skills earn more credit than unverified partial matches", () => {
-    const unverified = skillOverlap(["copywriting"], [], [{ skill: "strong copywriting", weight: 1, verified: false }], 1.5);
-    const verified = skillOverlap(["copywriting"], [], [{ skill: "strong copywriting", weight: 1.5, verified: true }], 1.5);
+    const unverified = skillOverlap(
+      ["copywriting"],
+      [],
+      [{ skill: "strong copywriting", weight: 1, verified: false }],
+      1.5,
+    );
+    const verified = skillOverlap(
+      ["copywriting"],
+      [],
+      [{ skill: "strong copywriting", weight: 1.5, verified: true }],
+      1.5,
+    );
     expect(verified.requiredScore).toBeGreaterThan(unverified.requiredScore);
     expect(verified.verifiedMatched).toEqual(["copywriting"]);
   });
@@ -56,21 +76,38 @@ describe("experience fit", () => {
 
 describe("combined score", () => {
   it("is 0..100 with a stored breakdown and human-readable explanation", () => {
-    const m = scoreMatch(job, cand("a", ["social media marketing", "meta ads", "content strategy", "tiktok"], 6), 0.5, "local");
+    const m = scoreMatch(
+      job,
+      cand("a", ["social media marketing", "meta ads", "content strategy", "tiktok"], 6),
+      0.5,
+      "local",
+    );
     expect(m.score).toBeGreaterThan(70);
     expect(m.score).toBeLessThanOrEqual(100);
     expect(m.breakdown.overlap.requiredMatched).toHaveLength(3);
-    expect(m.explanation).toMatch(/^Matched on: social media marketing, meta ads, content strategy, tiktok; 6 years experience/);
+    expect(m.explanation).toMatch(
+      /^Matched on: social media marketing, meta ads, content strategy, tiktok; 6 years experience/,
+    );
   });
 
   it("ranks a relevant marketer above an unrelated engineer", () => {
     const embedder = new LocalEmbeddingProvider();
     const jobVec = embedder.embedOne("Social Media Marketing Manager. Meta Ads, content strategy, TikTok.");
     const marketer = embedder.embedOne(
-      candidateEmbeddingText({ headline: "Social media manager", skills: ["social media marketing", "meta ads"], experiences: [], certifications: [] }),
+      candidateEmbeddingText({
+        headline: "Social media manager",
+        skills: ["social media marketing", "meta ads"],
+        experiences: [],
+        certifications: [],
+      }),
     );
     const engineer = embedder.embedOne(
-      candidateEmbeddingText({ headline: "Backend engineer", skills: ["typescript", "postgresql"], experiences: [], certifications: [] }),
+      candidateEmbeddingText({
+        headline: "Backend engineer",
+        skills: ["typescript", "postgresql"],
+        experiences: [],
+        certifications: [],
+      }),
     );
     const cos = (a: number[], b: number[]) => a.reduce((s, x, i) => s + x * b[i], 0);
     const mk = scoreMatch(job, cand("m", ["social media marketing", "meta ads"], 5), cos(jobVec, marketer), "local");
@@ -110,7 +147,17 @@ Social media marketing manager with 6 years of Meta Ads experience.`;
 
   it("are stripped before embedding", () => {
     const out = stripProtectedCharacteristics(resume);
-    for (const banned of ["1990", "Female", "Married", "British", "Christian", "maya@example.test", "7946", "34", "she/her"]) {
+    for (const banned of [
+      "1990",
+      "Female",
+      "Married",
+      "British",
+      "Christian",
+      "maya@example.test",
+      "7946",
+      "34",
+      "she/her",
+    ]) {
       expect(out).not.toContain(banned);
     }
     expect(out).toContain("Social media marketing manager with 6 years of Meta Ads experience.");
@@ -118,7 +165,12 @@ Social media marketing manager with 6 years of Meta Ads experience.`;
 
   it("do not change the embedding (or the score)", () => {
     const e = new LocalEmbeddingProvider();
-    const base = candidateEmbeddingText({ summary: "Social media marketing manager.", skills: ["meta ads"], experiences: [], certifications: [] });
+    const base = candidateEmbeddingText({
+      summary: "Social media marketing manager.",
+      skills: ["meta ads"],
+      experiences: [],
+      certifications: [],
+    });
     const withProtected = candidateEmbeddingText({
       summary: "Gender: Male\nReligion: Hindu\nNationality: Indian\nSocial media marketing manager.",
       skills: ["meta ads"],

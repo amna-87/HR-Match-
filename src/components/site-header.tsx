@@ -28,7 +28,7 @@ export async function SiteHeader() {
   const appName = process.env.APP_NAME ?? "HireLoop";
   const nav = profile?.onboarded ? links[profile.role] : [];
   return (
-    <header className="border-b border-border bg-card">
+    <header className="border-border bg-card border-b">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
         <Link href="/" className="text-lg font-bold">
           {appName}
@@ -46,7 +46,7 @@ export async function SiteHeader() {
         <div className="flex items-center gap-3 text-sm">
           {profile ? (
             <>
-              <span className="hidden text-muted-foreground sm:inline">{profile.email}</span>
+              <span className="text-muted-foreground hidden sm:inline">{profile.email}</span>
               <form action="/auth/signout" method="post">
                 <button className="hover:underline">Sign out</button>
               </form>
@@ -56,7 +56,7 @@ export async function SiteHeader() {
               <Link href="/login" className="hover:underline">
                 Log in
               </Link>
-              <Link href="/signup" className="rounded-md bg-primary px-3 py-1.5 text-primary-foreground">
+              <Link href="/signup" className="bg-primary text-primary-foreground rounded-md px-3 py-1.5">
                 Sign up
               </Link>
             </>

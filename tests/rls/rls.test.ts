@@ -45,19 +45,25 @@ describe("candidates", () => {
   });
 
   it("a candidate cannot mark themselves claimed/unclaimed or write embeddings", async () => {
-    await expect(db.as(IDS.maya)("update candidates set claim_status = 'unclaimed' where id = $1", [mayaCid])).rejects.toThrow(
-      /protected candidate fields/,
-    );
+    await expect(
+      db.as(IDS.maya)("update candidates set claim_status = 'unclaimed' where id = $1", [mayaCid]),
+    ).rejects.toThrow(/protected candidate fields/);
   });
 
   it("a candidate can update their own preferences", async () => {
-    const r = await db.as(IDS.maya)("update candidates set availability = 'Immediately', open_to_work = true where id = $1", [mayaCid]);
+    const r = await db.as(IDS.maya)(
+      "update candidates set availability = 'Immediately', open_to_work = true where id = $1",
+      [mayaCid],
+    );
     expect(r.rowCount).toBe(1);
   });
 
   it("a candidate cannot forge verified skills", async () => {
     await expect(
-      db.as(IDS.maya)("insert into candidate_skills(candidate_id, skill, source) values ($1, 'leadership', 'verified')", [mayaCid]),
+      db.as(IDS.maya)(
+        "insert into candidate_skills(candidate_id, skill, source) values ($1, 'leadership', 'verified')",
+        [mayaCid],
+      ),
     ).rejects.toThrow(/verified/);
   });
 
@@ -74,7 +80,9 @@ describe("recruiters vs candidates", () => {
   });
 
   it("unclaimed profiles are never visible to recruiters", async () => {
-    const r = await db.as(IDS.rita)("select count(*)::int as n from candidates where id = $1", [IDS.unclaimedCandidate]);
+    const r = await db.as(IDS.rita)("select count(*)::int as n from candidates where id = $1", [
+      IDS.unclaimedCandidate,
+    ]);
     expect(r.rows[0].n).toBe(0);
   });
 
@@ -93,7 +101,9 @@ describe("recruiters vs candidates", () => {
     expect(apps.rows.map((r) => r.candidate_id)).toContain(mayaCid);
     const c = await db.as(IDS.rita)("select full_name from candidates where id = $1", [mayaCid]);
     expect(c.rows[0].full_name).toBe("Maya Chen");
-    const skills = await db.as(IDS.rita)("select count(*)::int n from candidate_skills where candidate_id = $1", [mayaCid]);
+    const skills = await db.as(IDS.rita)("select count(*)::int n from candidate_skills where candidate_id = $1", [
+      mayaCid,
+    ]);
     expect(skills.rows[0].n).toBeGreaterThan(0);
   });
 
@@ -109,19 +119,32 @@ describe("recruiters vs candidates", () => {
 
   it("the recruiter can move the application through stages (with history); others can't", async () => {
     const app = (await db.root("select id from applications where candidate_id = $1", [mayaCid])).rows[0].id;
-    expect((await db.as(IDS.rita)("update applications set stage = 'interview' where id = $1", [app])).rowCount).toBe(1);
+    expect((await db.as(IDS.rita)("update applications set stage = 'interview' where id = $1", [app])).rowCount).toBe(
+      1,
+    );
     expect((await db.as(IDS.gary)("update applications set stage = 'hired' where id = $1", [app])).rowCount).toBe(0);
-    await expect(db.as(IDS.maya)("update applications set stage = 'hired' where id = $1", [app])).resolves.toMatchObject({ rowCount: 0 });
-    await expect(db.as(IDS.rita)("update applications set consent_event_id = gen_random_uuid() where id = $1", [app])).rejects.toThrow(/permission denied/);
-    const h = await db.as(IDS.rita)("select from_stage, to_stage from application_stage_history where application_id = $1 order by changed_at", [app]);
+    await expect(
+      db.as(IDS.maya)("update applications set stage = 'hired' where id = $1", [app]),
+    ).resolves.toMatchObject({ rowCount: 0 });
+    await expect(
+      db.as(IDS.rita)("update applications set consent_event_id = gen_random_uuid() where id = $1", [app]),
+    ).rejects.toThrow(/permission denied/);
+    const h = await db.as(IDS.rita)(
+      "select from_stage, to_stage from application_stage_history where application_id = $1 order by changed_at",
+      [app],
+    );
     expect(h.rows.map((r) => r.to_stage)).toEqual(["new", "interview"]);
     // candidates can see their stage but not the internal history
-    expect((await db.as(IDS.maya)("select stage from applications where id = $1", [app])).rows[0].stage).toBe("interview");
+    expect((await db.as(IDS.maya)("select stage from applications where id = $1", [app])).rows[0].stage).toBe(
+      "interview",
+    );
     expect((await db.as(IDS.maya)("select count(*)::int n from application_stage_history")).rows[0].n).toBe(0);
   });
 
   it("recruiter_job_matches refuses jobs of other companies", async () => {
-    await expect(db.as(IDS.gary)("select * from recruiter_job_matches($1)", [IDS.jobSocial])).rejects.toThrow(/not allowed/);
+    await expect(db.as(IDS.gary)("select * from recruiter_job_matches($1)", [IDS.jobSocial])).rejects.toThrow(
+      /not allowed/,
+    );
   });
 
   it("recruiter_job_matches only lists consenting candidates", async () => {
@@ -133,7 +156,9 @@ describe("recruiters vs candidates", () => {
 
 describe("companies and jobs", () => {
   it("a recruiter can edit their own company's job", async () => {
-    const r = await db.as(IDS.rita)("update jobs set description_summary = description_summary || ' ' where id = $1", [IDS.jobSocial]);
+    const r = await db.as(IDS.rita)("update jobs set description_summary = description_summary || ' ' where id = $1", [
+      IDS.jobSocial,
+    ]);
     expect(r.rowCount).toBe(1);
   });
 
@@ -178,7 +203,9 @@ describe("companies and jobs", () => {
   });
 
   it("anonymous users cannot write anything", async () => {
-    await expect(db.anon("insert into takedown_requests(requester_contact, reason) values ('a@b.c', 'x')")).rejects.toThrow();
+    await expect(
+      db.anon("insert into takedown_requests(requester_contact, reason) values ('a@b.c', 'x')"),
+    ).rejects.toThrow();
   });
 
   it("candidates cannot create companies (create_company)", async () => {
@@ -230,9 +257,13 @@ describe("internal tables", () => {
       "insert into notifications(user_id, type, channel, payload) values ($1, 't', 'in_app', '{}'), ($1, 't', 'email', '{}')",
       [IDS.jordan],
     );
-    expect((await db.as(IDS.maya)("select count(*)::int n from notifications where user_id = $1", [IDS.jordan])).rows[0].n).toBe(0);
+    expect(
+      (await db.as(IDS.maya)("select count(*)::int n from notifications where user_id = $1", [IDS.jordan])).rows[0].n,
+    ).toBe(0);
     expect((await db.as(IDS.jordan)("select count(*)::int n from notifications")).rows[0].n).toBe(1);
-    await expect(db.as(IDS.jordan)("update notifications set payload = '{}' where user_id = $1", [IDS.jordan])).rejects.toThrow();
+    await expect(
+      db.as(IDS.jordan)("update notifications set payload = '{}' where user_id = $1", [IDS.jordan]),
+    ).rejects.toThrow();
   });
 });
 
@@ -243,7 +274,9 @@ describe("storage", () => {
   });
 
   it("a candidate can only write/read files in their own folder", async () => {
-    await db.as(IDS.maya)("insert into storage.objects(bucket_id, name) values ('resumes', $1)", [`${IDS.maya}/cv.pdf`]);
+    await db.as(IDS.maya)("insert into storage.objects(bucket_id, name) values ('resumes', $1)", [
+      `${IDS.maya}/cv.pdf`,
+    ]);
     await expect(
       db.as(IDS.maya)("insert into storage.objects(bucket_id, name) values ('resumes', $1)", [`${IDS.jordan}/cv.pdf`]),
     ).rejects.toThrow();

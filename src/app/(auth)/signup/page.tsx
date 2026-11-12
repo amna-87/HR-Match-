@@ -23,10 +23,12 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
           <fieldset className="space-y-2">
             <legend className="text-sm font-medium">I am…</legend>
             <label className="flex items-center gap-2 text-sm">
-              <input type="radio" name="role" value="candidate" defaultChecked={role === "candidate"} /> Looking for work
+              <input type="radio" name="role" value="candidate" defaultChecked={role === "candidate"} /> Looking for
+              work
             </label>
             <label className="flex items-center gap-2 text-sm">
-              <input type="radio" name="role" value="recruiter" defaultChecked={role === "recruiter"} /> Hiring for a company
+              <input type="radio" name="role" value="recruiter" defaultChecked={role === "recruiter"} /> Hiring for a
+              company
             </label>
           </fieldset>
           <Field label="Full name" htmlFor="full_name">
@@ -36,13 +38,28 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
             <Input id="email" name="email" type="email" autoComplete="email" required />
           </Field>
           <Field label="Password" htmlFor="password" hint="At least 10 characters.">
-            <Input id="password" name="password" type="password" autoComplete="new-password" minLength={10} required aria-describedby="password-hint" />
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="new-password"
+              minLength={10}
+              required
+              aria-describedby="password-hint"
+            />
           </Field>
           <label className="flex items-start gap-2 text-sm">
             <input type="checkbox" name="terms" required className="mt-1" />
             <span>
-              I agree to the <Link href="/terms" className="underline">Terms</Link> and{" "}
-              <Link href="/privacy" className="underline">Privacy Policy</Link>.
+              I agree to the{" "}
+              <Link href="/terms" className="underline">
+                Terms
+              </Link>{" "}
+              and{" "}
+              <Link href="/privacy" className="underline">
+                Privacy Policy
+              </Link>
+              .
             </span>
           </label>
           <SubmitButton className="w-full">Create account</SubmitButton>
@@ -53,7 +70,10 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
           </Button>
         </form>
         <p className="text-sm">
-          Already have an account? <Link href="/login" className="underline">Log in</Link>
+          Already have an account?{" "}
+          <Link href="/login" className="underline">
+            Log in
+          </Link>
         </p>
       </CardContent>
     </Card>

@@ -22,7 +22,10 @@ export async function POST(req: NextRequest) {
   const event = JSON.parse(body) as { type: string; data?: { email_id?: string } };
   const status = deliveryStatusFor(event.type);
   if (status && event.data?.email_id) {
-    await getPool().query("update public.notifications set delivery_status = $2 where provider_message_id = $1", [event.data.email_id, status]);
+    await getPool().query("update public.notifications set delivery_status = $2 where provider_message_id = $1", [
+      event.data.email_id,
+      status,
+    ]);
   }
   return NextResponse.json({ ok: true });
 }

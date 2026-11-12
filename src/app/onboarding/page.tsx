@@ -30,8 +30,15 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
           <label className="flex items-start gap-2 text-sm">
             <input type="checkbox" name="terms" required className="mt-1" />
             <span>
-              I agree to the <Link href="/terms" className="underline">Terms</Link> and{" "}
-              <Link href="/privacy" className="underline">Privacy Policy</Link>.
+              I agree to the{" "}
+              <Link href="/terms" className="underline">
+                Terms
+              </Link>{" "}
+              and{" "}
+              <Link href="/privacy" className="underline">
+                Privacy Policy
+              </Link>
+              .
             </span>
           </label>
           <SubmitButton className="w-full">Continue</SubmitButton>

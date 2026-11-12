@@ -69,7 +69,8 @@ export function scoreMatch(
   const skills = cfg.skillSplit.required * overlap.requiredScore + cfg.skillSplit.nice * overlap.niceScore;
   const semantic = normalizeSemantic(semanticRaw, provider);
   const experience = experienceFit(cand.experience_years, job.min_exp, job.max_exp);
-  const base = 100 * (cfg.weights.semantic * semantic + cfg.weights.skills * skills + cfg.weights.experience * experience);
+  const base =
+    100 * (cfg.weights.semantic * semantic + cfg.weights.skills * skills + cfg.weights.experience * experience);
 
   // Verified-strength boost: only for domains the candidate opted in to that this job is in.
   const jobDomains = new Set(job.domains.map(normalizeSkill));
@@ -121,7 +122,9 @@ export function explainMatch(
   }
   if (isVetted) parts.push("interview-vetted strengths in this area");
   const head = parts.length ? `Matched on: ${parts.join("; ")}.` : "Matched on overall profile similarity.";
-  const missing = b.overlap.requiredMissing.length ? ` Missing: ${b.overlap.requiredMissing.slice(0, 3).join(", ")}.` : "";
+  const missing = b.overlap.requiredMissing.length
+    ? ` Missing: ${b.overlap.requiredMissing.slice(0, 3).join(", ")}.`
+    : "";
   return head + missing;
 }
 

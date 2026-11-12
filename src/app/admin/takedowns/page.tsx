@@ -30,21 +30,37 @@ export default async function AdminTakedowns({ searchParams }: { searchParams: P
                 <Badge tone={r.status === "open" ? "warning" : "muted"}>{r.status}</Badge>
                 <span>{formatDate(r.created_at)}</span>
                 {job ? (
-                  <Link className="underline" href={`/jobs/${job.id}`}>{job.title} ({job.status})</Link>
+                  <Link className="underline" href={`/jobs/${job.id}`}>
+                    {job.title} ({job.status})
+                  </Link>
                 ) : (
                   <span>{r.job_reference ?? "No listing linked"}</span>
                 )}
               </div>
-              <p><strong>From:</strong> {r.requester_contact}</p>
-              <p className="whitespace-pre-line"><strong>Reason:</strong> {r.reason}</p>
-              {r.resolution_note && <p><strong>Resolution:</strong> {r.resolution_note}</p>}
+              <p>
+                <strong>From:</strong> {r.requester_contact}
+              </p>
+              <p className="whitespace-pre-line">
+                <strong>Reason:</strong> {r.reason}
+              </p>
+              {r.resolution_note && (
+                <p>
+                  <strong>Resolution:</strong> {r.resolution_note}
+                </p>
+              )}
               {r.status === "open" && (
                 <form action={resolveTakedown} className="flex flex-wrap items-center gap-2">
                   <input type="hidden" name="id" value={r.id} />
-                  <label htmlFor={`note-${r.id}`} className="sr-only">Note</label>
+                  <label htmlFor={`note-${r.id}`} className="sr-only">
+                    Note
+                  </label>
                   <Input id={`note-${r.id}`} name="note" placeholder="Resolution note" className="max-w-xs" />
-                  <Button size="sm" name="decision" value="remove" variant="destructive">{job ? "Remove listing" : "Mark resolved"}</Button>
-                  <Button size="sm" name="decision" value="reject" variant="outline">Reject</Button>
+                  <Button size="sm" name="decision" value="remove" variant="destructive">
+                    {job ? "Remove listing" : "Mark resolved"}
+                  </Button>
+                  <Button size="sm" name="decision" value="reject" variant="outline">
+                    Reject
+                  </Button>
                 </form>
               )}
             </CardContent>

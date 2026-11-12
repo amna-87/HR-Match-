@@ -17,7 +17,7 @@ export function Select({ className, ...props }: React.SelectHTMLAttributes<HTMLS
 }
 
 export function Label({ className, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) {
-  return <label className={cn("text-sm font-medium leading-none", className)} {...props} />;
+  return <label className={cn("text-sm leading-none font-medium", className)} {...props} />;
 }
 
 /** Label + control + optional hint, wired up with ids for accessibility. */
@@ -39,7 +39,7 @@ export function Field({
       <Label htmlFor={htmlFor}>{label}</Label>
       {children}
       {hint && (
-        <p id={`${htmlFor}-hint`} className="text-xs text-muted-foreground">
+        <p id={`${htmlFor}-hint`} className="text-muted-foreground text-xs">
           {hint}
         </p>
       )}
@@ -50,7 +50,7 @@ export function Field({
 export function Checkbox({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
   return (
     <label className="flex items-center gap-2 text-sm">
-      <input type="checkbox" className="h-4 w-4 rounded border-border accent-primary" {...props} />
+      <input type="checkbox" className="border-border accent-primary h-4 w-4 rounded" {...props} />
       {label}
     </label>
   );

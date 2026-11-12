@@ -15,7 +15,10 @@ const root = new URL("..", import.meta.url).pathname;
 export async function resetDatabase(name = dbName, { seed = false } = {}) {
   const admin = new pg.Client({ connectionString: adminUrl });
   await admin.connect();
-  await admin.query(`select pg_terminate_backend(pid) from pg_stat_activity where datname = $1 and pid <> pg_backend_pid()`, [name]);
+  await admin.query(
+    `select pg_terminate_backend(pid) from pg_stat_activity where datname = $1 and pid <> pg_backend_pid()`,
+    [name],
+  );
   await admin.query(`drop database if exists "${name}"`);
   await admin.query(`create database "${name}"`);
   await admin.end();
@@ -26,7 +29,10 @@ export async function resetDatabase(name = dbName, { seed = false } = {}) {
   await db.connect();
   const files = [join(root, "supabase/test-shim/00_supabase_shim.sql")];
   const migDir = join(root, "supabase/migrations");
-  for (const f of readdirSync(migDir).filter((f) => f.endsWith(".sql")).sort()) files.push(join(migDir, f));
+  for (const f of readdirSync(migDir)
+    .filter((f) => f.endsWith(".sql"))
+    .sort())
+    files.push(join(migDir, f));
   if (seed) files.push(join(root, "supabase/seed.sql"));
   for (const f of files) {
     try {
@@ -47,5 +53,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
   resetDatabase(dbName, { seed: args.includes("--seed") })
     .then((u) => console.log(`database ready: ${u}`))
-    .catch((e) => { console.error(e.message); process.exit(1); });
+    .catch((e) => {
+      console.error(e.message);
+      process.exit(1);
+    });
 }

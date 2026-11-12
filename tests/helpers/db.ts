@@ -29,13 +29,13 @@ export const IDS = {
 } as const;
 
 export type Actor =
-  | { role: "anon" }
-  | { role: "service_role" }
-  | { role: "authenticated"; sub: string }
-  | { role: "postgres" };
+  { role: "anon" } | { role: "service_role" } | { role: "authenticated"; sub: string } | { role: "postgres" };
 
 export class TestDb {
-  constructor(public pool: pg.Pool, public url: string) {}
+  constructor(
+    public pool: pg.Pool,
+    public url: string,
+  ) {}
 
   /** Run one statement as an actor, in its own transaction. */
   async q<T extends pg.QueryResultRow = pg.QueryResultRow>(actor: Actor, sql: string, params: unknown[] = []) {
@@ -43,7 +43,8 @@ export class TestDb {
     try {
       await client.query("begin");
       if (actor.role !== "postgres") {
-        const claims = actor.role === "authenticated" ? { sub: actor.sub, role: "authenticated" } : { role: actor.role };
+        const claims =
+          actor.role === "authenticated" ? { sub: actor.sub, role: "authenticated" } : { role: actor.role };
         await client.query("select set_config('request.jwt.claims', $1, true)", [JSON.stringify(claims)]);
         await client.query(`set local role ${actor.role}`);
       }
@@ -90,10 +91,11 @@ export async function createTestDb(name: string): Promise<TestDb> {
 
 /** Make a match "notified" the way the notifier would (service role). */
 export async function suggestAndNotify(db: TestDb, jobId: string, candidateId: string, score = 85) {
-  const r = await db.service<{ upsert_match: string }>(
-    "select upsert_match($1, $2, $3, '{}'::jsonb, 'test', false)",
-    [jobId, candidateId, score],
-  );
+  const r = await db.service<{ upsert_match: string }>("select upsert_match($1, $2, $3, '{}'::jsonb, 'test', false)", [
+    jobId,
+    candidateId,
+    score,
+  ]);
   const matchId = r.rows[0].upsert_match;
   await db.service("select mark_match_notified($1, 14)", [matchId]);
   return matchId;

@@ -24,7 +24,14 @@ describe("ranking on seeded data", () => {
     const pos = (n: string) => ranked.indexOf(n);
     expect(pos("Maya Chen")).toBe(0);
     for (const relevant of ["Maya Chen", "Jordan Alvarez"]) {
-      for (const unrelated of ["Sam Okafor", "Lena Fischer", "Diego Santos", "Aisha Rahman", "Chris Patel", "Tom Becker"]) {
+      for (const unrelated of [
+        "Sam Okafor",
+        "Lena Fischer",
+        "Diego Santos",
+        "Aisha Rahman",
+        "Chris Patel",
+        "Tom Becker",
+      ]) {
         if (pos(unrelated) === -1) continue; // filtered out entirely is fine too
         expect(pos(relevant), `${relevant} vs ${unrelated}`).toBeLessThan(pos(unrelated));
       }
@@ -35,7 +42,10 @@ describe("ranking on seeded data", () => {
   });
 
   it("applies hard filters: paused, not-open, unclaimed and under-experienced profiles are excluded", async () => {
-    const r = await db.root("select c.full_name from matches m join candidates c on c.id = m.candidate_id where m.job_id = $1", [IDS.jobSocial]);
+    const r = await db.root(
+      "select c.full_name from matches m join candidates c on c.id = m.candidate_id where m.job_id = $1",
+      [IDS.jobSocial],
+    );
     const names = r.rows.map((x) => x.full_name);
     expect(names).not.toContain("Noah Williams"); // visibility paused
     expect(names).not.toContain("Elena Rossi"); // not open to work
@@ -74,9 +84,14 @@ describe("idempotency", () => {
   });
 
   it("does not touch matches that were already sent or answered", async () => {
-    const m = (await db.root("select id, score from matches where job_id = $1 order by score desc limit 1", [IDS.jobSocial])).rows[0];
+    const m = (
+      await db.root("select id, score from matches where job_id = $1 order by score desc limit 1", [IDS.jobSocial])
+    ).rows[0];
     await db.service("select mark_match_notified($1)", [m.id]);
-    await db.root("update candidates set summary = summary || ' Also loves spreadsheets.' where id = (select candidate_id from matches where id = $1)", [m.id]);
+    await db.root(
+      "update candidates set summary = summary || ' Also loves spreadsheets.' where id = (select candidate_id from matches where id = $1)",
+      [m.id],
+    );
     await runPendingMatching(deps);
     await matchJob(deps, IDS.jobSocial);
     const row = (await db.root("select status, score from matches where id = $1", [m.id])).rows[0];
@@ -87,7 +102,10 @@ describe("idempotency", () => {
   it("candidate-side matching finds the right jobs", async () => {
     const sam = await db.candidateId(IDS.sam);
     const res = await matchCandidate(deps, sam);
-    const titles = await db.root("select j.title from matches m join jobs j on j.id = m.job_id where m.candidate_id = $1 order by m.score desc", [sam]);
+    const titles = await db.root(
+      "select j.title from matches m join jobs j on j.id = m.job_id where m.candidate_id = $1 order by m.score desc",
+      [sam],
+    );
     expect(titles.rows[0].title).toMatch(/Backend/);
     expect(res.kept).toBeGreaterThan(0);
   });

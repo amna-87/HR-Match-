@@ -55,7 +55,8 @@ export function verifyToken(token: string, allowed: TokenPurpose[], now = new Da
   // purpose is bound into the MAC, so a token can't be re-labelled
   const expected = createHmac("sha256", secret()).update(`${payload.p}.${body}`).digest();
   const given = Buffer.from(sig, "base64url");
-  if (given.length !== expected.length || !timingSafeEqual(given, expected)) return { ok: false, reason: "bad_signature" };
+  if (given.length !== expected.length || !timingSafeEqual(given, expected))
+    return { ok: false, reason: "bad_signature" };
   if (!allowed.includes(payload.p)) return { ok: false, reason: "wrong_purpose" };
   if (payload.e * 1000 <= now.getTime()) return { ok: false, reason: "expired" };
   return { ok: true, payload };

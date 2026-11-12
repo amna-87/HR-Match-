@@ -12,10 +12,11 @@ import { SourcedJobSchema } from "@/lib/job-schema";
 import { SOURCED_JOB_CONFIG } from "@/lib/matching/config";
 import { sanitizeText } from "@/lib/security/sanitize";
 import { listFromForm, numOrNull } from "@/lib/utils";
-import type { SaveState } from "@/components/job-editor";
+import type { SaveState } from "@/lib/job-values";
 import type { ExtractState } from "@/app/recruiter/actions";
 
-const go = (path: string, key: "ok" | "error", msg: string): never => redirect(`${path}?${key}=${encodeURIComponent(msg)}`);
+const go = (path: string, key: "ok" | "error", msg: string): never =>
+  redirect(`${path}?${key}=${encodeURIComponent(msg)}`);
 
 export async function setUserStatus(formData: FormData) {
   const { user } = await requireRole("admin");
@@ -35,7 +36,10 @@ export async function moderateJob(formData: FormData) {
   if (!["removed", "published", "paused"].includes(status)) go("/admin/jobs", "error", "Invalid status.");
   const { error } = await supabase.from("jobs").update({ status }).eq("id", id);
   if (error) go("/admin/jobs", "error", error.message);
-  await audit(user.id, "admin", "admin.job_moderated", "jobs", id, { status, reason: sanitizeText(String(formData.get("reason") ?? ""), 500) });
+  await audit(user.id, "admin", "admin.job_moderated", "jobs", id, {
+    status,
+    reason: sanitizeText(String(formData.get("reason") ?? ""), 500),
+  });
   if (status === "published") scheduleJobMatching(id);
   go("/admin/jobs", "ok", `Job ${status}.`);
 }
@@ -48,7 +52,12 @@ export async function extractSourcedJob(_prev: ExtractState, formData: FormData)
   try {
     return { parsed: await parseJobText(text) };
   } catch (e) {
-    return { error: e instanceof AiUnavailableError ? "Automatic extraction is unavailable — please fill in the form." : "Couldn't extract fields." };
+    return {
+      error:
+        e instanceof AiUnavailableError
+          ? "Automatic extraction is unavailable — please fill in the form."
+          : "Couldn't extract fields.",
+    };
   }
 }
 
@@ -79,7 +88,9 @@ export async function saveSourcedJob(_prev: SaveState, formData: FormData): Prom
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Please check the form." };
   const j = parsed.data;
   if (j.description_summary.length > 1500) {
-    return { error: "Keep the summary short and in our own words (max 1500 characters) — don't copy the full listing." };
+    return {
+      error: "Keep the summary short and in our own words (max 1500 characters) — don't copy the full listing.",
+    };
   }
 
   // Duplicate detection: title + company + location + text similarity.
@@ -125,7 +136,10 @@ export async function saveSourcedJob(_prev: SaveState, formData: FormData): Prom
     .select("id")
     .single();
   if (error || !data) return { error: error?.message ?? "Could not save." };
-  await audit(user.id, "admin", "admin.sourced_job_created", "jobs", data.id, { source_name: j.source_name, source_url: j.source_url });
+  await audit(user.id, "admin", "admin.sourced_job_created", "jobs", data.id, {
+    source_name: j.source_name,
+    source_url: j.source_url,
+  });
   if (publish) scheduleJobMatching(data.id);
   revalidatePath("/admin/jobs");
   return go("/admin/jobs", "ok", publish ? "Sourced job published." : "Sourced job saved as draft.");

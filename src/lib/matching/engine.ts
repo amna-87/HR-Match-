@@ -223,7 +223,11 @@ export async function matchJob(deps: EngineDeps, jobId: string): Promise<MatchRu
     hits.rows.map((h) => h.candidate_id),
   );
   const scored = hits.rows
-    .map((h) => cands.get(h.candidate_id) && scoreMatch(job, cands.get(h.candidate_id)!, Number(h.similarity), deps.embedder.name))
+    .map(
+      (h) =>
+        cands.get(h.candidate_id) &&
+        scoreMatch(job, cands.get(h.candidate_id)!, Number(h.similarity), deps.embedder.name),
+    )
     .filter((m): m is ScoredMatch => !!m);
   await applyRerank(deps, job, scored);
 

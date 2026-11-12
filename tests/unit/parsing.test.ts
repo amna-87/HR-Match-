@@ -45,7 +45,16 @@ describe("parsed resume cleanup", () => {
       summary: "Married mother of two, aged 34. Social media marketer.",
       location: "London, UK",
       skills: ["Meta Ads", "meta ads", " SEO "],
-      experiences: [{ title: "Lead", company: "Acme", start_date: "2019-3", end_date: "", is_current: true, description: "Gender: female\nRan campaigns." }],
+      experiences: [
+        {
+          title: "Lead",
+          company: "Acme",
+          start_date: "2019-3",
+          end_date: "",
+          is_current: true,
+          description: "Gender: female\nRan campaigns.",
+        },
+      ],
       education: [],
       certifications: [],
       languages: [],

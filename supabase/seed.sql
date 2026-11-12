@@ -32,8 +32,17 @@ do $$ begin
         encrypted_password = extensions.crypt('Password123!', extensions.gen_salt('bf')),
         email_confirmed_at = now(), aud = 'authenticated', role = 'authenticated',
         instance_id = '00000000-0000-0000-0000-000000000000',
-        raw_app_meta_data = '{"provider":"email","providers":["email"]}'
+        raw_app_meta_data = '{"provider":"email","providers":["email"]}',
+        confirmation_token = '', recovery_token = '', email_change_token_new = '', email_change = '',
+        email_change_token_current = '', reauthentication_token = '', phone_change = '', phone_change_token = '',
+        created_at = coalesce(created_at, now()), updated_at = now()
       where email like '%example.test'
+    $q$;
+    execute $q$
+      insert into auth.identities (provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
+      select u.id::text, u.id, jsonb_build_object('sub', u.id::text, 'email', u.email, 'email_verified', true), 'email', now(), now(), now()
+      from auth.users u where u.email like '%example.test'
+      on conflict do nothing
     $q$;
   end if;
 end $$;

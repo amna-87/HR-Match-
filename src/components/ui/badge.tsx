@@ -13,6 +13,15 @@ const tones: Record<Tone, string> = {
   vetted: "bg-violet-100 text-violet-900 dark:bg-violet-900/40 dark:text-violet-100",
 };
 
-export function Badge({ tone = "muted", className, ...props }: React.HTMLAttributes<HTMLSpanElement> & { tone?: Tone }) {
-  return <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium", tones[tone], className)} {...props} />;
+export function Badge({
+  tone = "muted",
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLSpanElement> & { tone?: Tone }) {
+  return (
+    <span
+      className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium", tones[tone], className)}
+      {...props}
+    />
+  );
 }

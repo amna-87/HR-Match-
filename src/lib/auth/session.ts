@@ -20,7 +20,11 @@ export async function getSession() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { supabase, user: null, profile: null } as const;
-  const { data: profile } = await supabase.from("users").select("id, email, role, status, onboarded").eq("id", user.id).single();
+  const { data: profile } = await supabase
+    .from("users")
+    .select("id, email, role, status, onboarded")
+    .eq("id", user.id)
+    .single();
   return { supabase, user, profile: (profile as SessionProfile | null) ?? null } as const;
 }
 

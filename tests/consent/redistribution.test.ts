@@ -40,7 +40,10 @@ describe("feedback form", () => {
 
   it("good_fit_different_role requires a suggested domain", async () => {
     await expect(
-      db.as(IDS.rita)("insert into interview_feedback(application_id, outcome) values ($1, 'good_fit_different_role')", [appId]),
+      db.as(IDS.rita)(
+        "insert into interview_feedback(application_id, outcome) values ($1, 'good_fit_different_role')",
+        [appId],
+      ),
     ).rejects.toThrow(/suggested domain/);
   });
 
@@ -74,11 +77,21 @@ describe("privacy of internal feedback", () => {
 
   it("admins cannot read feedback directly, only via the logged function with a reason", async () => {
     expect((await db.as(IDS.admin)("select count(*)::int n from interview_feedback")).rows[0].n).toBe(0);
-    await expect(db.as(IDS.admin)("select * from admin_read_feedback($1, 'x')", [feedbackId])).rejects.toThrow(/reason/);
-    await expect(db.as(IDS.rita)("select * from admin_read_feedback($1, 'investigating a complaint')", [feedbackId])).rejects.toThrow(/not allowed/);
-    const r = await db.as(IDS.admin)("select private_note from admin_read_feedback($1, 'investigating complaint #12')", [feedbackId]);
+    await expect(db.as(IDS.admin)("select * from admin_read_feedback($1, 'x')", [feedbackId])).rejects.toThrow(
+      /reason/,
+    );
+    await expect(
+      db.as(IDS.rita)("select * from admin_read_feedback($1, 'investigating a complaint')", [feedbackId]),
+    ).rejects.toThrow(/not allowed/);
+    const r = await db.as(IDS.admin)(
+      "select private_note from admin_read_feedback($1, 'investigating complaint #12')",
+      [feedbackId],
+    );
     expect(r.rows[0].private_note).toBe(SECRET_NOTE);
-    const log = await db.root("select metadata from audit_log where action = 'admin.read_private_feedback' and entity_id = $1", [feedbackId]);
+    const log = await db.root(
+      "select metadata from audit_log where action = 'admin.read_private_feedback' and entity_id = $1",
+      [feedbackId],
+    );
     expect(log.rows[0].metadata.reason).toContain("complaint");
   });
 
@@ -107,7 +120,9 @@ describe("privacy of internal feedback", () => {
 
 describe("opt-in controls visibility to other recruiters", () => {
   const visibleToIvy = async () =>
-    (await db.as(IDS.ivy)("select * from recruiter_job_matches($1)", [contentJob])).rows.filter((r) => r.candidate_id === maya);
+    (await db.as(IDS.ivy)("select * from recruiter_job_matches($1)", [contentJob])).rows.filter(
+      (r) => r.candidate_id === maya,
+    );
 
   it("before opting in, the candidate is invisible to other recruiters", async () => {
     expect(await visibleToIvy()).toHaveLength(0);
@@ -135,11 +150,17 @@ describe("opt-in controls visibility to other recruiters", () => {
     expect(rows[0].vetted_strengths).toEqual(expect.arrayContaining(["strong copywriting"]));
     expect(rows[0].vetted_source_labels).toEqual(["a previous employer's recruiter"]);
     // verified skills are now a separate, higher-weight signal
-    const vs = await db.root("select skill, weight from candidate_skills where candidate_id = $1 and source = 'verified'", [maya]);
+    const vs = await db.root(
+      "select skill, weight from candidate_skills where candidate_id = $1 and source = 'verified'",
+      [maya],
+    );
     expect(vs.rows.map((r) => r.skill)).toEqual(expect.arrayContaining(["strong copywriting", "content"]));
     expect(Number(vs.rows[0].weight)).toBeGreaterThan(1);
     // consent was recorded
-    const ce = await db.root("select count(*)::int n from consent_events where type = 'redistribution_opt_in' and candidate_id = $1", [maya]);
+    const ce = await db.root(
+      "select count(*)::int n from consent_events where type = 'redistribution_opt_in' and candidate_id = $1",
+      [maya],
+    );
     expect(ce.rows[0].n).toBe(1);
   });
 
@@ -154,14 +175,19 @@ describe("opt-in controls visibility to other recruiters", () => {
 
   it("another candidate cannot change Maya's consent", async () => {
     const offer = (await db.as(IDS.maya)("select id from redistribution_consent where domain = 'content'")).rows[0].id;
-    await expect(db.as(IDS.jordan)("select set_redistribution_consent($1, 'withdrawn')", [offer])).rejects.toThrow(/not found/);
+    await expect(db.as(IDS.jordan)("select set_redistribution_consent($1, 'withdrawn')", [offer])).rejects.toThrow(
+      /not found/,
+    );
   });
 
   it("withdrawing hides them again and removes the verified signal", async () => {
     const offer = (await db.as(IDS.maya)("select id from redistribution_consent where domain = 'content'")).rows[0].id;
     await db.as(IDS.maya)("select set_redistribution_consent($1, 'withdrawn')", [offer]);
     expect(await visibleToIvy()).toHaveLength(0);
-    const vs = await db.root("select count(*)::int n from candidate_skills where candidate_id = $1 and source = 'verified'", [maya]);
+    const vs = await db.root(
+      "select count(*)::int n from candidate_skills where candidate_id = $1 and source = 'verified'",
+      [maya],
+    );
     expect(vs.rows[0].n).toBe(0);
   });
 

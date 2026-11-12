@@ -16,7 +16,8 @@ export interface NotifierDeps {
   now?: Date;
 }
 
-const appUrl = (d: NotifierDeps) => (d.appUrl ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
+const appUrl = (d: NotifierDeps) =>
+  (d.appUrl ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
 export function unsubscribeUrls(d: NotifierDeps, candidateId: string, now = new Date()) {
   const exp = new Date(now.getTime() + 365 * 86400_000);
@@ -63,7 +64,8 @@ function isThrottled(rc: Recipient, now: Date): boolean {
   if (!rc.match_emails_enabled) return false; // in-app only: no email to throttle
   if (rc.emails_last_week >= NOTIFY_CONFIG.maxEmailsPerWeek) return true;
   const gapH = NOTIFY_CONFIG.frequencyHours[rc.match_email_frequency] ?? 0;
-  if (gapH > 0 && rc.last_email_at && now.getTime() - new Date(rc.last_email_at).getTime() < gapH * 3600_000) return true;
+  if (gapH > 0 && rc.last_email_at && now.getTime() - new Date(rc.last_email_at).getTime() < gapH * 3600_000)
+    return true;
   return false;
 }
 
@@ -77,7 +79,13 @@ export interface NotifierResult {
 
 export async function runNotifier(deps: NotifierDeps): Promise<NotifierResult> {
   const now = deps.now ?? new Date();
-  const out: NotifierResult = { candidatesNotified: 0, matchesNotified: 0, throttled: 0, emailsSent: 0, emailsFailed: 0 };
+  const out: NotifierResult = {
+    candidatesNotified: 0,
+    matchesNotified: 0,
+    throttled: 0,
+    emailsSent: 0,
+    emailsFailed: 0,
+  };
   const recipients = await recipientsWithPendingMatches(deps.db, MATCHING_CONFIG.threshold);
 
   for (const rc of recipients) {
@@ -145,10 +153,10 @@ export async function deliverPendingEmails(deps: NotifierDeps): Promise<{ sent: 
   for (const n of rows.rows) {
     const rendered = await renderNotification(deps, n);
     if (!rendered) {
-      await deps.db.query("update public.notifications set delivery_status = 'skipped', last_error = $2 where id = $1", [
-        n.id,
-        "nothing to send (unsubscribed, unclaimed, or matches no longer open)",
-      ]);
+      await deps.db.query(
+        "update public.notifications set delivery_status = 'skipped', last_error = $2 where id = $1",
+        [n.id, "nothing to send (unsubscribed, unclaimed, or matches no longer open)"],
+      );
       continue;
     }
     let attempts = n.attempts;
@@ -180,11 +188,10 @@ export async function deliverPendingEmails(deps: NotifierDeps): Promise<{ sent: 
       );
     } else {
       failed++;
-      await deps.db.query("update public.notifications set delivery_status = 'failed', attempts = $2, last_error = $3 where id = $1", [
-        n.id,
-        attempts,
-        lastError?.slice(0, 1000) ?? "unknown error",
-      ]);
+      await deps.db.query(
+        "update public.notifications set delivery_status = 'failed', attempts = $2, last_error = $3 where id = $1",
+        [n.id, attempts, lastError?.slice(0, 1000) ?? "unknown error"],
+      );
     }
   }
   return { sent, failed };
@@ -252,7 +259,15 @@ async function renderNotification(deps: NotifierDeps, n: PendingEmail) {
     return {
       to: who.email,
       headers,
-      ...redistributionEmail(first, p.source_label, p.job_title, p.domains, p.strengths, `${appUrl(deps)}/candidate#visibility`, unsub),
+      ...redistributionEmail(
+        first,
+        p.source_label,
+        p.job_title,
+        p.domains,
+        p.strengths,
+        `${appUrl(deps)}/candidate#visibility`,
+        unsub,
+      ),
     };
   }
   return null;

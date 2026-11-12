@@ -50,7 +50,11 @@ export async function logIn(formData: FormData) {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error || !data.user) fail("/login", "Invalid email or password, or email not verified yet.");
-  const { data: profile } = await supabase.from("users").select("role, onboarded, status").eq("id", data.user!.id).single();
+  const { data: profile } = await supabase
+    .from("users")
+    .select("role, onboarded, status")
+    .eq("id", data.user!.id)
+    .single();
   if (profile?.status !== "active") {
     await supabase.auth.signOut();
     fail("/login", "This account is unavailable.");

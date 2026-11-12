@@ -15,15 +15,21 @@ import { ProfileSchema } from "@/lib/profile-schema";
 import { listFromForm, numOrNull } from "@/lib/utils";
 import { sanitizeLine, sanitizeList } from "@/lib/security/sanitize";
 
-const go = (path: string, key: "ok" | "error", msg: string): never => redirect(`${path}?${key}=${encodeURIComponent(msg)}`);
-const isRedirect = (e: unknown) => !!e && typeof e === "object" && "digest" in e && String((e as { digest: unknown }).digest).startsWith("NEXT_REDIRECT");
+const go = (path: string, key: "ok" | "error", msg: string): never =>
+  redirect(`${path}?${key}=${encodeURIComponent(msg)}`);
+const isRedirect = (e: unknown) =>
+  !!e &&
+  typeof e === "object" &&
+  "digest" in e &&
+  String((e as { digest: unknown }).digest).startsWith("NEXT_REDIRECT");
 
 // ---------------------------------------------------------------------------
 // Resume upload + AI parsing (M3). Parse failure falls back to manual entry.
 // ---------------------------------------------------------------------------
 export async function uploadResume(formData: FormData) {
   const { supabase, user, candidate } = await requireCandidate();
-  if (!(await checkRateLimit(getPool(), "upload", user.id))) go("/candidate/profile", "error", "Too many uploads. Try again later.");
+  if (!(await checkRateLimit(getPool(), "upload", user.id)))
+    go("/candidate/profile", "error", "Too many uploads. Try again later.");
   const file = formData.get("resume");
   if (!(file instanceof File)) go("/candidate/profile", "error", "Choose a file to upload.");
   const bytes = new Uint8Array(await (file as File).arrayBuffer());
@@ -54,12 +60,23 @@ export async function uploadResume(formData: FormData) {
     const text = await extractResumeText(v.kind, bytes);
     if (text.trim().length < 50) throw new Error("We couldn't read text from this file (is it a scanned image?).");
     const parsed = await parseResumeText(text);
-    await supabase.from("resumes").update({ parsed_json: parsed, parse_status: "succeeded", parse_error: null }).eq("id", resume!.id);
+    await supabase
+      .from("resumes")
+      .update({ parsed_json: parsed, parse_status: "succeeded", parse_error: null })
+      .eq("id", resume!.id);
     redirect(`/candidate/profile?review=${resume!.id}`);
   } catch (e) {
     if (isRedirect(e)) throw e;
-    const msg = e instanceof AiUnavailableError ? "Automatic parsing is unavailable right now." : e instanceof Error ? e.message : "Parsing failed.";
-    await supabase.from("resumes").update({ parse_status: "failed", parse_error: msg.slice(0, 500) }).eq("id", resume!.id);
+    const msg =
+      e instanceof AiUnavailableError
+        ? "Automatic parsing is unavailable right now."
+        : e instanceof Error
+          ? e.message
+          : "Parsing failed.";
+    await supabase
+      .from("resumes")
+      .update({ parse_status: "failed", parse_error: msg.slice(0, 500) })
+      .eq("id", resume!.id);
     go("/candidate/profile", "error", `${msg} Your file is saved — please fill in your profile below.`);
   }
 }
@@ -92,10 +109,13 @@ export async function saveProfile(formData: FormData) {
 export async function savePreferences(formData: FormData) {
   const { supabase, candidate } = await requireCandidate();
   const modes = ["remote", "hybrid", "onsite"].filter((m) => formData.get(`mode_${m}`) === "on");
-  const currency = String(formData.get("salary_currency") ?? "").toUpperCase().trim();
+  const currency = String(formData.get("salary_currency") ?? "")
+    .toUpperCase()
+    .trim();
   const salaryMin = numOrNull(formData.get("salary_min"));
   const salaryMax = numOrNull(formData.get("salary_max"));
-  if (salaryMin != null && salaryMax != null && salaryMin > salaryMax) go("/candidate/settings", "error", "Minimum salary is above maximum.");
+  if (salaryMin != null && salaryMax != null && salaryMin > salaryMax)
+    go("/candidate/settings", "error", "Minimum salary is above maximum.");
   const { error } = await supabase
     .from("candidates")
     .update({
@@ -124,7 +144,9 @@ export async function blockCompany(formData: FormData) {
   const { supabase, candidate } = await requireCandidate();
   const companyId = String(formData.get("company_id") ?? "");
   if (!/^[0-9a-f-]{36}$/i.test(companyId)) go("/candidate/settings", "error", "Choose a company.");
-  await supabase.from("blocked_companies").upsert({ candidate_id: candidate.id, company_id: companyId }, { onConflict: "candidate_id,company_id" });
+  await supabase
+    .from("blocked_companies")
+    .upsert({ candidate_id: candidate.id, company_id: companyId }, { onConflict: "candidate_id,company_id" });
   // pending suggestions for that company are dropped on the next matching run
   await supabase.from("candidates").update({ needs_matching: true }).eq("id", candidate.id);
   scheduleCandidateMatching(candidate.id);
@@ -133,7 +155,11 @@ export async function blockCompany(formData: FormData) {
 
 export async function unblockCompany(formData: FormData) {
   const { supabase, candidate } = await requireCandidate();
-  await supabase.from("blocked_companies").delete().eq("candidate_id", candidate.id).eq("id", String(formData.get("id") ?? ""));
+  await supabase
+    .from("blocked_companies")
+    .delete()
+    .eq("candidate_id", candidate.id)
+    .eq("id", String(formData.get("id") ?? ""));
   go("/candidate/settings", "ok", "Company unblocked.");
 }
 
@@ -155,7 +181,17 @@ export async function respondToMatch(formData: FormData) {
   if (error) go("/candidate", "error", error.message);
   const status = (data as { status: string })?.status;
   revalidatePath("/candidate");
-  go("/candidate", "ok", status === "applied" ? "Application sent." : status === "declined" ? "Match declined." : status === "expired" ? "That match had expired." : "Updated.");
+  go(
+    "/candidate",
+    "ok",
+    status === "applied"
+      ? "Application sent."
+      : status === "declined"
+        ? "Match declined."
+        : status === "expired"
+          ? "That match had expired."
+          : "Updated.",
+  );
 }
 
 export async function setRedistribution(formData: FormData) {
@@ -174,7 +210,11 @@ export async function setRedistribution(formData: FormData) {
 
 export async function markNotificationsRead() {
   const { supabase, user } = await requireCandidate();
-  await supabase.from("notifications").update({ read_at: new Date().toISOString() }).eq("user_id", user.id).is("read_at", null);
+  await supabase
+    .from("notifications")
+    .update({ read_at: new Date().toISOString() })
+    .eq("user_id", user.id)
+    .is("read_at", null);
   revalidatePath("/candidate");
 }
 
@@ -183,7 +223,8 @@ export async function markNotificationsRead() {
 // ---------------------------------------------------------------------------
 export async function deleteAccount(formData: FormData) {
   const { supabase, user } = await requireCandidate();
-  if (String(formData.get("confirm") ?? "") !== "DELETE") go("/candidate/privacy", "error", 'Type "DELETE" to confirm.');
+  if (String(formData.get("confirm") ?? "") !== "DELETE")
+    go("/candidate/privacy", "error", 'Type "DELETE" to confirm.');
   const service = createServiceClient();
   const { rows } = await getPool().query<{ paths: string[] }>("select public.erase_user($1) as paths", [user.id]);
   const paths = rows[0]?.paths ?? [];

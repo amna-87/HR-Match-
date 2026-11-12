@@ -16,7 +16,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ app
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "not signed in" }, { status: 401 });
   // RLS: only returns the row if the caller's company owns the job
-  const { data: app } = await supabase.from("applications").select("id, candidate_id").eq("id", applicationId).maybeSingle();
+  const { data: app } = await supabase
+    .from("applications")
+    .select("id, candidate_id")
+    .eq("id", applicationId)
+    .maybeSingle();
   if (!app) return NextResponse.json({ error: "not found" }, { status: 404 });
   const { data: allowed } = await supabase.rpc("company_can_view_candidate", { p_candidate_id: app.candidate_id });
   if (!allowed) return NextResponse.json({ error: "not found" }, { status: 404 });

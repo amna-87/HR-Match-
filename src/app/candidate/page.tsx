@@ -12,48 +12,92 @@ import { formatDate } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Dashboard" };
 
-const stageTone = { new: "info", reviewed: "info", interview: "warning", offer: "success", hired: "success", rejected: "muted", redirected: "vetted" } as const;
+const stageTone = {
+  new: "info",
+  reviewed: "info",
+  interview: "warning",
+  offer: "success",
+  hired: "success",
+  rejected: "muted",
+  redirected: "vetted",
+} as const;
 
 export default async function CandidateDashboard({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const { supabase, candidate } = await requireCandidate();
   const [{ data: matches }, { data: applications }, { data: offers }, { data: notes }] = await Promise.all([
     supabase
       .from("matches")
-      .select("id, status, score, explanation, expires_at, notified_at, job:jobs(id, title, source_type, source_name, source_url, apply_method, apply_target, source_company_name, location, work_mode, company:companies(name))")
+      .select(
+        "id, status, score, explanation, expires_at, notified_at, job:jobs(id, title, source_type, source_name, source_url, apply_method, apply_target, source_company_name, location, work_mode, company:companies(name))",
+      )
       .in("status", ["notified", "viewed"])
       .order("score", { ascending: false }),
-    supabase.from("applications").select("id, stage, applied_at, job:jobs(id, title, company:companies(name))").order("applied_at", { ascending: false }),
+    supabase
+      .from("applications")
+      .select("id, stage, applied_at, job:jobs(id, title, company:companies(name))")
+      .order("applied_at", { ascending: false }),
     supabase.from("redistribution_consent").select("*").order("created_at", { ascending: false }),
-    supabase.from("notifications").select("id, type, payload, created_at, read_at").order("created_at", { ascending: false }).limit(10),
+    supabase
+      .from("notifications")
+      .select("id, type, payload, created_at, read_at")
+      .order("created_at", { ascending: false })
+      .limit(10),
   ]);
   const unread = (notes ?? []).filter((n) => !n.read_at).length;
-  type JobRef = { id: string; title: string; source_type: "verified" | "sourced"; source_name: string | null; source_url: string | null; apply_method: string; apply_target: string | null; source_company_name: string | null; location: string | null; work_mode: string; company: { name: string } | null };
+  type JobRef = {
+    id: string;
+    title: string;
+    source_type: "verified" | "sourced";
+    source_name: string | null;
+    source_url: string | null;
+    apply_method: string;
+    apply_target: string | null;
+    source_company_name: string | null;
+    location: string | null;
+    work_mode: string;
+    company: { name: string } | null;
+  };
 
   return (
     <div className="space-y-8">
       <Flash searchParams={await searchParams} />
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-semibold">Hi{candidate.full_name ? `, ${candidate.full_name.split(" ")[0]}` : ""}</h1>
-          <p className="text-sm text-muted-foreground">Nothing is sent to an employer unless you approve it here or from an email.</p>
+          <h1 className="text-2xl font-semibold">
+            Hi{candidate.full_name ? `, ${candidate.full_name.split(" ")[0]}` : ""}
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Nothing is sent to an employer unless you approve it here or from an email.
+          </p>
         </div>
         {(!candidate.open_to_work || candidate.visibility_paused) && (
           <Alert tone="warning">
-            Your profile is {candidate.visibility_paused ? "paused" : "not open to opportunities"} — you won&apos;t get new matches.{" "}
-            <Link href="/candidate/settings" className="underline">Change</Link>
+            Your profile is {candidate.visibility_paused ? "paused" : "not open to opportunities"} — you won&apos;t get
+            new matches.{" "}
+            <Link href="/candidate/settings" className="underline">
+              Change
+            </Link>
           </Alert>
         )}
       </div>
 
       {!candidate.headline && (
         <Alert>
-          Start by <Link href="/candidate/profile" className="underline">uploading your resume</Link> so we can match you.
+          Start by{" "}
+          <Link href="/candidate/profile" className="underline">
+            uploading your resume
+          </Link>{" "}
+          so we can match you.
         </Alert>
       )}
 
       <section aria-labelledby="matches-h" className="space-y-3">
-        <h2 id="matches-h" className="text-xl font-semibold">Matches waiting for you</h2>
-        {!matches?.length && <p className="text-sm text-muted-foreground">No matches waiting. We&apos;ll email you when a job fits.</p>}
+        <h2 id="matches-h" className="text-xl font-semibold">
+          Matches waiting for you
+        </h2>
+        {!matches?.length && (
+          <p className="text-muted-foreground text-sm">No matches waiting. We&apos;ll email you when a job fits.</p>
+        )}
         <div className="grid gap-4 md:grid-cols-2">
           {(matches ?? []).map((m) => {
             const job = m.job as unknown as JobRef;
@@ -63,7 +107,9 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
                 <CardHeader>
                   <div className="flex items-start justify-between gap-2">
                     <CardTitle>
-                      <Link href={`/jobs/${job.id}`} className="hover:underline">{job.title}</Link>
+                      <Link href={`/jobs/${job.id}`} className="hover:underline">
+                        {job.title}
+                      </Link>
                     </CardTitle>
                     <Badge tone="info">{Math.round(Number(m.score))}% match</Badge>
                   </div>
@@ -78,7 +124,12 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
                     <>
                       <SourcedNotice job={job} />
                       {applyHref(job.apply_method, job.apply_target) && (
-                        <a className="text-sm underline" href={applyHref(job.apply_method, job.apply_target)!} rel="noopener noreferrer nofollow" target="_blank">
+                        <a
+                          className="text-sm underline"
+                          href={applyHref(job.apply_method, job.apply_target)!}
+                          rel="noopener noreferrer nofollow"
+                          target="_blank"
+                        >
                           Apply via original listing
                         </a>
                       )}
@@ -86,7 +137,9 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
                         <form action={respondToMatch}>
                           <input type="hidden" name="match_id" value={m.id} />
                           <input type="hidden" name="decision" value="view" />
-                          <Button size="sm" variant="ghost">Mark as seen</Button>
+                          <Button size="sm" variant="ghost">
+                            Mark as seen
+                          </Button>
                         </form>
                       )}
                     </>
@@ -100,11 +153,13 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
                       <form action={respondToMatch}>
                         <input type="hidden" name="match_id" value={m.id} />
                         <input type="hidden" name="decision" value="decline" />
-                        <Button size="sm" variant="outline">Decline</Button>
+                        <Button size="sm" variant="outline">
+                          Decline
+                        </Button>
                       </form>
                     </div>
                   )}
-                  <p className="text-xs text-muted-foreground">Expires {formatDate(m.expires_at)}</p>
+                  <p className="text-muted-foreground text-xs">Expires {formatDate(m.expires_at)}</p>
                 </CardContent>
               </Card>
             );
@@ -113,22 +168,30 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
       </section>
 
       <section id="visibility" aria-labelledby="vis-h" className="space-y-3">
-        <h2 id="vis-h" className="text-xl font-semibold">Recruiter recommendations</h2>
-        {!offers?.length && <p className="text-sm text-muted-foreground">When a recruiter recommends you for other roles, you&apos;ll decide here.</p>}
+        <h2 id="vis-h" className="text-xl font-semibold">
+          Recruiter recommendations
+        </h2>
+        {!offers?.length && (
+          <p className="text-muted-foreground text-sm">
+            When a recruiter recommends you for other roles, you&apos;ll decide here.
+          </p>
+        )}
         {(offers ?? []).map((o) => (
           <Card key={o.id}>
             <CardContent className="space-y-2 pt-5">
               <p>
-                <strong>{o.source_label === "a previous employer's recruiter" ? "A recruiter" : o.source_label}</strong> flagged you as strong for{" "}
-                <strong>{o.domain}</strong>
+                <strong>{o.source_label === "a previous employer's recruiter" ? "A recruiter" : o.source_label}</strong>{" "}
+                flagged you as strong for <strong>{o.domain}</strong>
                 {o.strengths.length > 0 && <> (strengths: {o.strengths.join(", ")})</>}.
               </p>
-              <p className="text-sm text-muted-foreground">
-                If you opt in, recruiters hiring in this area can see an &ldquo;Interview-vetted&rdquo; card with these strengths (not your name or
-                contact details) and you may get more matches. You can withdraw at any time.
+              <p className="text-muted-foreground text-sm">
+                If you opt in, recruiters hiring in this area can see an &ldquo;Interview-vetted&rdquo; card with these
+                strengths (not your name or contact details) and you may get more matches. You can withdraw at any time.
               </p>
               <div className="flex items-center gap-2">
-                <Badge tone={o.status === "opted_in" ? "success" : o.status === "pending" ? "warning" : "muted"}>{o.status.replace("_", " ")}</Badge>
+                <Badge tone={o.status === "opted_in" ? "success" : o.status === "pending" ? "warning" : "muted"}>
+                  {o.status.replace("_", " ")}
+                </Badge>
                 {o.status === "pending" && (
                   <>
                     <form action={setRedistribution}>
@@ -139,7 +202,9 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
                     <form action={setRedistribution}>
                       <input type="hidden" name="id" value={o.id} />
                       <input type="hidden" name="status" value="declined" />
-                      <Button size="sm" variant="outline">No thanks</Button>
+                      <Button size="sm" variant="outline">
+                        No thanks
+                      </Button>
                     </form>
                   </>
                 )}
@@ -147,7 +212,9 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
                   <form action={setRedistribution}>
                     <input type="hidden" name="id" value={o.id} />
                     <input type="hidden" name="status" value="withdrawn" />
-                    <Button size="sm" variant="outline">Withdraw</Button>
+                    <Button size="sm" variant="outline">
+                      Withdraw
+                    </Button>
                   </form>
                 )}
               </div>
@@ -157,9 +224,11 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
       </section>
 
       <section aria-labelledby="apps-h" className="space-y-3">
-        <h2 id="apps-h" className="text-xl font-semibold">Your applications</h2>
-        {!applications?.length && <p className="text-sm text-muted-foreground">No applications yet.</p>}
-        <ul className="divide-y divide-border rounded-lg border border-border bg-card">
+        <h2 id="apps-h" className="text-xl font-semibold">
+          Your applications
+        </h2>
+        {!applications?.length && <p className="text-muted-foreground text-sm">No applications yet.</p>}
+        <ul className="divide-border border-border bg-card divide-y rounded-lg border">
           {(applications ?? []).map((a) => {
             const job = a.job as unknown as { id: string; title: string; company: { name: string } | null };
             return (
@@ -179,10 +248,14 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
 
       <section aria-labelledby="notes-h" className="space-y-3">
         <div className="flex items-center gap-3">
-          <h2 id="notes-h" className="text-xl font-semibold">Notifications</h2>
+          <h2 id="notes-h" className="text-xl font-semibold">
+            Notifications
+          </h2>
           {unread > 0 && (
             <form action={markNotificationsRead}>
-              <Button size="sm" variant="ghost">Mark {unread} as read</Button>
+              <Button size="sm" variant="ghost">
+                Mark {unread} as read
+              </Button>
             </form>
           )}
         </div>

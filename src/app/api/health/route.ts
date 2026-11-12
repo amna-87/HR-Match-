@@ -14,5 +14,8 @@ export async function GET() {
     }
   }
   const status = database === "error" ? 503 : 200;
-  return NextResponse.json({ status: status === 200 ? "ok" : "degraded", database, time: new Date().toISOString() }, { status });
+  return NextResponse.json(
+    { status: status === 200 ? "ok" : "degraded", database, time: new Date().toISOString() },
+    { status },
+  );
 }

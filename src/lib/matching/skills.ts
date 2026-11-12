@@ -13,20 +13,20 @@ const ALIASES: Record<string, string> = {
   "instagram ads": "meta ads",
   "fb ads": "meta ads",
   "social media": "social media marketing",
-  "smm": "social media marketing",
+  smm: "social media marketing",
   "social media management": "social media marketing",
   "copy writing": "copywriting",
   "content writing": "copywriting",
   "content marketing": "content strategy",
   "amazon web services": "aws",
-  "k8s": "kubernetes",
+  k8s: "kubernetes",
   "ms excel": "excel",
   "microsoft excel": "excel",
   "ux research": "user research",
   "ui/ux": "ux design",
   "search engine optimization": "seo",
   "google adwords": "google ads",
-  "ppc": "google ads",
+  ppc: "google ads",
 };
 
 export function normalizeSkill(raw: string): string {

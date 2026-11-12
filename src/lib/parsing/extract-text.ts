@@ -19,7 +19,8 @@ export function validateResumeFile(name: string, bytes: Uint8Array): ValidationR
   if (lower.endsWith(".docx") && isZipMagic) {
     // a .docx is a zip containing word/document.xml
     const head = Buffer.from(bytes.subarray(0, Math.min(bytes.byteLength, 200_000))).toString("latin1");
-    if (head.includes("word/") || head.includes("[Content_Types].xml")) return { ok: true, kind: "docx", mime: DOCX_MIME, ext: "docx" };
+    if (head.includes("word/") || head.includes("[Content_Types].xml"))
+      return { ok: true, kind: "docx", mime: DOCX_MIME, ext: "docx" };
   }
   return { ok: false, error: "Please upload a PDF or DOCX file." };
 }
@@ -28,7 +29,10 @@ const EXTRACT_TIMEOUT_MS = 20_000;
 const MAX_TEXT_CHARS = 60_000;
 
 function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
-  return Promise.race([p, new Promise<T>((_, rej) => setTimeout(() => rej(new Error("Text extraction timed out")), ms))]);
+  return Promise.race([
+    p,
+    new Promise<T>((_, rej) => setTimeout(() => rej(new Error("Text extraction timed out")), ms)),
+  ]);
 }
 
 export async function extractResumeText(kind: ResumeKind, bytes: Uint8Array): Promise<string> {

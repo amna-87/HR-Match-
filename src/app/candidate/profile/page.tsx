@@ -17,11 +17,19 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
   const sp = await searchParams;
   const { supabase, candidate } = await requireCandidate();
   const [{ data: skills }, { data: exps }, { data: edu }, { data: certs }, { data: resumes }] = await Promise.all([
-    supabase.from("candidate_skills").select("skill, source").eq("candidate_id", candidate.id).neq("source", "verified"),
+    supabase
+      .from("candidate_skills")
+      .select("skill, source")
+      .eq("candidate_id", candidate.id)
+      .neq("source", "verified"),
     supabase.from("experiences").select("*").eq("candidate_id", candidate.id).order("position"),
     supabase.from("education").select("*").eq("candidate_id", candidate.id),
     supabase.from("certifications").select("*").eq("candidate_id", candidate.id),
-    supabase.from("resumes").select("id, original_filename, parse_status, parse_error, created_at, parsed_json, is_current").eq("candidate_id", candidate.id).order("created_at", { ascending: false }),
+    supabase
+      .from("resumes")
+      .select("id, original_filename, parse_status, parse_error, created_at, parsed_json, is_current")
+      .eq("candidate_id", candidate.id)
+      .order("created_at", { ascending: false }),
   ]);
 
   let initial: ProfileInput = {
@@ -34,9 +42,20 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
     languages: candidate.languages ?? [],
     skills: (skills ?? []).map((s) => s.skill),
     experiences: (exps ?? []).map((e) => ({
-      title: e.title, company: e.company ?? "", start_date: e.start_date ?? "", end_date: e.end_date ?? "", is_current: e.is_current, description: e.description ?? "",
+      title: e.title,
+      company: e.company ?? "",
+      start_date: e.start_date ?? "",
+      end_date: e.end_date ?? "",
+      is_current: e.is_current,
+      description: e.description ?? "",
     })),
-    education: (edu ?? []).map((e) => ({ institution: e.institution, degree: e.degree ?? "", field: e.field ?? "", start_date: e.start_date ?? "", end_date: e.end_date ?? "" })),
+    education: (edu ?? []).map((e) => ({
+      institution: e.institution,
+      degree: e.degree ?? "",
+      field: e.field ?? "",
+      start_date: e.start_date ?? "",
+      end_date: e.end_date ?? "",
+    })),
     certifications: (certs ?? []).map((c) => ({ name: c.name, issuer: c.issuer ?? "" })),
   };
 
@@ -65,19 +84,34 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
       <Card>
         <CardHeader>
           <CardTitle>Resume</CardTitle>
-          <CardDescription>PDF or DOCX, up to 5 MB. Stored privately — employers only get access after you approve a match.</CardDescription>
+          <CardDescription>
+            PDF or DOCX, up to 5 MB. Stored privately — employers only get access after you approve a match.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <form action={uploadResume} className="flex flex-wrap items-center gap-3">
-            <label htmlFor="resume" className="sr-only">Resume file</label>
-            <input id="resume" name="resume" type="file" required accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" className="text-sm" />
+            <label htmlFor="resume" className="sr-only">
+              Resume file
+            </label>
+            <input
+              id="resume"
+              name="resume"
+              type="file"
+              required
+              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              className="text-sm"
+            />
             <SubmitButton pendingText="Uploading and reading…">Upload</SubmitButton>
           </form>
           <ul className="text-sm">
             {(resumes ?? []).slice(0, 3).map((r) => (
               <li key={r.id} className="flex flex-wrap items-center gap-2">
                 {r.original_filename} · {formatDate(r.created_at)}
-                <Badge tone={r.parse_status === "succeeded" ? "success" : r.parse_status === "failed" ? "danger" : "muted"}>{r.parse_status}</Badge>
+                <Badge
+                  tone={r.parse_status === "succeeded" ? "success" : r.parse_status === "failed" ? "danger" : "muted"}
+                >
+                  {r.parse_status}
+                </Badge>
                 {r.is_current && <Badge>current</Badge>}
               </li>
             ))}
@@ -87,7 +121,8 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
 
       {review && (
         <Alert tone="info">
-          We pre-filled your profile from <strong>{review.original_filename}</strong>. Please review every field, fix anything we got wrong, then save.
+          We pre-filled your profile from <strong>{review.original_filename}</strong>. Please review every field, fix
+          anything we got wrong, then save.
         </Alert>
       )}
 

@@ -35,7 +35,10 @@ export default async function UnsubscribePage({
         {!v.ok || sp.error ? (
           <p>This unsubscribe link is invalid or expired. You can turn emails off in your Preferences.</p>
         ) : sp.done ? (
-          <p>You&apos;re unsubscribed. You&apos;ll still see new matches in your dashboard. You can turn emails back on in Preferences.</p>
+          <p>
+            You&apos;re unsubscribed. You&apos;ll still see new matches in your dashboard. You can turn emails back on
+            in Preferences.
+          </p>
         ) : (
           <form action={unsubscribe} className="space-y-3">
             <input type="hidden" name="token" value={token} />

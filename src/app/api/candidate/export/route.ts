@@ -12,7 +12,8 @@ export async function GET() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "not signed in" }, { status: 401 });
-  if (!(await checkRateLimit(getPool(), "export", user.id))) return NextResponse.json({ error: "rate limited" }, { status: 429 });
+  if (!(await checkRateLimit(getPool(), "export", user.id)))
+    return NextResponse.json({ error: "rate limited" }, { status: 429 });
   const { data, error } = await supabase.rpc("export_my_data");
   if (error) return NextResponse.json({ error: "export failed" }, { status: 500 });
   return new NextResponse(JSON.stringify(data, null, 2), {

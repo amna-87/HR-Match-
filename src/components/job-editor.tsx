@@ -1,56 +1,13 @@
 "use client";
 import { useActionState, useState, useEffect } from "react";
 import type { ParsedJob } from "@/lib/parsing/schemas";
+import type { JobValues, SaveState } from "@/lib/job-values";
 import { Field, Input, Select, Textarea } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-export interface JobValues {
-  id?: string;
-  title: string;
-  description_summary: string;
-  required_skills: string[];
-  nice_skills: string[];
-  required_certifications: string[];
-  domains: string[];
-  min_exp: number | null;
-  max_exp: number | null;
-  location: string | null;
-  work_mode: string;
-  employment_type: string;
-  salary_min: number | null;
-  salary_max: number | null;
-  salary_currency: string | null;
-  expires_at: string | null;
-  source_name?: string | null;
-  source_url?: string | null;
-  source_company_name?: string | null;
-  apply_method?: string;
-  apply_target?: string | null;
-}
-
-export const emptyJob: JobValues = {
-  title: "",
-  description_summary: "",
-  required_skills: [],
-  nice_skills: [],
-  required_certifications: [],
-  domains: [],
-  min_exp: null,
-  max_exp: null,
-  location: "",
-  work_mode: "onsite",
-  employment_type: "full_time",
-  salary_min: null,
-  salary_max: null,
-  salary_currency: "",
-  expires_at: null,
-  apply_method: "platform",
-};
-
 type ExtractState = { parsed?: ParsedJob; error?: string };
-export type SaveState = { error?: string; duplicates?: { job_id: string; title: string; company: string | null; location: string | null }[] };
 
 const list = (fd: FormData, k: string) =>
   String(fd.get(k) ?? "")
@@ -129,6 +86,10 @@ export function JobEditor({
   const [formKey, setFormKey] = useState(0);
   const [saveState, save, saving] = useActionState(saveAction, {});
   const duplicates = saveState.duplicates;
+  // React resets uncontrolled fields after an action; remount with the values captured on submit.
+  useEffect(() => {
+    if (saveState.error) setFormKey((k) => k + 1);
+  }, [saveState]);
   const sourced = mode === "sourced";
 
   useEffect(() => {
@@ -145,13 +106,16 @@ export function JobEditor({
         <CardHeader>
           <CardTitle>Paste a job posting</CardTitle>
           <CardDescription>
-            We&apos;ll extract the fields into the form below for you to review. Nothing is published until you click publish.
+            We&apos;ll extract the fields into the form below for you to review. Nothing is published until you click
+            publish.
             {sourced && " For sourced jobs we store a summary in our own words, not the original text."}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form action={extract} className="space-y-3">
-            <label htmlFor="raw" className="sr-only">Job posting text</label>
+            <label htmlFor="raw" className="sr-only">
+              Job posting text
+            </label>
             <Textarea id="raw" name="raw" rows={6} placeholder="Paste the full job description here…" />
             <Button type="submit" variant="secondary" disabled={extracting}>
               {extracting ? "Extracting…" : "Extract fields"}
@@ -165,7 +129,8 @@ export function JobEditor({
       {duplicates && duplicates.length > 0 && (
         <Alert tone="warning">
           Possible duplicate{duplicates.length > 1 ? "s" : ""}:{" "}
-          {duplicates.map((d) => `${d.title} (${d.company ?? "?"}, ${d.location ?? "?"})`).join("; ")}. Tick &ldquo;publish anyway&rdquo; if this is a different role.
+          {duplicates.map((d) => `${d.title} (${d.company ?? "?"}, ${d.location ?? "?"})`).join("; ")}. Tick
+          &ldquo;publish anyway&rdquo; if this is a different role.
         </Alert>
       )}
 
@@ -173,7 +138,10 @@ export function JobEditor({
       <form
         key={formKey}
         action={save}
-        onSubmit={(e) => setValues((prev) => valuesFromForm(new FormData(e.currentTarget), prev))}
+        onSubmit={(e) => {
+          const fd = new FormData(e.currentTarget); // read synchronously; currentTarget is cleared later
+          setValues((prev) => valuesFromForm(fd, prev));
+        }}
         className="space-y-6"
       >
         {v.id && <input type="hidden" name="id" value={v.id} />}
@@ -185,8 +153,17 @@ export function JobEditor({
             <Field label="Title" htmlFor="title" className="sm:col-span-2">
               <Input id="title" name="title" required defaultValue={v.title} maxLength={200} />
             </Field>
-            <Field label={sourced ? "Summary (in our own words)" : "Description"} htmlFor="description_summary" className="sm:col-span-2">
-              <Textarea id="description_summary" name="description_summary" rows={6} defaultValue={v.description_summary} />
+            <Field
+              label={sourced ? "Summary (in our own words)" : "Description"}
+              htmlFor="description_summary"
+              className="sm:col-span-2"
+            >
+              <Textarea
+                id="description_summary"
+                name="description_summary"
+                rows={6}
+                defaultValue={v.description_summary}
+              />
             </Field>
             <Field label="Required skills" htmlFor="required_skills" hint="Comma separated">
               <Input id="required_skills" name="required_skills" defaultValue={v.required_skills.join(", ")} />
@@ -194,10 +171,22 @@ export function JobEditor({
             <Field label="Nice-to-have skills" htmlFor="nice_skills" hint="Comma separated">
               <Input id="nice_skills" name="nice_skills" defaultValue={v.nice_skills.join(", ")} />
             </Field>
-            <Field label="Required certifications" htmlFor="required_certifications" hint="Only if truly mandatory (hard filter)">
-              <Input id="required_certifications" name="required_certifications" defaultValue={v.required_certifications.join(", ")} />
+            <Field
+              label="Required certifications"
+              htmlFor="required_certifications"
+              hint="Only if truly mandatory (hard filter)"
+            >
+              <Input
+                id="required_certifications"
+                name="required_certifications"
+                defaultValue={v.required_certifications.join(", ")}
+              />
             </Field>
-            <Field label="Domains" htmlFor="domains" hint="e.g. marketing, content. Used for interview-vetted matching.">
+            <Field
+              label="Domains"
+              htmlFor="domains"
+              hint="e.g. marketing, content. Used for interview-vetted matching."
+            >
               <Input id="domains" name="domains" defaultValue={v.domains.join(", ")} />
             </Field>
             <Field label="Min experience (years)" htmlFor="min_exp">
@@ -219,12 +208,19 @@ export function JobEditor({
             <Field label="Employment type" htmlFor="employment_type">
               <Select id="employment_type" name="employment_type" defaultValue={v.employment_type}>
                 {["full_time", "part_time", "contract", "internship", "temporary", "freelance"].map((t) => (
-                  <option key={t} value={t}>{t.replace("_", " ")}</option>
+                  <option key={t} value={t}>
+                    {t.replace("_", " ")}
+                  </option>
                 ))}
               </Select>
             </Field>
             <Field label="Expiry date" htmlFor="expires_at" hint={sourced ? "Defaults to 30 days" : "Optional"}>
-              <Input id="expires_at" name="expires_at" type="date" defaultValue={v.expires_at ? v.expires_at.slice(0, 10) : ""} />
+              <Input
+                id="expires_at"
+                name="expires_at"
+                type="date"
+                defaultValue={v.expires_at ? v.expires_at.slice(0, 10) : ""}
+              />
             </Field>
             <div className="grid grid-cols-3 gap-2 sm:col-span-2">
               <Field label="Salary min (optional)" htmlFor="salary_min">
@@ -234,7 +230,12 @@ export function JobEditor({
                 <Input id="salary_max" name="salary_max" type="number" min={0} defaultValue={v.salary_max ?? ""} />
               </Field>
               <Field label="Currency" htmlFor="salary_currency">
-                <Input id="salary_currency" name="salary_currency" maxLength={3} defaultValue={v.salary_currency ?? ""} />
+                <Input
+                  id="salary_currency"
+                  name="salary_currency"
+                  maxLength={3}
+                  defaultValue={v.salary_currency ?? ""}
+                />
               </Field>
             </div>
           </CardContent>
@@ -245,8 +246,8 @@ export function JobEditor({
             <CardHeader>
               <CardTitle>Source &amp; how to apply</CardTitle>
               <CardDescription>
-                Required. Prefer sources that allow reuse (career pages, official APIs, jobs sent directly). Use company hiring addresses
-                (jobs@, careers@) — not individual recruiters&apos; personal contacts.
+                Required. Prefer sources that allow reuse (career pages, official APIs, jobs sent directly). Use company
+                hiring addresses (jobs@, careers@) — not individual recruiters&apos; personal contacts.
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
@@ -260,7 +261,11 @@ export function JobEditor({
                 <Input id="source_company_name" name="source_company_name" defaultValue={v.source_company_name ?? ""} />
               </Field>
               <Field label="Apply via" htmlFor="apply_method">
-                <Select id="apply_method" name="apply_method" defaultValue={v.apply_method === "platform" ? "link" : v.apply_method}>
+                <Select
+                  id="apply_method"
+                  name="apply_method"
+                  defaultValue={v.apply_method === "platform" ? "link" : v.apply_method}
+                >
                   <option value="link">Link</option>
                   <option value="email">Email</option>
                   <option value="phone">Phone</option>
@@ -277,8 +282,9 @@ export function JobEditor({
             </CardContent>
           </Card>
         ) : (
-          <p className="text-sm text-muted-foreground">
-            Candidates apply on-platform: matched candidates are asked first, and only those who approve appear in your pipeline.
+          <p className="text-muted-foreground text-sm">
+            Candidates apply on-platform: matched candidates are asked first, and only those who approve appear in your
+            pipeline.
           </p>
         )}
 

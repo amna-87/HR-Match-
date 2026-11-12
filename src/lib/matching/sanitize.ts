@@ -15,17 +15,16 @@ const INLINE_PATTERNS: RegExp[] = [
 ];
 
 // Contact details are not matching inputs either.
-const CONTACT_PATTERNS: RegExp[] = [
-  /[\w.+-]+@[\w-]+\.[\w.-]+/g,
-  /\+?\d[\d\s().-]{7,}\d/g,
-  /https?:\/\/\S+/g,
-];
+const CONTACT_PATTERNS: RegExp[] = [/[\w.+-]+@[\w-]+\.[\w.-]+/g, /\+?\d[\d\s().-]{7,}\d/g, /https?:\/\/\S+/g];
 
 export function stripProtectedCharacteristics(text: string): string {
   let out = text.replace(PROTECTED_LINE, "");
   for (const p of INLINE_PATTERNS) out = out.replace(p, " ");
   for (const p of CONTACT_PATTERNS) out = out.replace(p, " ");
-  return out.replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim();
+  return out
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 /** Fields that may be used to build a candidate's matching text. Nothing else. */

@@ -13,8 +13,8 @@ export default async function TakedownPage({ searchParams }: { searchParams: Pro
       <CardHeader>
         <CardTitle>Request removal of a listing</CardTitle>
         <CardDescription>
-          If a sourced job listing on this site belongs to you and you&apos;d like it removed or corrected, tell us here. We review requests
-          promptly and log every removal.
+          If a sourced job listing on this site belongs to you and you&apos;d like it removed or corrected, tell us
+          here. We review requests promptly and log every removal.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -26,7 +26,11 @@ export default async function TakedownPage({ searchParams }: { searchParams: Pro
               Website <input name="website" tabIndex={-1} autoComplete="off" />
             </label>
           </div>
-          <Field label="Listing URL or title" htmlFor="reference" hint={sp.job ? "We've attached the listing you came from." : undefined}>
+          <Field
+            label="Listing URL or title"
+            htmlFor="reference"
+            hint={sp.job ? "We've attached the listing you came from." : undefined}
+          >
             <Input id="reference" name="reference" maxLength={500} />
           </Field>
           <Field label="Your contact (email or phone)" htmlFor="contact">

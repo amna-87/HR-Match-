@@ -17,20 +17,41 @@ export default async function AdminAudit({ searchParams }: { searchParams: Promi
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Audit log</h1>
       <form method="get" className="flex flex-wrap items-end gap-2">
-        <Field label="Action starts with" htmlFor="action"><Input id="action" name="action" defaultValue={sp.action ?? ""} placeholder="match." /></Field>
-        <Field label="Entity id" htmlFor="entity_id"><Input id="entity_id" name="entity_id" defaultValue={sp.entity_id ?? ""} /></Field>
-        <Button type="submit" variant="outline">Filter</Button>
+        <Field label="Action starts with" htmlFor="action">
+          <Input id="action" name="action" defaultValue={sp.action ?? ""} placeholder="match." />
+        </Field>
+        <Field label="Entity id" htmlFor="entity_id">
+          <Input id="entity_id" name="entity_id" defaultValue={sp.entity_id ?? ""} />
+        </Field>
+        <Button type="submit" variant="outline">
+          Filter
+        </Button>
       </form>
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
-          <thead className="text-left text-muted-foreground"><tr><th className="py-2">Time</th><th>Actor</th><th>Action</th><th>Entity</th><th>Metadata</th></tr></thead>
-          <tbody className="divide-y divide-border font-mono">
+          <thead className="text-muted-foreground text-left">
+            <tr>
+              <th className="py-2">Time</th>
+              <th>Actor</th>
+              <th>Action</th>
+              <th>Entity</th>
+              <th>Metadata</th>
+            </tr>
+          </thead>
+          <tbody className="divide-border divide-y font-mono">
             {(rows ?? []).map((r) => (
               <tr key={r.id}>
-                <td className="whitespace-nowrap py-1.5 pr-3">{new Date(r.created_at).toISOString().replace("T", " ").slice(0, 19)}</td>
-                <td className="pr-3">{r.actor_role}{r.actor ? ` ${String(r.actor).slice(0, 8)}` : ""}</td>
+                <td className="py-1.5 pr-3 whitespace-nowrap">
+                  {new Date(r.created_at).toISOString().replace("T", " ").slice(0, 19)}
+                </td>
+                <td className="pr-3">
+                  {r.actor_role}
+                  {r.actor ? ` ${String(r.actor).slice(0, 8)}` : ""}
+                </td>
                 <td className="pr-3">{r.action}</td>
-                <td className="pr-3">{r.entity} {r.entity_id ? String(r.entity_id).slice(0, 8) : ""}</td>
+                <td className="pr-3">
+                  {r.entity} {r.entity_id ? String(r.entity_id).slice(0, 8) : ""}
+                </td>
                 <td className="max-w-md truncate">{JSON.stringify(r.metadata)}</td>
               </tr>
             ))}
@@ -44,9 +65,15 @@ export default async function AdminAudit({ searchParams }: { searchParams: Promi
         </CardHeader>
         <CardContent>
           <form action={readFeedback} className="flex flex-wrap items-end gap-2">
-            <Field label="Feedback id" htmlFor="feedback_id"><Input id="feedback_id" name="feedback_id" required /></Field>
-            <Field label="Reason (min 10 characters)" htmlFor="reason"><Input id="reason" name="reason" required minLength={10} className="w-80" /></Field>
-            <Button type="submit" variant="outline">Read</Button>
+            <Field label="Feedback id" htmlFor="feedback_id">
+              <Input id="feedback_id" name="feedback_id" required />
+            </Field>
+            <Field label="Reason (min 10 characters)" htmlFor="reason">
+              <Input id="reason" name="reason" required minLength={10} className="w-80" />
+            </Field>
+            <Button type="submit" variant="outline">
+              Read
+            </Button>
           </form>
         </CardContent>
       </Card>

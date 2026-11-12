@@ -42,7 +42,9 @@ export function cleanParsedResume(r: ParsedResume): ParsedResume {
       start_date: normalizeDate(e.start_date),
       end_date: normalizeDate(e.end_date),
     })),
-    certifications: r.certifications.slice(0, 30).map((c) => ({ name: sanitizeLine(c.name, 200), issuer: sanitizeLine(c.issuer, 200) })),
+    certifications: r.certifications
+      .slice(0, 30)
+      .map((c) => ({ name: sanitizeLine(c.name, 200), issuer: sanitizeLine(c.issuer, 200) })),
     languages: sanitizeList(r.languages, 15, 60),
   };
 }
@@ -50,7 +52,9 @@ export function cleanParsedResume(r: ParsedResume): ParsedResume {
 /** "2021-3" -> "2021-03-01", "2021" -> "2021-01-01", junk -> "" */
 export function normalizeDate(s: string | null | undefined): string {
   if (!s) return "";
-  const m = String(s).trim().match(/^(\d{4})(?:[-/.](\d{1,2}))?(?:[-/.](\d{1,2}))?/);
+  const m = String(s)
+    .trim()
+    .match(/^(\d{4})(?:[-/.](\d{1,2}))?(?:[-/.](\d{1,2}))?/);
   if (!m) return "";
   const y = Number(m[1]);
   const mo = Math.min(12, Math.max(1, Number(m[2] ?? 1)));
@@ -68,7 +72,9 @@ export function computeExperienceYears(
     .map((e) => {
       const s = e.start_date ? new Date(e.start_date) : null;
       const end = e.is_current || !e.end_date ? now : new Date(e.end_date);
-      return s && !isNaN(s.getTime()) && !isNaN(end.getTime()) && end > s ? [s.getTime(), Math.min(end.getTime(), now.getTime())] : null;
+      return s && !isNaN(s.getTime()) && !isNaN(end.getTime()) && end > s
+        ? [s.getTime(), Math.min(end.getTime(), now.getTime())]
+        : null;
     })
     .filter((r): r is number[] => !!r)
     .sort((a, b) => a[0] - b[0]);

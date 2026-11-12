@@ -26,8 +26,12 @@ export default async function AdminHome() {
       <div className="grid gap-4 sm:grid-cols-3">
         {Object.entries(LABELS).map(([k, label]) => (
           <Card key={k}>
-            <CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle></CardHeader>
-            <CardContent><p className="text-3xl font-semibold tabular-nums">{counts[k] ?? 0}</p></CardContent>
+            <CardHeader>
+              <CardTitle className="text-muted-foreground text-sm font-medium">{label}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-semibold tabular-nums">{counts[k] ?? 0}</p>
+            </CardContent>
           </Card>
         ))}
       </div>

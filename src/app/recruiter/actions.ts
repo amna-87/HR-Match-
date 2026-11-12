@@ -9,11 +9,12 @@ import { parseJobText } from "@/lib/parsing/job";
 import { AiUnavailableError } from "@/lib/parsing/claude";
 import type { ParsedJob } from "@/lib/parsing/schemas";
 import { JobFormSchema } from "@/lib/job-schema";
-import type { SaveState } from "@/components/job-editor";
+import type { SaveState } from "@/lib/job-values";
 import { safeHttpUrl, sanitizeLine, sanitizeList, sanitizeText } from "@/lib/security/sanitize";
 import { listFromForm, numOrNull } from "@/lib/utils";
 
-const go = (path: string, key: "ok" | "error", msg: string): never => redirect(`${path}${path.includes("?") ? "&" : "?"}${key}=${encodeURIComponent(msg)}`);
+const go = (path: string, key: "ok" | "error", msg: string): never =>
+  redirect(`${path}${path.includes("?") ? "&" : "?"}${key}=${encodeURIComponent(msg)}`);
 
 export async function createCompany(formData: FormData) {
   const { supabase } = await requireRecruiter();
@@ -61,7 +62,11 @@ export async function addMember(formData: FormData) {
 
 export async function removeMember(formData: FormData) {
   const { supabase, company } = await requireRecruiter();
-  await supabase.from("company_members").delete().eq("id", String(formData.get("id") ?? "")).eq("company_id", company?.id ?? "");
+  await supabase
+    .from("company_members")
+    .delete()
+    .eq("id", String(formData.get("id") ?? ""))
+    .eq("company_id", company?.id ?? "");
   go("/recruiter/company", "ok", "Recruiter removed.");
 }
 
@@ -78,7 +83,12 @@ export async function extractJob(_prev: ExtractState, formData: FormData): Promi
   try {
     return { parsed: await parseJobText(text) };
   } catch (e) {
-    return { error: e instanceof AiUnavailableError ? "Automatic extraction is unavailable — please fill in the form." : "Couldn't extract fields. Please fill in the form." };
+    return {
+      error:
+        e instanceof AiUnavailableError
+          ? "Automatic extraction is unavailable — please fill in the form."
+          : "Couldn't extract fields. Please fill in the form.",
+    };
   }
 }
 
@@ -136,7 +146,11 @@ export async function saveJob(_prev: SaveState, formData: FormData): Promise<Sav
   };
   const res = id
     ? await supabase.from("jobs").update(row).eq("id", id).select("id, status").single()
-    : await supabase.from("jobs").insert({ ...row, company_id: company!.id, source_type: "verified", status: publish ? "published" : "draft" }).select("id, status").single();
+    : await supabase
+        .from("jobs")
+        .insert({ ...row, company_id: company!.id, source_type: "verified", status: publish ? "published" : "draft" })
+        .select("id, status")
+        .single();
   if (res.error || !res.data) return { error: res.error?.message ?? "Could not save the job." };
   if (res.data!.status === "published") scheduleJobMatching(res.data!.id);
   revalidatePath("/recruiter");
@@ -147,7 +161,8 @@ export async function setJobStatus(formData: FormData) {
   const { supabase } = await requireRecruiter();
   const id = String(formData.get("id") ?? "");
   const status = String(formData.get("status") ?? "");
-  if (!["draft", "published", "paused", "closed"].includes(status)) go(`/recruiter/jobs/${id}`, "error", "Invalid status.");
+  if (!["draft", "published", "paused", "closed"].includes(status))
+    go(`/recruiter/jobs/${id}`, "error", "Invalid status.");
   const { error } = await supabase.from("jobs").update({ status }).eq("id", id);
   if (error) go(`/recruiter/jobs/${id}`, "error", error.message);
   if (status === "published") scheduleJobMatching(id);
@@ -159,7 +174,8 @@ export async function changeStage(formData: FormData) {
   const id = String(formData.get("application_id") ?? "");
   const stage = String(formData.get("stage") ?? "");
   const back = String(formData.get("back") ?? `/recruiter/applications/${id}`);
-  if (!["new", "reviewed", "interview", "offer", "hired", "rejected", "redirected"].includes(stage)) go(back, "error", "Invalid stage.");
+  if (!["new", "reviewed", "interview", "offer", "hired", "rejected", "redirected"].includes(stage))
+    go(back, "error", "Invalid stage.");
   const { error } = await supabase.from("applications").update({ stage }).eq("id", id);
   if (error) go(back, "error", error.message);
   go(back.startsWith("/recruiter/") ? back : `/recruiter/applications/${id}`, "ok", "Stage updated.");
@@ -172,7 +188,8 @@ export async function submitFeedback(formData: FormData) {
   const outcome = String(formData.get("outcome") ?? "");
   if (!["not_a_fit", "good_fit_different_role"].includes(outcome)) go(back, "error", "Choose an outcome.");
   const domains = sanitizeList(listFromForm(formData.get("suggested_domains")), 5, 60).map((d) => d.toLowerCase());
-  if (outcome === "good_fit_different_role" && !domains.length) go(back, "error", "Add at least one suggested role or domain.");
+  if (outcome === "good_fit_different_role" && !domains.length)
+    go(back, "error", "Add at least one suggested role or domain.");
   const rating = numOrNull(formData.get("rating"));
   const { error } = await supabase.from("interview_feedback").insert({
     application_id: applicationId,
@@ -185,5 +202,11 @@ export async function submitFeedback(formData: FormData) {
   });
   if (error) go(back, "error", error.message);
   if (outcome === "good_fit_different_role") scheduleEmailDelivery();
-  go(back, "ok", outcome === "good_fit_different_role" ? "Feedback saved. The candidate will be asked whether to share their strengths." : "Feedback saved.");
+  go(
+    back,
+    "ok",
+    outcome === "good_fit_different_role"
+      ? "Feedback saved. The candidate will be asked whether to share their strengths."
+      : "Feedback saved.",
+  );
 }

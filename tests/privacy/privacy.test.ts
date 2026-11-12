@@ -25,7 +25,10 @@ afterAll(async () => db?.close());
 describe("export", () => {
   it("returns the candidate's own data as JSON, without embeddings or internal notes", async () => {
     const r = await db.as(IDS.maya)<{ d: Record<string, unknown> }>("select export_my_data() d");
-    const d = r.rows[0].d as Record<string, unknown[]> & { candidate: Record<string, unknown>; account: { email: string } };
+    const d = r.rows[0].d as Record<string, unknown[]> & {
+      candidate: Record<string, unknown>;
+      account: { email: string };
+    };
     expect(d.account.email).toBe("maya@example.test");
     expect(d.candidate.full_name).toBe("Maya Chen");
     expect(d.candidate).not.toHaveProperty("embedding");
@@ -51,7 +54,10 @@ describe("account deletion", () => {
   });
 
   it("removes profile, resumes, embeddings, matches, applications and consents; anonymizes audit", async () => {
-    const before = await db.root<{ n: number }>("select count(*)::int n from audit_log where actor = $1 or entity_id = $2", [IDS.maya, maya]);
+    const before = await db.root<{ n: number }>(
+      "select count(*)::int n from audit_log where actor = $1 or entity_id = $2",
+      [IDS.maya, maya],
+    );
     expect(before.rows[0].n).toBeGreaterThan(0);
     const r = await db.service<{ paths: string[] }>("select erase_user($1) as paths", [IDS.maya]);
     expect(r.rows[0].paths).toEqual([`${IDS.maya}/cv.pdf`]); // the server deletes these files from storage
@@ -72,7 +78,10 @@ describe("account deletion", () => {
       const c = await db.root<{ n: number }>(`select count(*)::int n from ${table} where ${col} = $1`, [val]);
       expect(c.rows[0].n, table).toBe(0);
     }
-    const after = await db.root<{ n: number }>("select count(*)::int n from audit_log where actor = $1 or entity_id = $2", [IDS.maya, maya]);
+    const after = await db.root<{ n: number }>(
+      "select count(*)::int n from audit_log where actor = $1 or entity_id = $2",
+      [IDS.maya, maya],
+    );
     expect(after.rows[0].n).toBe(0);
     const anon = await db.root<{ n: number }>("select count(*)::int n from audit_log where action = 'user.erased'");
     expect(anon.rows[0].n).toBe(1);

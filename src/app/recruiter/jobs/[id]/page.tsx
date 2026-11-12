@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireRecruiter } from "@/lib/auth/session";
 import { extractJob, saveJob, setJobStatus, changeStage } from "../../actions";
-import { JobEditor, type JobValues } from "@/components/job-editor";
+import { JobEditor } from "@/components/job-editor";
+import type { JobValues } from "@/lib/job-values";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -87,17 +88,46 @@ export default async function RecruiterJobPage({
       </div>
 
       <section aria-labelledby="pipeline-h" className="space-y-3">
-        <h2 id="pipeline-h" className="text-xl font-semibold">Applicants ({applicants.length})</h2>
-        <p className="text-sm text-muted-foreground">Only candidates who approved this match appear here, ranked by match score.</p>
-        <form className="flex flex-wrap items-end gap-3 rounded-md border border-border p-3" method="get">
-          <Field label="Min score" htmlFor="min_score"><Input id="min_score" name="min_score" type="number" min={0} max={100} defaultValue={sp.min_score ?? ""} className="w-24" /></Field>
-          <Field label="Location" htmlFor="location"><Input id="location" name="location" defaultValue={sp.location ?? ""} className="w-40" /></Field>
-          <Field label="Min years" htmlFor="min_exp"><Input id="min_exp" name="min_exp" type="number" min={0} defaultValue={sp.min_exp ?? ""} className="w-24" /></Field>
-          <Field label="Availability" htmlFor="availability"><Input id="availability" name="availability" defaultValue={sp.availability ?? ""} className="w-40" /></Field>
-          <Field label="Stage" htmlFor="stage">
-            <Select id="stage" name="stage" defaultValue={stage}><option value="">Any</option>{STAGES.map((s) => <option key={s} value={s}>{s}</option>)}</Select>
+        <h2 id="pipeline-h" className="text-xl font-semibold">
+          Applicants ({applicants.length})
+        </h2>
+        <p className="text-muted-foreground text-sm">
+          Only candidates who approved this match appear here, ranked by match score.
+        </p>
+        <form className="border-border flex flex-wrap items-end gap-3 rounded-md border p-3" method="get">
+          <Field label="Min score" htmlFor="min_score">
+            <Input
+              id="min_score"
+              name="min_score"
+              type="number"
+              min={0}
+              max={100}
+              defaultValue={sp.min_score ?? ""}
+              className="w-24"
+            />
           </Field>
-          <Button type="submit" variant="outline" size="sm">Filter</Button>
+          <Field label="Location" htmlFor="location">
+            <Input id="location" name="location" defaultValue={sp.location ?? ""} className="w-40" />
+          </Field>
+          <Field label="Min years" htmlFor="min_exp">
+            <Input id="min_exp" name="min_exp" type="number" min={0} defaultValue={sp.min_exp ?? ""} className="w-24" />
+          </Field>
+          <Field label="Availability" htmlFor="availability">
+            <Input id="availability" name="availability" defaultValue={sp.availability ?? ""} className="w-40" />
+          </Field>
+          <Field label="Stage" htmlFor="stage">
+            <Select id="stage" name="stage" defaultValue={stage}>
+              <option value="">Any</option>
+              {STAGES.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Button type="submit" variant="outline" size="sm">
+            Filter
+          </Button>
         </form>
         <div className="space-y-3">
           {applicants.map((r) => (
@@ -105,10 +135,22 @@ export default async function RecruiterJobPage({
               <CardContent className="flex flex-wrap items-start justify-between gap-4 pt-5">
                 <div className="space-y-1">
                   <p className="font-medium">
-                    {r.application_id ? <Link className="hover:underline" href={`/recruiter/applications/${r.application_id}`}>{r.full_name ?? "Candidate"}</Link> : r.full_name}
-                    {r.vetted && <Badge tone="vetted" className="ml-2">Interview-vetted</Badge>}
+                    {r.application_id ? (
+                      <Link className="hover:underline" href={`/recruiter/applications/${r.application_id}`}>
+                        {r.full_name ?? "Candidate"}
+                      </Link>
+                    ) : (
+                      r.full_name
+                    )}
+                    {r.vetted && (
+                      <Badge tone="vetted" className="ml-2">
+                        Interview-vetted
+                      </Badge>
+                    )}
                   </p>
-                  <p className="text-sm text-muted-foreground">{[r.headline, r.location, `${r.experience_years} yrs`, r.availability].filter(Boolean).join(" · ")}</p>
+                  <p className="text-muted-foreground text-sm">
+                    {[r.headline, r.location, `${r.experience_years} yrs`, r.availability].filter(Boolean).join(" · ")}
+                  </p>
                   <p className="text-sm">{r.explanation}</p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -117,38 +159,67 @@ export default async function RecruiterJobPage({
                     <form action={changeStage} className="flex items-center gap-2">
                       <input type="hidden" name="application_id" value={r.application_id} />
                       <input type="hidden" name="back" value={`/recruiter/jobs/${job.id}`} />
-                      <label htmlFor={`stage-${r.application_id}`} className="sr-only">Stage</label>
-                      <Select id={`stage-${r.application_id}`} name="stage" defaultValue={r.stage ?? "new"} className="h-8 w-32">
-                        {STAGES.map((s) => <option key={s} value={s}>{s}</option>)}
+                      <label htmlFor={`stage-${r.application_id}`} className="sr-only">
+                        Stage
+                      </label>
+                      <Select
+                        id={`stage-${r.application_id}`}
+                        name="stage"
+                        defaultValue={r.stage ?? "new"}
+                        className="h-8 w-32"
+                      >
+                        {STAGES.map((s) => (
+                          <option key={s} value={s}>
+                            {s}
+                          </option>
+                        ))}
                       </Select>
-                      <Button size="sm" variant="outline">Update</Button>
+                      <Button size="sm" variant="outline">
+                        Update
+                      </Button>
                     </form>
                   )}
                 </div>
               </CardContent>
             </Card>
           ))}
-          {!applicants.length && <p className="text-sm text-muted-foreground">No applicants yet{job.status === "published" ? " — matched candidates are being asked." : "."}</p>}
+          {!applicants.length && (
+            <p className="text-muted-foreground text-sm">
+              No applicants yet{job.status === "published" ? " — matched candidates are being asked." : "."}
+            </p>
+          )}
         </div>
       </section>
 
       {vetted.length > 0 && (
         <section aria-labelledby="vetted-h" className="space-y-3">
-          <h2 id="vetted-h" className="text-xl font-semibold">Interview-vetted candidates in this area</h2>
-          <p className="text-sm text-muted-foreground">
-            These candidates were recommended by another recruiter and opted in to being visible for this domain. Names and contact details
-            stay hidden; they&apos;ll be asked about your job and appear above if they approve.
+          <h2 id="vetted-h" className="text-xl font-semibold">
+            Interview-vetted candidates in this area
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            These candidates were recommended by another recruiter and opted in to being visible for this domain. Names
+            and contact details stay hidden; they&apos;ll be asked about your job and appear above if they approve.
           </p>
           <div className="grid gap-3 md:grid-cols-2">
             {vetted.map((r) => (
               <Card key={r.match_id}>
                 <CardHeader>
-                  <CardTitle className="text-base">{r.headline ?? "Candidate"} <Badge tone="vetted">Interview-vetted</Badge></CardTitle>
-                  <CardDescription>{[r.location, `${r.experience_years} yrs`].filter(Boolean).join(" · ")} · score {Math.round(Number(r.score))}</CardDescription>
+                  <CardTitle className="text-base">
+                    {r.headline ?? "Candidate"} <Badge tone="vetted">Interview-vetted</Badge>
+                  </CardTitle>
+                  <CardDescription>
+                    {[r.location, `${r.experience_years} yrs`].filter(Boolean).join(" · ")} · score{" "}
+                    {Math.round(Number(r.score))}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-1 text-sm">
-                  <p><strong>Strengths:</strong> {r.vetted_strengths.join(", ") || "—"}</p>
-                  <p><strong>Recommended for:</strong> {r.vetted_domains.join(", ")} (by {r.vetted_source_labels.join(", ")})</p>
+                  <p>
+                    <strong>Strengths:</strong> {r.vetted_strengths.join(", ") || "—"}
+                  </p>
+                  <p>
+                    <strong>Recommended for:</strong> {r.vetted_domains.join(", ")} (by{" "}
+                    {r.vetted_source_labels.join(", ")})
+                  </p>
                 </CardContent>
               </Card>
             ))}
@@ -157,7 +228,9 @@ export default async function RecruiterJobPage({
       )}
 
       <section aria-labelledby="edit-h" className="space-y-3">
-        <h2 id="edit-h" className="text-xl font-semibold">Edit job</h2>
+        <h2 id="edit-h" className="text-xl font-semibold">
+          Edit job
+        </h2>
         <JobEditor initial={values} mode="verified" extractAction={extractJob} saveAction={saveJob} />
       </section>
     </div>

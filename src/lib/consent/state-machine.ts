@@ -27,7 +27,15 @@ export function canTransition(source: SourceType, from: MatchStatus, to: MatchSt
   return (source === "verified" ? VERIFIED : SOURCED)[from].includes(to);
 }
 
-export const ALL_STATUSES: MatchStatus[] = ["suggested", "notified", "approved", "applied", "declined", "expired", "viewed"];
+export const ALL_STATUSES: MatchStatus[] = [
+  "suggested",
+  "notified",
+  "approved",
+  "applied",
+  "declined",
+  "expired",
+  "viewed",
+];
 
 export function isAwaitingCandidate(status: MatchStatus) {
   return status === "notified";
@@ -35,5 +43,9 @@ export function isAwaitingCandidate(status: MatchStatus) {
 
 export type RedistributionStatus = "pending" | "opted_in" | "declined" | "withdrawn";
 export function canTransitionRedistribution(from: RedistributionStatus, to: RedistributionStatus) {
-  return from === to || (from === "pending" && (to === "opted_in" || to === "declined")) || (from === "opted_in" && to === "withdrawn");
+  return (
+    from === to ||
+    (from === "pending" && (to === "opted_in" || to === "declined")) ||
+    (from === "opted_in" && to === "withdrawn")
+  );
 }

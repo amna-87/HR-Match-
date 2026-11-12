@@ -1,7 +1,12 @@
 // Resend delivery webhooks are signed with Svix (headers svix-id, svix-timestamp, svix-signature).
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-export function verifySvixSignature(secret: string, headers: { id: string; timestamp: string; signature: string }, body: string, now = Date.now()): boolean {
+export function verifySvixSignature(
+  secret: string,
+  headers: { id: string; timestamp: string; signature: string },
+  body: string,
+  now = Date.now(),
+): boolean {
   const ts = Number(headers.timestamp);
   if (!Number.isFinite(ts) || Math.abs(now / 1000 - ts) > 300) return false; // 5 min tolerance
   const key = Buffer.from(secret.startsWith("whsec_") ? secret.slice(6) : secret, "base64");

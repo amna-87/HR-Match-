@@ -48,7 +48,10 @@ describe("notify step", () => {
     expect(email.text).toMatch(/sourced from Northwind careers page; apply via the original listing/);
     expect(email.text).toMatch(/Unsubscribe: http:\/\/localhost:3000\/unsubscribe\//);
     expect(email.headers?.["List-Unsubscribe"]).toMatch(/unsubscribe/);
-    const statuses = await db.root("select j.title, m.status from matches m join jobs j on j.id = m.job_id where m.candidate_id = $1", [maya]);
+    const statuses = await db.root(
+      "select j.title, m.status from matches m join jobs j on j.id = m.job_id where m.candidate_id = $1",
+      [maya],
+    );
     const byTitle = Object.fromEntries(statuses.rows.map((s) => [s.title, s.status]));
     expect(byTitle["Social Media Marketing Manager"]).toBe("notified");
     expect(byTitle["Content Writer"]).toBe("notified");
@@ -83,7 +86,10 @@ describe("notify step", () => {
   it("respects the weekly cap: extra matches wait as 'suggested'", async () => {
     await db.root("delete from notifications where type = 'match_digest'");
     for (let i = 0; i < NOTIFY_CONFIG.maxEmailsPerWeek; i++) {
-      await db.root("insert into notifications(user_id, type, channel, delivery_status, sent_at) values ($1, 'match_digest', 'email', 'sent', now())", [IDS.maya]);
+      await db.root(
+        "insert into notifications(user_id, type, channel, delivery_status, sent_at) values ($1, 'match_digest', 'email', 'sent', now())",
+        [IDS.maya],
+      );
     }
     const job = await extraJob("Community Manager");
     await suggest(job, maya);
@@ -103,7 +109,9 @@ describe("notify step", () => {
     await suggest(job, maya);
     const r = await runNotifier({ db: db.pool, sender });
     expect(r.throttled).toBe(1);
-    await db.root("update notifications set created_at = now() - interval '25 hours' where type = 'match_digest' and created_at > now() - interval '1 hour'");
+    await db.root(
+      "update notifications set created_at = now() - interval '25 hours' where type = 'match_digest' and created_at > now() - interval '1 hour'",
+    );
     expect((await runNotifier({ db: db.pool, sender })).matchesNotified).toBe(1);
     await db.root("update candidates set match_email_frequency = 'instant' where id = $1", [maya]);
   });
@@ -136,9 +144,14 @@ describe("notify step", () => {
     await db.service("select unsubscribe_candidate($1)", [priya]);
     await deliverPendingEmails({ db: db.pool, sender });
     expect(sender.sent.find((e) => e.to === "priya@example.test")).toBeUndefined();
-    const n = await db.root("select delivery_status from notifications where user_id = $1 and channel = 'email'", [IDS.priya]);
+    const n = await db.root("select delivery_status from notifications where user_id = $1 and channel = 'email'", [
+      IDS.priya,
+    ]);
     expect(n.rows[0].delivery_status).toBe("skipped");
-    const ce = await db.root("select count(*)::int n from consent_events where candidate_id = $1 and type = 'match_emails_unsubscribe'", [priya]);
+    const ce = await db.root(
+      "select count(*)::int n from consent_events where candidate_id = $1 and type = 'match_emails_unsubscribe'",
+      [priya],
+    );
     expect(ce.rows[0].n).toBe(1);
   });
 });
@@ -157,7 +170,10 @@ describe("delivery retries", () => {
     const r = await runNotifier({ db: db.pool, sender: flaky });
     expect(r.emailsFailed).toBe(1);
     expect(calls).toBe(NOTIFY_CONFIG.maxAttempts);
-    const n = await db.root("select delivery_status, attempts, last_error from notifications where user_id = $1 and channel = 'email'", [IDS.sam]);
+    const n = await db.root(
+      "select delivery_status, attempts, last_error from notifications where user_id = $1 and channel = 'email'",
+      [IDS.sam],
+    );
     expect(n.rows[0]).toMatchObject({ delivery_status: "failed", attempts: NOTIFY_CONFIG.maxAttempts });
     // not retried forever
     await deliverPendingEmails({ db: db.pool, sender: flaky });
@@ -177,7 +193,10 @@ describe("delivery retries", () => {
     await suggest(IDS.jobAccountant, lena);
     const r = await runNotifier({ db: db.pool, sender: once });
     expect(r.emailsSent).toBe(1);
-    const n = await db.root("select delivery_status, provider_message_id, attempts from notifications where user_id = $1 and channel = 'email'", [IDS.lena]);
+    const n = await db.root(
+      "select delivery_status, provider_message_id, attempts from notifications where user_id = $1 and channel = 'email'",
+      [IDS.lena],
+    );
     expect(n.rows[0]).toMatchObject({ delivery_status: "sent", provider_message_id: "msg_123", attempts: 2 });
   });
 });

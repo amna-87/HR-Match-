@@ -8,7 +8,10 @@ const optNum = z
 
 export const JobFormSchema = z
   .object({
-    title: z.string().transform((s) => sanitizeLine(s, 200)).pipe(z.string().min(2, "Title is required")),
+    title: z
+      .string()
+      .transform((s) => sanitizeLine(s, 200))
+      .pipe(z.string().min(2, "Title is required")),
     description_summary: z.string().transform((s) => sanitizeText(s, 5000)),
     required_skills: z.array(z.string()).transform((a) => sanitizeList(a, 20, 80).map((s) => s.toLowerCase())),
     nice_skills: z.array(z.string()).transform((a) => sanitizeList(a, 20, 80).map((s) => s.toLowerCase())),
@@ -30,20 +33,38 @@ export const JobFormSchema = z
       .transform((s) => (s ? new Date(s).toISOString() : null))
       .nullable(),
     // sourced-only
-    source_name: z.string().optional().transform((s) => (s ? sanitizeLine(s, 200) : null)),
-    source_url: z.string().optional().transform((s) => safeHttpUrl(s)),
-    source_company_name: z.string().optional().transform((s) => (s ? sanitizeLine(s, 200) : null)),
+    source_name: z
+      .string()
+      .optional()
+      .transform((s) => (s ? sanitizeLine(s, 200) : null)),
+    source_url: z
+      .string()
+      .optional()
+      .transform((s) => safeHttpUrl(s)),
+    source_company_name: z
+      .string()
+      .optional()
+      .transform((s) => (s ? sanitizeLine(s, 200) : null)),
     apply_method: z.enum(["platform", "email", "phone", "link"]).default("platform"),
-    apply_target: z.string().optional().transform((s) => (s ? sanitizeLine(s, 500) : null)),
+    apply_target: z
+      .string()
+      .optional()
+      .transform((s) => (s ? sanitizeLine(s, 500) : null)),
   })
   .refine((j) => j.min_exp == null || j.max_exp == null || j.min_exp <= j.max_exp, "Min experience is above max")
-  .refine((j) => j.salary_min == null || j.salary_max == null || j.salary_min <= j.salary_max, "Min salary is above max");
+  .refine(
+    (j) => j.salary_min == null || j.salary_max == null || j.salary_min <= j.salary_max,
+    "Min salary is above max",
+  );
 
 export type JobFormInput = z.input<typeof JobFormSchema>;
 export type JobForm = z.output<typeof JobFormSchema>;
 
 export const SourcedJobSchema = JobFormSchema.refine((j) => !!j.source_name, "Source name is required")
   .refine((j) => !!j.source_url, "A valid source URL (https://…) is required")
-  .refine((j) => ["email", "phone", "link"].includes(j.apply_method), "Choose how candidates apply (email, phone or link)")
+  .refine(
+    (j) => ["email", "phone", "link"].includes(j.apply_method),
+    "Choose how candidates apply (email, phone or link)",
+  )
   .refine((j) => !!j.apply_target, "How to apply is required")
   .refine((j) => j.apply_method !== "link" || !!safeHttpUrl(j.apply_target), "Apply link must be a valid URL");

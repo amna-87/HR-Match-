@@ -18,7 +18,14 @@ export async function requestMeta() {
 }
 
 /** App-level audit entries (e.g. admin actions) written by trusted server code. */
-export async function audit(actor: string | null, actorRole: string, action: string, entity: string, entityId: string | null, metadata: object = {}) {
+export async function audit(
+  actor: string | null,
+  actorRole: string,
+  action: string,
+  entity: string,
+  entityId: string | null,
+  metadata: object = {},
+) {
   await getPool().query(
     "insert into public.audit_log(actor, actor_role, action, entity, entity_id, metadata) values ($1, $2, $3, $4, $5, $6::jsonb)",
     [actor, actorRole, action, entity, entityId, JSON.stringify(metadata)],

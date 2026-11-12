@@ -12,5 +12,11 @@ export function Alert({
     success: "border-emerald-300 bg-emerald-50 text-emerald-950 dark:bg-emerald-950 dark:text-emerald-50",
     warning: "border-amber-300 bg-amber-50 text-amber-950 dark:bg-amber-950 dark:text-amber-50",
   }[tone];
-  return <div role={tone === "error" ? "alert" : "status"} className={cn("rounded-md border px-4 py-3 text-sm", t, className)} {...props} />;
+  return (
+    <div
+      role={tone === "error" ? "alert" : "status"}
+      className={cn("rounded-md border px-4 py-3 text-sm", t, className)}
+      {...props}
+    />
+  );
 }

@@ -25,15 +25,16 @@ export default function PrivacyPage() {
       </ul>
       <h2 className="text-xl font-semibold">Processors</h2>
       <p>
-        Hosting (Vercel, Supabase), email delivery (Resend) and AI processing for resume parsing and matching explanations (Anthropic; an
-        embeddings provider). [List to be finalised with legal review.]
+        Hosting (Vercel, Supabase), email delivery (Resend) and AI processing for resume parsing and matching
+        explanations (Anthropic; an embeddings provider). [List to be finalised with legal review.]
       </p>
       <h2 className="text-xl font-semibold">Your rights</h2>
       <p>
-        From your Privacy page you can download all your data as JSON, delete your account (this removes your profile, resume files,
-        embeddings and consents), and unsubscribe from emails at any time. Contact: {process.env.SUPPORT_EMAIL ?? "support@example.com"}.
+        From your Privacy page you can download all your data as JSON, delete your account (this removes your profile,
+        resume files, embeddings and consents), and unsubscribe from emails at any time. Contact:{" "}
+        {process.env.SUPPORT_EMAIL ?? "support@example.com"}.
       </p>
-      <p className="text-sm text-muted-foreground">{appName} · Draft version 0.1</p>
+      <p className="text-muted-foreground text-sm">{appName} · Draft version 0.1</p>
     </article>
   );
 }

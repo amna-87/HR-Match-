@@ -23,7 +23,13 @@ export const ParsedResumeSchema = z.object({
     }),
   ),
   education: z.array(
-    z.object({ institution: z.string(), degree: z.string(), field: z.string(), start_date: dateish, end_date: dateish }),
+    z.object({
+      institution: z.string(),
+      degree: z.string(),
+      field: z.string(),
+      start_date: dateish,
+      end_date: dateish,
+    }),
   ),
   certifications: z.array(z.object({ name: z.string(), issuer: z.string() })),
   languages: z.array(z.string()),

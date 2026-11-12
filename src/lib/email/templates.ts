@@ -45,7 +45,9 @@ export function matchDigestEmail(firstName: string | null, items: MatchEmailItem
   const intro =
     "We matched your profile to the role(s) below. Approve to send your profile to the employer, or decline. Nothing is shared until you approve.";
   const blocks = items.map((it) => {
-    const label = it.sourced ? `<p style="font-size:12px;color:#8a5a00;margin:4px 0">Sourced from ${escapeHtml(it.sourceName ?? "an external listing")}. Apply via the original listing — this employer is not on ${escapeHtml(appName())}.</p>` : "";
+    const label = it.sourced
+      ? `<p style="font-size:12px;color:#8a5a00;margin:4px 0">Sourced from ${escapeHtml(it.sourceName ?? "an external listing")}. Apply via the original listing — this employer is not on ${escapeHtml(appName())}.</p>`
+      : "";
     const actions = it.sourced
       ? button(it.viewUrl!, "View listing & how to apply", true)
       : `${button(it.approveUrl!, "Approve & apply", true)} &nbsp; ${button(it.declineUrl!, "Decline", false)}`;
@@ -55,7 +57,11 @@ export function matchDigestEmail(firstName: string | null, items: MatchEmailItem
 <p style="margin:12px 0 4px">${actions}</p>
 <p style="font-size:12px;color:#777;margin:4px 0">Links expire ${it.expiresAt.toUTCString().slice(0, 16)}.</p></div>`;
   });
-  const html = layout(subject, `<p>${escapeHtml(greeting)}</p><p>${escapeHtml(intro)}</p>${blocks.join("")}`, unsubscribeUrl);
+  const html = layout(
+    subject,
+    `<p>${escapeHtml(greeting)}</p><p>${escapeHtml(intro)}</p>${blocks.join("")}`,
+    unsubscribeUrl,
+  );
   const text = [
     greeting,
     "",
