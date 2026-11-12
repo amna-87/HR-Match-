@@ -45,7 +45,14 @@ describe("candidates", () => {
   });
 
   it("a candidate cannot mark themselves claimed/unclaimed or write embeddings", async () => {
-    await expect(db.as(IDS.maya)("update candidates set claim_status = 'unclaimed' where id = $1", [mayaCid])).rejects.toThrow();
+    await expect(db.as(IDS.maya)("update candidates set claim_status = 'unclaimed' where id = $1", [mayaCid])).rejects.toThrow(
+      /protected candidate fields/,
+    );
+  });
+
+  it("a candidate can update their own preferences", async () => {
+    const r = await db.as(IDS.maya)("update candidates set availability = 'Immediately', open_to_work = true where id = $1", [mayaCid]);
+    expect(r.rowCount).toBe(1);
   });
 
   it("a candidate cannot forge verified skills", async () => {
@@ -100,6 +107,19 @@ describe("recruiters vs candidates", () => {
     }
   });
 
+  it("the recruiter can move the application through stages (with history); others can't", async () => {
+    const app = (await db.root("select id from applications where candidate_id = $1", [mayaCid])).rows[0].id;
+    expect((await db.as(IDS.rita)("update applications set stage = 'interview' where id = $1", [app])).rowCount).toBe(1);
+    expect((await db.as(IDS.gary)("update applications set stage = 'hired' where id = $1", [app])).rowCount).toBe(0);
+    await expect(db.as(IDS.maya)("update applications set stage = 'hired' where id = $1", [app])).resolves.toMatchObject({ rowCount: 0 });
+    await expect(db.as(IDS.rita)("update applications set consent_event_id = gen_random_uuid() where id = $1", [app])).rejects.toThrow(/permission denied/);
+    const h = await db.as(IDS.rita)("select from_stage, to_stage from application_stage_history where application_id = $1 order by changed_at", [app]);
+    expect(h.rows.map((r) => r.to_stage)).toEqual(["new", "interview"]);
+    // candidates can see their stage but not the internal history
+    expect((await db.as(IDS.maya)("select stage from applications where id = $1", [app])).rows[0].stage).toBe("interview");
+    expect((await db.as(IDS.maya)("select count(*)::int n from application_stage_history")).rows[0].n).toBe(0);
+  });
+
   it("recruiter_job_matches refuses jobs of other companies", async () => {
     await expect(db.as(IDS.gary)("select * from recruiter_job_matches($1)", [IDS.jobSocial])).rejects.toThrow(/not allowed/);
   });
@@ -112,6 +132,11 @@ describe("recruiters vs candidates", () => {
 });
 
 describe("companies and jobs", () => {
+  it("a recruiter can edit their own company's job", async () => {
+    const r = await db.as(IDS.rita)("update jobs set description_summary = description_summary || ' ' where id = $1", [IDS.jobSocial]);
+    expect(r.rowCount).toBe(1);
+  });
+
   it("a recruiter cannot edit another company's job", async () => {
     const r = await db.as(IDS.gary)("update jobs set title = 'pwned' where id = $1", [IDS.jobSocial]);
     expect(r.rowCount).toBe(0);

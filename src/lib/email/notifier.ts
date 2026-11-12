@@ -18,9 +18,13 @@ export interface NotifierDeps {
 
 const appUrl = (d: NotifierDeps) => (d.appUrl ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
-export function unsubscribeUrl(d: NotifierDeps, candidateId: string, now = new Date()) {
+export function unsubscribeUrls(d: NotifierDeps, candidateId: string, now = new Date()) {
   const exp = new Date(now.getTime() + 365 * 86400_000);
-  return `${appUrl(d)}/unsubscribe/${signToken("unsubscribe", candidateId, candidateId, exp)}`;
+  const token = signToken("unsubscribe", candidateId, candidateId, exp);
+  return {
+    page: `${appUrl(d)}/unsubscribe/${token}`,
+    oneClick: `${appUrl(d)}/api/unsubscribe?token=${encodeURIComponent(token)}`,
+  };
 }
 
 interface Recipient {
@@ -197,9 +201,10 @@ async function renderNotification(deps: NotifierDeps, n: PendingEmail) {
   const who = r.rows[0];
   if (!who || !who.enabled || !who.email) return null;
   const first = who.full_name?.split(/\s+/)[0] ?? null;
-  const unsub = unsubscribeUrl(deps, who.candidate_id);
+  const urls = unsubscribeUrls(deps, who.candidate_id);
+  const unsub = urls.page;
   const headers = {
-    "List-Unsubscribe": `<${unsub}>`,
+    "List-Unsubscribe": `<${urls.oneClick}>`,
     "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
   };
 

@@ -170,7 +170,7 @@ create trigger guard_users_update before update on public.users
   for each row execute function public.guard_users_update();
 
 create or replace function public.guard_candidates_update() returns trigger
-language plpgsql as $$
+language plpgsql set search_path = public, extensions as $$
 begin
   if not public.is_trusted_backend() then
     if new.user_id is distinct from old.user_id or new.claim_status is distinct from old.claim_status
@@ -201,7 +201,7 @@ create trigger guard_candidate_skills before insert or update or delete on publi
 
 -- Jobs: API users cannot touch embeddings or forge the source type.
 create or replace function public.guard_jobs() returns trigger
-language plpgsql as $$
+language plpgsql set search_path = public, extensions as $$
 begin
   if not public.is_trusted_backend() then
     if tg_op = 'INSERT' then

@@ -1,0 +1,296 @@
+"use client";
+import { useActionState, useState, useEffect } from "react";
+import type { ParsedJob } from "@/lib/parsing/schemas";
+import { Field, Input, Select, Textarea } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import { Alert } from "@/components/ui/alert";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+export interface JobValues {
+  id?: string;
+  title: string;
+  description_summary: string;
+  required_skills: string[];
+  nice_skills: string[];
+  required_certifications: string[];
+  domains: string[];
+  min_exp: number | null;
+  max_exp: number | null;
+  location: string | null;
+  work_mode: string;
+  employment_type: string;
+  salary_min: number | null;
+  salary_max: number | null;
+  salary_currency: string | null;
+  expires_at: string | null;
+  source_name?: string | null;
+  source_url?: string | null;
+  source_company_name?: string | null;
+  apply_method?: string;
+  apply_target?: string | null;
+}
+
+export const emptyJob: JobValues = {
+  title: "",
+  description_summary: "",
+  required_skills: [],
+  nice_skills: [],
+  required_certifications: [],
+  domains: [],
+  min_exp: null,
+  max_exp: null,
+  location: "",
+  work_mode: "onsite",
+  employment_type: "full_time",
+  salary_min: null,
+  salary_max: null,
+  salary_currency: "",
+  expires_at: null,
+  apply_method: "platform",
+};
+
+type ExtractState = { parsed?: ParsedJob; error?: string };
+export type SaveState = { error?: string; duplicates?: { job_id: string; title: string; company: string | null; location: string | null }[] };
+
+const list = (fd: FormData, k: string) =>
+  String(fd.get(k) ?? "")
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean);
+const num = (fd: FormData, k: string) => (String(fd.get(k) ?? "").trim() === "" ? null : Number(fd.get(k)));
+
+function valuesFromForm(fd: FormData, prev: JobValues): JobValues {
+  const str = (k: string) => String(fd.get(k) ?? "");
+  return {
+    ...prev,
+    title: str("title"),
+    description_summary: str("description_summary"),
+    required_skills: list(fd, "required_skills"),
+    nice_skills: list(fd, "nice_skills"),
+    required_certifications: list(fd, "required_certifications"),
+    domains: list(fd, "domains"),
+    min_exp: num(fd, "min_exp"),
+    max_exp: num(fd, "max_exp"),
+    location: str("location"),
+    work_mode: str("work_mode"),
+    employment_type: str("employment_type"),
+    salary_min: num(fd, "salary_min"),
+    salary_max: num(fd, "salary_max"),
+    salary_currency: str("salary_currency"),
+    expires_at: str("expires_at") || null,
+    source_name: fd.has("source_name") ? str("source_name") : prev.source_name,
+    source_url: fd.has("source_url") ? str("source_url") : prev.source_url,
+    source_company_name: fd.has("source_company_name") ? str("source_company_name") : prev.source_company_name,
+    apply_method: fd.has("apply_method") ? str("apply_method") : prev.apply_method,
+    apply_target: fd.has("apply_target") ? str("apply_target") : prev.apply_target,
+  };
+}
+
+function fromParsed(p: ParsedJob, prev: JobValues, sourced: boolean): JobValues {
+  return {
+    ...prev,
+    title: p.title || prev.title,
+    description_summary: p.description_summary || prev.description_summary,
+    required_skills: p.required_skills,
+    nice_skills: p.nice_skills,
+    required_certifications: p.required_certifications,
+    domains: p.domains,
+    min_exp: p.min_exp,
+    max_exp: p.max_exp,
+    location: p.location,
+    work_mode: p.work_mode,
+    employment_type: p.employment_type,
+    salary_min: p.salary_min,
+    salary_max: p.salary_max,
+    salary_currency: p.salary_currency,
+    ...(sourced
+      ? {
+          source_company_name: p.company_name || prev.source_company_name,
+          apply_method: p.apply_method === "unknown" ? prev.apply_method : p.apply_method,
+          apply_target: p.apply_target || prev.apply_target,
+        }
+      : {}),
+  };
+}
+
+export function JobEditor({
+  initial,
+  mode,
+  extractAction,
+  saveAction,
+}: {
+  initial: JobValues;
+  mode: "verified" | "sourced";
+  extractAction: (s: ExtractState, fd: FormData) => Promise<ExtractState>;
+  saveAction: (s: SaveState, fd: FormData) => Promise<SaveState>;
+}) {
+  const [values, setValues] = useState<JobValues>(initial);
+  const [state, extract, extracting] = useActionState(extractAction, {});
+  const [formKey, setFormKey] = useState(0);
+  const [saveState, save, saving] = useActionState(saveAction, {});
+  const duplicates = saveState.duplicates;
+  const sourced = mode === "sourced";
+
+  useEffect(() => {
+    if (state.parsed) {
+      setValues((v) => fromParsed(state.parsed!, v, sourced));
+      setFormKey((k) => k + 1); // remount uncontrolled inputs with new defaults
+    }
+  }, [state.parsed, sourced]);
+
+  const v = values;
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Paste a job posting</CardTitle>
+          <CardDescription>
+            We&apos;ll extract the fields into the form below for you to review. Nothing is published until you click publish.
+            {sourced && " For sourced jobs we store a summary in our own words, not the original text."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form action={extract} className="space-y-3">
+            <label htmlFor="raw" className="sr-only">Job posting text</label>
+            <Textarea id="raw" name="raw" rows={6} placeholder="Paste the full job description here…" />
+            <Button type="submit" variant="secondary" disabled={extracting}>
+              {extracting ? "Extracting…" : "Extract fields"}
+            </Button>
+            {state.error && <Alert tone="warning">{state.error}</Alert>}
+            {state.parsed && <Alert tone="success">Fields extracted — please review them below.</Alert>}
+          </form>
+        </CardContent>
+      </Card>
+
+      {duplicates && duplicates.length > 0 && (
+        <Alert tone="warning">
+          Possible duplicate{duplicates.length > 1 ? "s" : ""}:{" "}
+          {duplicates.map((d) => `${d.title} (${d.company ?? "?"}, ${d.location ?? "?"})`).join("; ")}. Tick &ldquo;publish anyway&rdquo; if this is a different role.
+        </Alert>
+      )}
+
+      {saveState.error && <Alert tone="error">{saveState.error}</Alert>}
+      <form
+        key={formKey}
+        action={save}
+        onSubmit={(e) => setValues((prev) => valuesFromForm(new FormData(e.currentTarget), prev))}
+        className="space-y-6"
+      >
+        {v.id && <input type="hidden" name="id" value={v.id} />}
+        <Card>
+          <CardHeader>
+            <CardTitle>Job details</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 sm:grid-cols-2">
+            <Field label="Title" htmlFor="title" className="sm:col-span-2">
+              <Input id="title" name="title" required defaultValue={v.title} maxLength={200} />
+            </Field>
+            <Field label={sourced ? "Summary (in our own words)" : "Description"} htmlFor="description_summary" className="sm:col-span-2">
+              <Textarea id="description_summary" name="description_summary" rows={6} defaultValue={v.description_summary} />
+            </Field>
+            <Field label="Required skills" htmlFor="required_skills" hint="Comma separated">
+              <Input id="required_skills" name="required_skills" defaultValue={v.required_skills.join(", ")} />
+            </Field>
+            <Field label="Nice-to-have skills" htmlFor="nice_skills" hint="Comma separated">
+              <Input id="nice_skills" name="nice_skills" defaultValue={v.nice_skills.join(", ")} />
+            </Field>
+            <Field label="Required certifications" htmlFor="required_certifications" hint="Only if truly mandatory (hard filter)">
+              <Input id="required_certifications" name="required_certifications" defaultValue={v.required_certifications.join(", ")} />
+            </Field>
+            <Field label="Domains" htmlFor="domains" hint="e.g. marketing, content. Used for interview-vetted matching.">
+              <Input id="domains" name="domains" defaultValue={v.domains.join(", ")} />
+            </Field>
+            <Field label="Min experience (years)" htmlFor="min_exp">
+              <Input id="min_exp" name="min_exp" type="number" min={0} step="0.5" defaultValue={v.min_exp ?? ""} />
+            </Field>
+            <Field label="Max experience (years)" htmlFor="max_exp">
+              <Input id="max_exp" name="max_exp" type="number" min={0} step="0.5" defaultValue={v.max_exp ?? ""} />
+            </Field>
+            <Field label="Location" htmlFor="location" hint="City, Country">
+              <Input id="location" name="location" defaultValue={v.location ?? ""} />
+            </Field>
+            <Field label="Work mode" htmlFor="work_mode">
+              <Select id="work_mode" name="work_mode" defaultValue={v.work_mode}>
+                <option value="onsite">On-site</option>
+                <option value="hybrid">Hybrid</option>
+                <option value="remote">Remote</option>
+              </Select>
+            </Field>
+            <Field label="Employment type" htmlFor="employment_type">
+              <Select id="employment_type" name="employment_type" defaultValue={v.employment_type}>
+                {["full_time", "part_time", "contract", "internship", "temporary", "freelance"].map((t) => (
+                  <option key={t} value={t}>{t.replace("_", " ")}</option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="Expiry date" htmlFor="expires_at" hint={sourced ? "Defaults to 30 days" : "Optional"}>
+              <Input id="expires_at" name="expires_at" type="date" defaultValue={v.expires_at ? v.expires_at.slice(0, 10) : ""} />
+            </Field>
+            <div className="grid grid-cols-3 gap-2 sm:col-span-2">
+              <Field label="Salary min (optional)" htmlFor="salary_min">
+                <Input id="salary_min" name="salary_min" type="number" min={0} defaultValue={v.salary_min ?? ""} />
+              </Field>
+              <Field label="Salary max" htmlFor="salary_max">
+                <Input id="salary_max" name="salary_max" type="number" min={0} defaultValue={v.salary_max ?? ""} />
+              </Field>
+              <Field label="Currency" htmlFor="salary_currency">
+                <Input id="salary_currency" name="salary_currency" maxLength={3} defaultValue={v.salary_currency ?? ""} />
+              </Field>
+            </div>
+          </CardContent>
+        </Card>
+
+        {sourced ? (
+          <Card className="border-amber-400">
+            <CardHeader>
+              <CardTitle>Source &amp; how to apply</CardTitle>
+              <CardDescription>
+                Required. Prefer sources that allow reuse (career pages, official APIs, jobs sent directly). Use company hiring addresses
+                (jobs@, careers@) — not individual recruiters&apos; personal contacts.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 sm:grid-cols-2">
+              <Field label="Source name" htmlFor="source_name" hint="e.g. Northwind careers page">
+                <Input id="source_name" name="source_name" required defaultValue={v.source_name ?? ""} />
+              </Field>
+              <Field label="Source URL" htmlFor="source_url">
+                <Input id="source_url" name="source_url" type="url" required defaultValue={v.source_url ?? ""} />
+              </Field>
+              <Field label="Hiring company" htmlFor="source_company_name">
+                <Input id="source_company_name" name="source_company_name" defaultValue={v.source_company_name ?? ""} />
+              </Field>
+              <Field label="Apply via" htmlFor="apply_method">
+                <Select id="apply_method" name="apply_method" defaultValue={v.apply_method === "platform" ? "link" : v.apply_method}>
+                  <option value="link">Link</option>
+                  <option value="email">Email</option>
+                  <option value="phone">Phone</option>
+                </Select>
+              </Field>
+              <Field label="Apply link / email / phone" htmlFor="apply_target" className="sm:col-span-2">
+                <Input id="apply_target" name="apply_target" required defaultValue={v.apply_target ?? ""} />
+              </Field>
+              {duplicates && duplicates.length > 0 && (
+                <label className="flex items-center gap-2 text-sm sm:col-span-2">
+                  <input type="checkbox" name="allow_duplicate" /> Publish anyway (not a duplicate)
+                </label>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Candidates apply on-platform: matched candidates are asked first, and only those who approve appear in your pipeline.
+          </p>
+        )}
+
+        <div className="flex flex-wrap gap-3">
+          <Button type="submit" name="intent" value="publish" disabled={saving}>
+            {v.id ? "Save & publish" : "Publish"}
+          </Button>
+          <Button type="submit" name="intent" value="draft" variant="outline" disabled={saving}>
+            Save as draft
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+}
