@@ -2,10 +2,18 @@
 -- Emulates the parts of Supabase (roles, auth schema, storage schema) that our
 -- migrations and RLS policies depend on, so they can be tested on plain Postgres.
 
-do $$ begin
-  if not exists (select 1 from pg_roles where rolname = 'anon') then create role anon nologin noinherit; end if;
-  if not exists (select 1 from pg_roles where rolname = 'authenticated') then create role authenticated nologin noinherit; end if;
-  if not exists (select 1 from pg_roles where rolname = 'service_role') then create role service_role nologin noinherit bypassrls; end if;
+-- Roles are cluster-wide and test files run in parallel, so tolerate a concurrent create.
+do $$
+declare r text;
+begin
+  foreach r in array array['anon', 'authenticated', 'service_role'] loop
+    begin
+      if not exists (select 1 from pg_roles where rolname = r) then
+        execute format('create role %I nologin noinherit%s', r, case when r = 'service_role' then ' bypassrls' else '' end);
+      end if;
+    exception when duplicate_object or unique_violation then null;
+    end;
+  end loop;
 end $$;
 
 create schema if not exists auth;
