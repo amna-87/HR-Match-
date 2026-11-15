@@ -12,12 +12,20 @@ let pool: pg.Pool | null = null;
 
 export function getPool(): pg.Pool {
   if (!pool) {
-    const connectionString = process.env.DATABASE_URL;
-    if (!connectionString) throw new Error("DATABASE_URL is not set");
+    const raw = process.env.DATABASE_URL?.trim();
+    if (!raw) throw new Error("DATABASE_URL is not set");
+    const local = /localhost|127\.0\.0\.1/.test(raw);
+    // node-pg treats sslmode=require as "verify the certificate", which fails against Supabase's
+    // pooler chain. Strip it and set TLS explicitly (still encrypted in transit).
+    const url = new URL(raw);
+    const sslmode = url.searchParams.get("sslmode");
+    url.searchParams.delete("sslmode");
+    const ssl = local || sslmode === "disable" ? undefined : { rejectUnauthorized: false };
     pool = new pg.Pool({
-      connectionString,
+      connectionString: url.toString(),
       max: Number(process.env.DATABASE_POOL_MAX ?? 5),
-      ssl: /sslmode=disable|localhost|127\.0\.0\.1/.test(connectionString) ? undefined : { rejectUnauthorized: false },
+      ssl,
+      connectionTimeoutMillis: 10_000,
     });
   }
   return pool;
