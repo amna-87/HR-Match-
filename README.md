@@ -59,7 +59,7 @@ Seeded accounts (password `Password123!`): `admin@example.test`, recruiters `rit
 1. Create a Supabase project; enable the `vector` and `pg_trgm` extensions; `supabase link` then `npm run db:migrate`.
    Configure Auth: email confirmations on, Google provider, site URL + `/auth/callback` redirect.
 2. Vercel project with the env vars from `.env.example` (use the Supavisor pooled URL for `DATABASE_URL`).
-   `vercel.json` schedules `/api/cron/run` every 10 minutes (needs a plan that allows that frequency).
+   `vercel.json` runs `/api/cron/run` once a day (Hobby plan limit). On Vercel Pro, change it to `*/10 * * * *`; matching and emails also run right after each relevant action, so daily is enough to start.
 3. Resend: verify the sending domain; add a webhook to `/api/webhooks/resend` and set `RESEND_WEBHOOK_SECRET`.
 4. Promote an admin: `update public.users set role = 'admin' where email = '…';` (SQL editor; never via the API).
 
