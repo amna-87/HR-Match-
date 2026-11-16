@@ -10,6 +10,7 @@ export const RATE_LIMITS = {
   emailLink: { limit: 30, windowSeconds: 600 },
   export: { limit: 5, windowSeconds: 3600 },
   invite: { limit: 20, windowSeconds: 3600 },
+  talentUpload: { limit: 60, windowSeconds: 3600 }, // resumes a recruiter adds to the talent pool
 } as const;
 
 export type RateLimitName = keyof typeof RATE_LIMITS;

@@ -1,7 +1,21 @@
 import Link from "next/link";
 import { buttonClasses } from "@/components/ui/button";
+import { getSession } from "@/lib/auth/session";
+import { JobList, PUBLIC_JOB_COLUMNS, type PublicJob } from "@/components/job-list";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const { supabase } = await getSession();
+  const { data } = supabase
+    ? await supabase
+        .from("jobs")
+        .select(PUBLIC_JOB_COLUMNS)
+        .eq("status", "published")
+        .order("published_at", { ascending: false })
+        .limit(6)
+    : { data: [] };
+  const latest = (data ?? []) as PublicJob[];
   return (
     <div className="space-y-12">
       <section className="space-y-4 py-8">
@@ -18,7 +32,21 @@ export default function Home() {
           <Link href="/signup?role=recruiter" className={buttonClasses("outline", "lg")}>
             I&apos;m hiring
           </Link>
+          <Link href="/jobs" className={buttonClasses("ghost", "lg")}>
+            Browse all jobs
+          </Link>
         </div>
+      </section>
+      <section aria-labelledby="latest-h" className="space-y-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 id="latest-h" className="text-2xl font-semibold">
+            Latest jobs
+          </h2>
+          <Link href="/jobs" className="text-sm underline">
+            See all open roles
+          </Link>
+        </div>
+        <JobList jobs={latest} empty="No open roles yet — check back soon." />
       </section>
       <section className="grid gap-6 sm:grid-cols-3">
         {[

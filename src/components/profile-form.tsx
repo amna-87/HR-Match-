@@ -15,7 +15,18 @@ const blankCert: Cert = { name: "", issuer: "" };
 const toMonth = (d: string) => (d ? d.slice(0, 7) : "");
 const fromMonth = (m: string) => (m ? `${m}-01` : "");
 
-export function ProfileForm({ initial, action }: { initial: ProfileInput; action: (fd: FormData) => Promise<void> }) {
+export function ProfileForm({
+  initial,
+  action,
+  audience = "candidate",
+}: {
+  initial: ProfileInput;
+  action: (fd: FormData) => Promise<void>;
+  /** "recruiter" when a company edits a resume it uploaded to its talent pool */
+  audience?: "candidate" | "recruiter";
+}) {
+  const contactNote =
+    audience === "candidate" ? "shared only with employers you apply to" : "visible to your company only";
   const [p, setP] = useState<ProfileInput>(initial);
   const [skillsText, setSkillsText] = useState(initial.skills.join(", "));
   const [langText, setLangText] = useState(initial.languages.join(", "));
@@ -52,7 +63,7 @@ export function ProfileForm({ initial, action }: { initial: ProfileInput; action
         <Field label="Location" htmlFor="location" hint="City, Country">
           <Input id="location" value={p.location} onChange={(e) => set("location", e.target.value)} />
         </Field>
-        <Field label="Contact email (shared only with employers you apply to)" htmlFor="contact_email">
+        <Field label={`Contact email (${contactNote})`} htmlFor="contact_email">
           <Input
             id="contact_email"
             type="email"
@@ -60,7 +71,7 @@ export function ProfileForm({ initial, action }: { initial: ProfileInput; action
             onChange={(e) => set("contact_email", e.target.value)}
           />
         </Field>
-        <Field label="Contact phone (shared only with employers you apply to)" htmlFor="contact_phone">
+        <Field label={`Contact phone (${contactNote})`} htmlFor="contact_phone">
           <Input id="contact_phone" value={p.contact_phone} onChange={(e) => set("contact_phone", e.target.value)} />
         </Field>
         <Field label="Languages" htmlFor="languages" hint="Comma separated">

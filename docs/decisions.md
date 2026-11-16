@@ -140,3 +140,27 @@ stops spraying many accounts). A per-IP-only limit would lock out whole offices 
 
 `tests/e2e/a11y.spec.ts` runs axe-core (WCAG 2.1 A/AA rules) on 22 pages across all roles and fails on serious or
 critical violations. Automated checks don't replace a manual screen-reader pass before launch.
+
+## D-022 Recruiter talent pool (product-owner decision, 2026-11-16)
+
+The owner asked for recruiters to upload resumes of job seekers, reachable by other recruiters, with the person
+notified about matching jobs once they join. Chosen visibility model (asked and agreed: "uploader + anonymous"):
+
+- Uploads are **unclaimed** candidates with `uploaded_by_company_id`. The uploading company sees and edits the full
+  profile and resume file (RLS via `company_owns_upload`; files only through short-lived signed URLs).
+- Other companies see uploads only through `talent_pool_for_job()`, ranked against one of their own jobs, as an
+  anonymous card: headline, location, years, skills. Name, contact details, summary, employers and file are never
+  returned to them. They cannot contact the person.
+- Uploaded people are **never emailed** (principle 2) and are excluded from normal matching, matches and applications.
+- When someone signs up with the same **verified** email (`auth.users.email_confirmed_at`), their dashboard names the
+  company that uploaded it and offers "Add to my profile" (`claim_uploaded_profile`: merges into their own profile —
+  their own entries win — removes the upload, the company loses access, matching runs and matches arrive in-app and by
+  email per their settings) or "Delete it". Unverified emails can't claim (stops someone signing up with another
+  person's address). Account deletion also erases uploads for that email.
+- The uploader must confirm they may share the resume (lawful basis checkbox); every upload/claim/delete is audited.
+- Without an AI key, a deterministic basic reader (`src/lib/parsing/basic-resume.ts`) extracts contact details,
+  skills from a vocabulary and stated years; the recruiter can edit the result.
+- `accept_invitation` now also requires a verified email, for the same reason.
+
+Jobs: published jobs were already public (`/jobs`, RLS `jobs_select_published` for `anon`); the home page now lists
+the latest six and `/jobs` has search and a work-mode filter.

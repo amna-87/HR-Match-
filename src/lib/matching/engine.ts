@@ -80,12 +80,18 @@ const CANDIDATE_TEXT_SQL = `
          (select array_agg(ct.name order by ct.name) from public.certifications ct where ct.candidate_id = c.id) as certifications
   from public.candidates c`;
 
-/** Embed every claimed candidate whose profile text changed (or has no embedding). */
+/**
+ * Embed candidates whose profile text changed (or that have no embedding): claimed
+ * profiles, plus recruiter-uploaded talent-pool profiles (D-022) when asked by id.
+ */
 export async function refreshCandidateEmbeddings(deps: EngineDeps, candidateIds?: string[]): Promise<number> {
   const r = await deps.db.query<CandidateTextRow>(
     `${CANDIDATE_TEXT_SQL}
-     where c.claim_status = 'claimed' and (c.embedding is null or c.needs_matching)
-       ${candidateIds ? "and c.id = any($1::uuid[])" : ""}`,
+     where ${
+       candidateIds
+         ? "c.id = any($1::uuid[]) and (c.claim_status = 'claimed' or c.uploaded_by_company_id is not null)"
+         : "c.claim_status = 'claimed' and (c.embedding is null or c.needs_matching)"
+     }`,
     candidateIds ? [candidateIds] : [],
   );
   const todo: { id: string; text: string; hash: string }[] = [];
@@ -201,6 +207,13 @@ async function persist(deps: EngineDeps, matches: ScoredMatch[]): Promise<void> 
       m.isVetted,
     ]);
   }
+}
+
+/** Make sure a job has an up-to-date embedding (talent-pool ranking). Returns it for scoring. */
+export async function prepareJobForRanking(deps: EngineDeps, jobId: string): Promise<JobRow | null> {
+  const job = await loadJob(deps.db, jobId);
+  if (job) await ensureJobEmbedding(deps, job);
+  return job;
 }
 
 /** Match one published job against the candidate pool. */

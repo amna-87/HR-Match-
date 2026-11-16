@@ -2,6 +2,7 @@ import { requireCandidate } from "@/lib/auth/session";
 import { uploadResume, saveProfile } from "../actions";
 import { ProfileForm } from "@/components/profile-form";
 import type { ProfileInput } from "@/lib/profile-schema";
+import { loadProfileInput } from "@/lib/profile/load";
 import type { ParsedResume } from "@/lib/parsing/schemas";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
@@ -16,48 +17,15 @@ export const metadata = { title: "Profile" };
 export default async function ProfilePage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const sp = await searchParams;
   const { supabase, candidate } = await requireCandidate();
-  const [{ data: skills }, { data: exps }, { data: edu }, { data: certs }, { data: resumes }] = await Promise.all([
-    supabase
-      .from("candidate_skills")
-      .select("skill, source")
-      .eq("candidate_id", candidate.id)
-      .neq("source", "verified"),
-    supabase.from("experiences").select("*").eq("candidate_id", candidate.id).order("position"),
-    supabase.from("education").select("*").eq("candidate_id", candidate.id),
-    supabase.from("certifications").select("*").eq("candidate_id", candidate.id),
+  const [initialFromDb, { data: resumes }] = await Promise.all([
+    loadProfileInput(supabase, candidate),
     supabase
       .from("resumes")
       .select("id, original_filename, parse_status, parse_error, created_at, parsed_json, is_current")
       .eq("candidate_id", candidate.id)
       .order("created_at", { ascending: false }),
   ]);
-
-  let initial: ProfileInput = {
-    full_name: candidate.full_name ?? "",
-    headline: candidate.headline ?? "",
-    summary: candidate.summary ?? "",
-    location: candidate.location ?? "",
-    contact_email: candidate.contact_email ?? "",
-    contact_phone: candidate.contact_phone ?? "",
-    languages: candidate.languages ?? [],
-    skills: (skills ?? []).map((s) => s.skill),
-    experiences: (exps ?? []).map((e) => ({
-      title: e.title,
-      company: e.company ?? "",
-      start_date: e.start_date ?? "",
-      end_date: e.end_date ?? "",
-      is_current: e.is_current,
-      description: e.description ?? "",
-    })),
-    education: (edu ?? []).map((e) => ({
-      institution: e.institution,
-      degree: e.degree ?? "",
-      field: e.field ?? "",
-      start_date: e.start_date ?? "",
-      end_date: e.end_date ?? "",
-    })),
-    certifications: (certs ?? []).map((c) => ({ name: c.name, issuer: c.issuer ?? "" })),
-  };
+  let initial: ProfileInput = initialFromDb;
 
   // Review step: pre-fill the form with what the AI extracted; nothing is saved until the candidate saves.
   const review = sp.review ? resumes?.find((r) => r.id === sp.review && r.parse_status === "succeeded") : null;

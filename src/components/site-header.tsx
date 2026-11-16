@@ -11,6 +11,7 @@ const links = {
   recruiter: [
     ["/recruiter", "Jobs"],
     ["/recruiter/jobs/new", "Post a job"],
+    ["/recruiter/talent", "Talent pool"],
     ["/recruiter/company", "Company"],
   ],
   admin: [

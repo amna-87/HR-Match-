@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { requireCandidate } from "@/lib/auth/session";
-import { respondToMatch, setRedistribution, markNotificationsRead } from "./actions";
+import {
+  respondToMatch,
+  setRedistribution,
+  markNotificationsRead,
+  claimUploadedProfile,
+  deleteUploadedProfile,
+} from "./actions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,25 +30,35 @@ const stageTone = {
 
 export default async function CandidateDashboard({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const { supabase, candidate } = await requireCandidate();
-  const [{ data: matches }, { data: applications }, { data: offers }, { data: notes }] = await Promise.all([
-    supabase
-      .from("matches")
-      .select(
-        "id, status, score, explanation, expires_at, notified_at, job:jobs(id, title, source_type, source_name, source_url, apply_method, apply_target, source_company_name, location, work_mode, company:companies(name))",
-      )
-      .in("status", ["notified", "viewed"])
-      .order("score", { ascending: false }),
-    supabase
-      .from("applications")
-      .select("id, stage, applied_at, job:jobs(id, title, apply_instructions, company:companies(name))")
-      .order("applied_at", { ascending: false }),
-    supabase.from("redistribution_consent").select("*").order("created_at", { ascending: false }),
-    supabase
-      .from("notifications")
-      .select("id, type, payload, created_at, read_at")
-      .order("created_at", { ascending: false })
-      .limit(10),
-  ]);
+  const [{ data: matches }, { data: applications }, { data: offers }, { data: notes }, { data: uploaded }] =
+    await Promise.all([
+      supabase
+        .from("matches")
+        .select(
+          "id, status, score, explanation, expires_at, notified_at, job:jobs(id, title, source_type, source_name, source_url, apply_method, apply_target, source_company_name, location, work_mode, company:companies(name))",
+        )
+        .in("status", ["notified", "viewed"])
+        .order("score", { ascending: false }),
+      supabase
+        .from("applications")
+        .select("id, stage, applied_at, job:jobs(id, title, apply_instructions, company:companies(name))")
+        .order("applied_at", { ascending: false }),
+      supabase.from("redistribution_consent").select("*").order("created_at", { ascending: false }),
+      supabase
+        .from("notifications")
+        .select("id, type, payload, created_at, read_at")
+        .order("created_at", { ascending: false })
+        .limit(10),
+      // profiles a recruiter uploaded for this (verified) email address — D-022
+      supabase.rpc("my_uploaded_profiles"),
+    ]);
+  const uploadedProfiles = (uploaded ?? []) as {
+    id: string;
+    company_name: string;
+    headline: string | null;
+    skills_count: number;
+    uploaded_at: string;
+  }[];
   const unread = (notes ?? []).filter((n) => !n.read_at).length;
   type JobRef = {
     id: string;
@@ -81,7 +97,30 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
         )}
       </div>
 
-      {!candidate.headline && (
+      {uploadedProfiles.map((u) => (
+        <Card key={u.id} className="border-sky-300">
+          <CardHeader>
+            <CardTitle>A recruiter added a profile for you</CardTitle>
+            <CardDescription>
+              A recruiter at <strong>{u.company_name}</strong> uploaded your resume on {formatDate(u.uploaded_at)}
+              {u.headline ? ` (${u.headline}, ${u.skills_count} skills)` : ""}. Add it to your profile to get matched to
+              jobs right away, or delete it. Either way, that company no longer sees it afterwards.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            <form action={claimUploadedProfile}>
+              <input type="hidden" name="id" value={u.id} />
+              <Button>Add to my profile</Button>
+            </form>
+            <form action={deleteUploadedProfile}>
+              <input type="hidden" name="id" value={u.id} />
+              <Button variant="outline">Delete it</Button>
+            </form>
+          </CardContent>
+        </Card>
+      ))}
+
+      {!candidate.headline && !uploadedProfiles.length && (
         <Alert>
           Start by{" "}
           <Link href="/candidate/profile" className="underline">

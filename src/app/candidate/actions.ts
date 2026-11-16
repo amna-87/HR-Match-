@@ -219,6 +219,32 @@ export async function markNotificationsRead() {
 }
 
 // ---------------------------------------------------------------------------
+// Profiles a recruiter uploaded for this person (D-022): claim (merge) or delete
+// ---------------------------------------------------------------------------
+export async function claimUploadedProfile(formData: FormData) {
+  const { supabase, candidate } = await requireCandidate();
+  const { error } = await supabase.rpc("claim_uploaded_profile", { p_candidate_id: String(formData.get("id") ?? "") });
+  if (error) go("/candidate", "error", error.message);
+  scheduleCandidateMatching(candidate.id);
+  revalidatePath("/candidate");
+  go("/candidate/profile", "ok", "Added to your profile. Check it over — we're now looking for matching jobs.");
+}
+
+export async function deleteUploadedProfile(formData: FormData) {
+  const { supabase } = await requireCandidate();
+  const { data: paths, error } = await supabase.rpc("delete_uploaded_profile", {
+    p_candidate_id: String(formData.get("id") ?? ""),
+  });
+  if (error) go("/candidate", "error", error.message);
+  if ((paths as string[] | null)?.length)
+    await createServiceClient()
+      .storage.from("resumes")
+      .remove(paths as string[]);
+  revalidatePath("/candidate");
+  go("/candidate", "ok", "Deleted. The recruiter's copy of your resume is gone.");
+}
+
+// ---------------------------------------------------------------------------
 // Privacy: account deletion (export is /api/candidate/export)
 // ---------------------------------------------------------------------------
 export async function deleteAccount(formData: FormData) {
@@ -227,6 +253,15 @@ export async function deleteAccount(formData: FormData) {
     go("/candidate/privacy", "error", 'Type "DELETE" to confirm.');
   const service = createServiceClient();
   await getPool().query("select public.erase_invitations_for_email($1)", [user.email ?? ""]);
+  // profiles recruiters uploaded for this verified email (D-022)
+  if (user.email_confirmed_at && user.email) {
+    const up = await getPool().query<{ paths: string[] }>(
+      "select public.erase_uploaded_profiles_for_email($1) as paths",
+      [user.email],
+    );
+    const upPaths = up.rows[0]?.paths ?? [];
+    if (upPaths.length) await service.storage.from("resumes").remove(upPaths);
+  }
   const { rows } = await getPool().query<{ paths: string[] }>("select public.erase_user($1) as paths", [user.id]);
   const paths = rows[0]?.paths ?? [];
   if (paths.length) await service.storage.from("resumes").remove(paths);

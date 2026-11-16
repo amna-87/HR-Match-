@@ -75,7 +75,7 @@ These override convenience. If a feature would violate one, do not build it that
 | Role | Can do | Cannot do |
 |---|---|---|
 | **Candidate** | Manage own profile/resume, set preferences, approve/decline matches, view own applications, control visibility, export/delete own data | See other candidates, see recruiter private notes |
-| **Recruiter** | Post/edit own company's jobs, view ranked matches and consenting applicants for own jobs, run pipeline, write interview feedback | See candidates who have not consented or are not matched/applied, see other companies' data, see non-consenting unclaimed profiles |
+| **Recruiter** | Post/edit own company's jobs, view ranked matches and consenting applicants for own jobs, run pipeline, write interview feedback, upload resumes to the company talent pool (see D-022) | See candidates who have not consented or are not matched/applied, see other companies' data, see identifying details of unclaimed profiles uploaded by another company (anonymous card only, D-022) |
 | **Company Admin** | Everything a recruiter can + manage recruiter seats | Access other companies |
 | **Platform Admin** | Moderate users/jobs, add sourced jobs, handle takedowns, view audit log | Read private recruiter notes without a logged reason |
 
@@ -374,7 +374,7 @@ Must-have automated tests:
 
 ## 15. Phase 2 and Later
 
-- Bulk resume import UI with claim/verify flow for unclaimed profiles
+- ~~Bulk resume import UI with claim/verify flow for unclaimed profiles~~ — brought forward by the product owner on 2026-11-16 as the recruiter talent pool (D-022)
 - Opt-in job alert emails for claimed candidates
 - Job aggregation from official APIs (aggregator APIs, applicant-tracking-system public job feeds), checking each provider's terms
 - Auto-approve rules (opt-in)

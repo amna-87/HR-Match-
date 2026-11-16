@@ -30,6 +30,7 @@ test("public pages", async ({ page }) => {
   for (const path of [
     "/",
     "/jobs",
+    "/jobs?q=accountant&mode=onsite",
     "/jobs/00000000-0000-4000-8000-00000000f101",
     "/login",
     "/signup",
@@ -54,6 +55,8 @@ test("recruiter pages", async ({ page }) => {
     "/recruiter/jobs/new",
     "/recruiter/jobs/00000000-0000-4000-8000-00000000f001",
     "/recruiter/company",
+    "/recruiter/talent",
+    "/recruiter/talent?job=00000000-0000-4000-8000-00000000f001",
   ]) {
     await audit(page, path);
   }

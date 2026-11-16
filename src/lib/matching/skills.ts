@@ -1,7 +1,7 @@
 // Skill normalization + overlap. Deterministic and dependency-free.
 
 /** Canonical names for common variants. Keys and values are lowercase. */
-const ALIASES: Record<string, string> = {
+export const SKILL_ALIASES: Record<string, string> = {
   js: "javascript",
   ts: "typescript",
   node: "node.js",
@@ -36,7 +36,7 @@ export function normalizeSkill(raw: string): string {
     .replace(/\s+/g, " ")
     .replace(/^[\s\-•*·]+|[\s.,;:]+$/g, "")
     .trim();
-  return ALIASES[s] ?? s;
+  return SKILL_ALIASES[s] ?? s;
 }
 
 export interface WeightedSkill {

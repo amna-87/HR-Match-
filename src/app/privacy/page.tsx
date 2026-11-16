@@ -16,6 +16,16 @@ export default function PrivacyPage() {
         <li>Your structured profile: skills, experience, education, certifications, preferences.</li>
         <li>Consent records: when you approve or decline a match (with hashed, not raw, IP and browser details).</li>
       </ul>
+      <h2 className="text-xl font-semibold">Resumes uploaded by recruiters</h2>
+      <p>
+        A recruiter may add the resume of someone who is not on {appName} to their company&apos;s talent pool, after
+        confirming that person gave it to them for job opportunities. That company sees the full profile. Other
+        companies see only an anonymous summary (headline, location, years of experience, skills) — never your name,
+        contact details or resume file. We never email you because of such an upload. If you sign up with the same email
+        address, your dashboard shows which company added it, and you can add it to your own profile (the company then
+        loses access) or delete it. Deleting your account also deletes these uploads. You can also ask us to remove one
+        at {process.env.SUPPORT_EMAIL ?? "support@example.com"}.
+      </p>
       <h2 className="text-xl font-semibold">What we never do</h2>
       <ul className="list-disc pl-6">
         <li>Share your profile with an employer before you approve.</li>
