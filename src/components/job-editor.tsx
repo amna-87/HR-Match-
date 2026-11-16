@@ -255,8 +255,12 @@ export function JobEditor({
               <Field label="Source name" htmlFor="source_name" hint="e.g. Northwind careers page">
                 <Input id="source_name" name="source_name" required defaultValue={v.source_name ?? ""} />
               </Field>
-              <Field label="Source URL" htmlFor="source_url">
-                <Input id="source_url" name="source_url" type="url" required defaultValue={v.source_url ?? ""} />
+              <Field
+                label="Source URL (optional)"
+                htmlFor="source_url"
+                hint="Leave empty if the post has no public link"
+              >
+                <Input id="source_url" name="source_url" type="url" defaultValue={v.source_url ?? ""} />
               </Field>
               <Field label="Hiring company" htmlFor="source_company_name">
                 <Input id="source_company_name" name="source_company_name" defaultValue={v.source_company_name ?? ""} />

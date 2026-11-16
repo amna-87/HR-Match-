@@ -17,7 +17,9 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
     .maybeSingle();
   if (!job) notFound();
   const company =
-    (job.company as { name: string; website: string | null } | null)?.name ?? job.source_company_name ?? "Employer";
+    (job.company as { name: string; website: string | null } | null)?.name ??
+    job.source_company_name ??
+    "Company not disclosed";
   const href = applyHref(job.apply_method, job.apply_target);
   return (
     <article className="max-w-3xl space-y-5">
@@ -64,8 +66,20 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
               target="_blank"
               className="bg-primary text-primary-foreground inline-block rounded-md px-4 py-2"
             >
-              Apply via the original listing
+              {job.apply_method === "email"
+                ? `Apply by email: ${job.apply_target}`
+                : job.apply_method === "phone"
+                  ? `Call / WhatsApp: ${job.apply_target}`
+                  : job.source_url
+                    ? "Apply via the original listing"
+                    : "Apply on the employer's form"}
             </a>
+          )}
+          {job.apply_instructions && (
+            <div className="text-sm">
+              <p className="font-medium">How to apply</p>
+              <p className="whitespace-pre-line">{job.apply_instructions}</p>
+            </div>
           )}
           <p className="text-muted-foreground text-xs">
             Is this your listing and you want it removed?{" "}

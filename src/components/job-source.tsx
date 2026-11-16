@@ -19,7 +19,8 @@ export function SourcedNotice({ job }: { job: JobLike }) {
   if (job.source_type !== "sourced") return null;
   return (
     <div className="rounded-md border border-amber-400 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:bg-amber-950 dark:text-amber-50">
-      Sourced from <strong>{job.source_name}</strong>. Apply via the original listing.{" "}
+      Sourced from <strong>{job.source_name}</strong>.{" "}
+      {job.source_url ? "Apply via the original listing." : "Apply directly to the employer using the details below."}{" "}
       {job.source_url && (
         <a href={job.source_url} rel="noopener noreferrer nofollow" target="_blank" className="underline">
           View original

@@ -140,7 +140,7 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
         <div className="grid gap-4 md:grid-cols-2">
           {(matches ?? []).map((m) => {
             const job = m.job as unknown as JobRef;
-            const company = job.company?.name ?? job.source_company_name ?? "Employer";
+            const company = job.company?.name ?? job.source_company_name ?? "Company not disclosed";
             return (
               <Card key={m.id}>
                 <CardHeader>

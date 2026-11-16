@@ -164,3 +164,14 @@ notified about matching jobs once they join. Chosen visibility model (asked and 
 
 Jobs: published jobs were already public (`/jobs`, RLS `jobs_select_published` for `anon`); the home page now lists
 the latest six and `/jobs` has search and a work-mode filter.
+
+## D-023 Sourced jobs from private channels (product-owner decision, 2026-11-16)
+
+Jobs collected from a WhatsApp jobs channel often have no public link, only an email or phone number. The owner chose
+to allow sourced jobs **without a source link**: `jobs_sourced_shape` now accepts a null `source_url` (still http(s)
+when given). Provenance (`source_name`), the "Sourced listing" label and an off-platform way to apply stay mandatory,
+and they are never applied to on-platform. `apply_instructions` (D-016) is also shown on sourced jobs ("How to apply",
+e.g. the email subject the employer asks for). Posts that don't name the employer show "Company not disclosed".
+The admin Jobs page can publish drafts. First import: 20 posts from JOB_DOCUMENT.docx became 21 drafts (two duplicate
+Trajital posts merged; one Lime Software Logics post split into three roles); a gender restriction in one post
+("female opportunity") was removed because it is a protected characteristic (principle 5).

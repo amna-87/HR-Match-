@@ -180,6 +180,19 @@ describe("companies and jobs", () => {
     ).rejects.toThrow();
   });
 
+  it("sourced jobs: the source link is optional but must be http(s) when given (D-023)", async () => {
+    const base = `insert into jobs(source_type, title, source_name, source_url, apply_method, apply_target, status)
+      values ('sourced', 'Channel job', 'WhatsApp jobs channel', $1, 'email', 'hr@x.example.test', 'draft')`;
+    await db.root(base, [null]);
+    await db.root(base, ["https://x.example.test/job"]);
+    await expect(db.root(base, ["javascript:alert(1)"])).rejects.toThrow(/jobs_sourced_shape/);
+    await expect(
+      db.root(
+        `insert into jobs(source_type, title, source_name, apply_method, apply_target) values ('sourced', 'X', 'Y', 'platform', 'x')`,
+      ),
+    ).rejects.toThrow(/jobs_sourced_shape/);
+  });
+
   it("a recruiter cannot create sourced jobs", async () => {
     await expect(
       db.as(IDS.rita)(

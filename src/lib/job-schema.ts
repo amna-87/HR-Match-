@@ -65,7 +65,6 @@ export type JobFormInput = z.input<typeof JobFormSchema>;
 export type JobForm = z.output<typeof JobFormSchema>;
 
 export const SourcedJobSchema = JobFormSchema.refine((j) => !!j.source_name, "Source name is required")
-  .refine((j) => !!j.source_url, "A valid source URL (https://…) is required")
   .refine(
     (j) => ["email", "phone", "link"].includes(j.apply_method),
     "Choose how candidates apply (email, phone or link)",

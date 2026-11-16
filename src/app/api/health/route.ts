@@ -47,7 +47,9 @@ const SCHEMA_CHECK = `
     ('000007_apply_instructions_invitations', to_regclass('public.company_invitations') is not null
        and exists (select 1 from information_schema.columns
                    where table_schema = 'public' and table_name = 'jobs' and column_name = 'apply_instructions')),
-    ('000008_talent_pool', exists (select 1 from pg_proc where proname = 'talent_pool_for_job'))
+    ('000008_talent_pool', exists (select 1 from pg_proc where proname = 'talent_pool_for_job')),
+    ('000009_sourced_link_optional', exists (select 1 from pg_constraint
+       where conname = 'jobs_sourced_shape' and pg_get_constraintdef(oid) like '%source_url IS NULL%'))
   ) as t(name, present)`;
 
 /** A short, non-secret category for setup troubleshooting (never the URL or password). */

@@ -23,7 +23,8 @@ export function JobList({ jobs, empty = "No open roles yet." }: { jobs: PublicJo
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {jobs.map((j) => {
-        const company = (j.company as { name: string } | null)?.name ?? j.source_company_name ?? "Employer";
+        const company =
+          (j.company as { name: string } | null)?.name ?? j.source_company_name ?? "Company not disclosed";
         return (
           <Card key={j.id} className={j.source_type === "sourced" ? "border-dashed border-amber-400" : ""}>
             <CardHeader>

@@ -38,11 +38,19 @@ export default async function AdminJobs({ searchParams }: { searchParams: Promis
               <JobSourceBadge job={j} /> <Badge>{j.status}</Badge>
               <p className="text-muted-foreground text-xs">
                 {(j.company as unknown as { name: string } | null)?.name ?? j.source_company_name ?? "—"}
-                {j.source_type === "sourced" && <> · from {j.source_name}</>} · published {formatDate(j.published_at)} ·
-                expires {formatDate(j.expires_at)}
+                {j.source_type === "sourced" && <> · from {j.source_name}</>} ·{" "}
+                {j.status === "draft" ? "not published yet" : `published ${formatDate(j.published_at)}`} · expires{" "}
+                {formatDate(j.expires_at)}
               </p>
             </div>
             <div className="flex gap-2">
+              {(j.status === "draft" || j.status === "paused") && (
+                <form action={moderateJob}>
+                  <input type="hidden" name="id" value={j.id} />
+                  <input type="hidden" name="status" value="published" />
+                  <Button size="sm">Publish</Button>
+                </form>
+              )}
               {j.status !== "removed" ? (
                 <form action={moderateJob} className="flex gap-2">
                   <input type="hidden" name="id" value={j.id} />
