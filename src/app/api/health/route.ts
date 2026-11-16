@@ -6,10 +6,15 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   let database: "ok" | "unconfigured" | "error" = "unconfigured";
   let reason: string | undefined;
+  let schema: "ok" | "missing" | undefined;
+  let missing: string[] | undefined;
   if (process.env.DATABASE_URL) {
     try {
       await getPool().query("select 1");
       database = "ok";
+      const { rows } = await getPool().query<{ name: string; present: boolean }>(SCHEMA_CHECK);
+      missing = rows.filter((r) => !r.present).map((r) => r.name);
+      schema = missing.length ? "missing" : "ok";
     } catch (e) {
       database = "error";
       reason = describeDbError(e);
@@ -21,12 +26,28 @@ export async function GET() {
     {
       status: status === 200 ? "ok" : "degraded",
       database,
+      ...(schema ? { schema } : {}),
+      ...(missing?.length ? { missing_migrations: missing } : {}),
       ...(reason ? { reason } : {}),
       time: new Date().toISOString(),
     },
     { status },
   );
 }
+
+/** One marker object per migration, so a deploy can confirm the database is up to date. */
+const SCHEMA_CHECK = `
+  select name, present from (values
+    ('000001_schema', to_regclass('public.matches') is not null),
+    ('000002_helpers', exists (select 1 from pg_proc where proname = 'match_transition_allowed')),
+    ('000003_rls', exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'matches')),
+    ('000004_rpc', exists (select 1 from pg_proc where proname = 'respond_to_match')),
+    ('000005_storage', exists (select 1 from storage.buckets where id = 'resumes')),
+    ('000006_profile_rpc', exists (select 1 from pg_proc where proname = 'save_candidate_profile')),
+    ('000007_apply_instructions_invitations', to_regclass('public.company_invitations') is not null
+       and exists (select 1 from information_schema.columns
+                   where table_schema = 'public' and table_name = 'jobs' and column_name = 'apply_instructions'))
+  ) as t(name, present)`;
 
 /** A short, non-secret category for setup troubleshooting (never the URL or password). */
 function describeDbError(e: unknown): string {
