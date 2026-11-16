@@ -34,7 +34,7 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
       .order("score", { ascending: false }),
     supabase
       .from("applications")
-      .select("id, stage, applied_at, job:jobs(id, title, company:companies(name))")
+      .select("id, stage, applied_at, job:jobs(id, title, apply_instructions, company:companies(name))")
       .order("applied_at", { ascending: false }),
     supabase.from("redistribution_consent").select("*").order("created_at", { ascending: false }),
     supabase
@@ -230,11 +230,21 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
         {!applications?.length && <p className="text-muted-foreground text-sm">No applications yet.</p>}
         <ul className="divide-border border-border bg-card divide-y rounded-lg border">
           {(applications ?? []).map((a) => {
-            const job = a.job as unknown as { id: string; title: string; company: { name: string } | null };
+            const job = a.job as unknown as {
+              id: string;
+              title: string;
+              apply_instructions: string | null;
+              company: { name: string } | null;
+            };
             return (
               <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
                 <span>
                   {job.title} · <span className="text-muted-foreground">{job.company?.name}</span>
+                  {job.apply_instructions && (
+                    <span className="text-muted-foreground block text-xs whitespace-pre-line">
+                      Next steps: {job.apply_instructions}
+                    </span>
+                  )}
                 </span>
                 <span className="flex items-center gap-3 text-sm">
                   <Badge tone={stageTone[a.stage as keyof typeof stageTone]}>{a.stage}</Badge>

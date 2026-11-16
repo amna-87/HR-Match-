@@ -46,7 +46,7 @@ export default async function EmailActionPage({
   const { p: purpose, s: matchId, c: candidateId } = v.payload;
   const db = getPool();
   const { rows } = await db.query(
-    `select m.id, m.status, m.explanation, m.score, j.title, j.source_type, j.source_name, j.source_url, j.apply_method, j.apply_target,
+    `select m.id, m.status, m.explanation, m.score, j.title, j.source_type, j.source_name, j.source_url, j.apply_method, j.apply_target, j.apply_instructions,
             coalesce(co.name, j.source_company_name, 'An employer') as company
      from public.matches m join public.jobs j on j.id = m.job_id left join public.companies co on co.id = j.company_id
      where m.id = $1 and m.candidate_id = $2`,
@@ -77,6 +77,12 @@ export default async function EmailActionPage({
         {error && <Alert tone="error">{error}</Alert>}
         {done === "applied" && (
           <Alert tone="success">Done — your application was sent. The recruiter can now see your profile.</Alert>
+        )}
+        {done === "applied" && m.apply_instructions && (
+          <div className="text-sm">
+            <p className="font-medium">What happens next</p>
+            <p className="whitespace-pre-line">{m.apply_instructions}</p>
+          </div>
         )}
         {done === "declined" && <Alert tone="success">Declined. We won&apos;t ask you about this job again.</Alert>}
         {done === "expired" && <Alert tone="warning">This match expired before it was answered.</Alert>}

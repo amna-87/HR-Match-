@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireRecruiter } from "@/lib/auth/session";
-import { createCompany } from "./actions";
+import { createCompany, acceptInvitation } from "./actions";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, Input, Textarea } from "@/components/ui/form";
 import { SubmitButton } from "@/components/submit-button";
@@ -23,36 +24,64 @@ const statusTone = {
 
 export default async function RecruiterHome({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const sp = await searchParams;
-  const { supabase, company } = await requireRecruiter();
+  const { supabase, company, profile } = await requireRecruiter();
+  const { data: myInvites } = await supabase
+    .from("company_invitations")
+    .select("id, role, expires_at, company:companies(name)")
+    .eq("status", "pending")
+    .ilike("email", profile.email)
+    .gt("expires_at", new Date().toISOString());
+  const invitesCard = (myInvites ?? []).length > 0 && (
+    <Card className="mx-auto max-w-xl">
+      <CardHeader>
+        <CardTitle>You&apos;ve been invited</CardTitle>
+        <CardDescription>Accept to join the company&apos;s hiring team.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {(myInvites ?? []).map((inv) => (
+          <form key={inv.id} action={acceptInvitation} className="flex flex-wrap items-center gap-3">
+            <input type="hidden" name="id" value={inv.id} />
+            <span>
+              <strong>{(inv.company as unknown as { name: string } | null)?.name}</strong> · {inv.role}
+            </span>
+            <Button size="sm">Accept</Button>
+          </form>
+        ))}
+      </CardContent>
+    </Card>
+  );
   if (!company) {
     return (
-      <Card className="mx-auto max-w-xl">
-        <CardHeader>
-          <CardTitle>Set up your company</CardTitle>
-          <CardDescription>You can only post jobs for a company you belong to.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Flash searchParams={sp} />
-          <form action={createCompany} className="space-y-4">
-            <Field label="Company name" htmlFor="name">
-              <Input id="name" name="name" required maxLength={200} />
-            </Field>
-            <Field label="Website" htmlFor="website">
-              <Input id="website" name="website" type="url" placeholder="https://" />
-            </Field>
-            <Field label="Location" htmlFor="location">
-              <Input id="location" name="location" />
-            </Field>
-            <Field label="Size" htmlFor="size" hint="e.g. 11-50">
-              <Input id="size" name="size" />
-            </Field>
-            <Field label="Description" htmlFor="description">
-              <Textarea id="description" name="description" />
-            </Field>
-            <SubmitButton>Create company</SubmitButton>
-          </form>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        <Flash searchParams={sp} />
+        {invitesCard}
+        <Card className="mx-auto max-w-xl">
+          <CardHeader>
+            <CardTitle>Set up your company</CardTitle>
+            <CardDescription>You can only post jobs for a company you belong to.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form action={createCompany} className="space-y-4">
+              <Field label="Company name" htmlFor="name">
+                <Input id="name" name="name" required maxLength={200} />
+              </Field>
+              <Field label="Website" htmlFor="website">
+                <Input id="website" name="website" type="url" placeholder="https://" />
+              </Field>
+              <Field label="Location" htmlFor="location">
+                <Input id="location" name="location" />
+              </Field>
+              <Field label="Size" htmlFor="size" hint="e.g. 11-50">
+                <Input id="size" name="size" />
+              </Field>
+              <Field label="Description" htmlFor="description">
+                <Textarea id="description" name="description" />
+              </Field>
+              <SubmitButton>Create company</SubmitButton>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
   const { data: jobs } = await supabase
@@ -63,6 +92,7 @@ export default async function RecruiterHome({ searchParams }: { searchParams: Pr
   return (
     <div className="space-y-6">
       <Flash searchParams={sp} />
+      {invitesCard}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">{company.name} · Jobs</h1>
         <Link href="/recruiter/jobs/new" className={buttonClasses()}>

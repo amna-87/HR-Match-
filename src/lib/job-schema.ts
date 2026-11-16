@@ -50,6 +50,10 @@ export const JobFormSchema = z
       .string()
       .optional()
       .transform((s) => (s ? sanitizeLine(s, 500) : null)),
+    apply_instructions: z
+      .string()
+      .optional()
+      .transform((s) => (s ? sanitizeText(s, 2000) || null : null)),
   })
   .refine((j) => j.min_exp == null || j.max_exp == null || j.min_exp <= j.max_exp, "Min experience is above max")
   .refine(

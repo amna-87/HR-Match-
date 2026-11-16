@@ -40,6 +40,7 @@ function valuesFromForm(fd: FormData, prev: JobValues): JobValues {
     source_company_name: fd.has("source_company_name") ? str("source_company_name") : prev.source_company_name,
     apply_method: fd.has("apply_method") ? str("apply_method") : prev.apply_method,
     apply_target: fd.has("apply_target") ? str("apply_target") : prev.apply_target,
+    apply_instructions: fd.has("apply_instructions") ? str("apply_instructions") : prev.apply_instructions,
   };
 }
 
@@ -282,10 +283,30 @@ export function JobEditor({
             </CardContent>
           </Card>
         ) : (
-          <p className="text-muted-foreground text-sm">
-            Candidates apply on-platform: matched candidates are asked first, and only those who approve appear in your
-            pipeline.
-          </p>
+          <Card>
+            <CardHeader>
+              <CardTitle>How to apply</CardTitle>
+              <CardDescription>
+                Candidates apply on-platform: matched candidates are asked first, and only those who approve appear in
+                your pipeline. Tell them what happens next.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Field
+                label="Next steps for applicants (optional)"
+                htmlFor="apply_instructions"
+                hint="e.g. We reply within 5 working days. Stage 1 is a 30-minute video call, then a short task."
+              >
+                <Textarea
+                  id="apply_instructions"
+                  name="apply_instructions"
+                  rows={3}
+                  maxLength={2000}
+                  defaultValue={v.apply_instructions ?? ""}
+                />
+              </Field>
+            </CardContent>
+          </Card>
         )}
 
         <div className="flex flex-wrap gap-3">

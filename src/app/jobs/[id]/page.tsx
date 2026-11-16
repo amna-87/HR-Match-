@@ -76,15 +76,23 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
           </p>
         </div>
       ) : (
-        <p className="bg-muted rounded-md p-4 text-sm">
-          You can&apos;t apply blindly here: when your profile matches this role we&apos;ll ask whether you want to
-          apply.{" "}
-          {!profile && (
-            <Link href="/signup?role=candidate" className="underline">
-              Create a candidate profile
-            </Link>
+        <div className="space-y-3">
+          <p className="bg-muted rounded-md p-4 text-sm">
+            How to apply: when your profile matches this role we&apos;ll ask whether you want to apply, and your profile
+            is only sent to the employer if you approve.{" "}
+            {!profile && (
+              <Link href="/signup?role=candidate" className="underline">
+                Create a candidate profile
+              </Link>
+            )}
+          </p>
+          {job.apply_instructions && (
+            <div className="text-sm">
+              <p className="font-medium">What happens after you apply</p>
+              <p className="whitespace-pre-line">{job.apply_instructions}</p>
+            </div>
           )}
-        </p>
+        </div>
       )}
     </article>
   );

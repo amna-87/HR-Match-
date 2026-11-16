@@ -11,9 +11,13 @@ import { sanitizeLine } from "@/lib/security/sanitize";
 const appUrl = () => (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
 const fail = (path: string, msg: string): never => redirect(`${path}?error=${encodeURIComponent(msg)}`);
 
-async function limited(): Promise<boolean> {
+/** Per account+IP (stops password guessing) and a looser per-IP cap (stops spraying many accounts). */
+async function limited(email: string): Promise<boolean> {
   const { ip } = await requestMeta();
-  return !(await checkRateLimit(getPool(), "auth", ip));
+  const account = email.trim().toLowerCase().slice(0, 320);
+  const perAccount = await checkRateLimit(getPool(), "auth", `${ip}:${account}`);
+  const perIp = await checkRateLimit(getPool(), "authIp", ip);
+  return !(perAccount && perIp);
 }
 
 const SignupSchema = z.object({
@@ -25,7 +29,8 @@ const SignupSchema = z.object({
 });
 
 export async function signUp(formData: FormData) {
-  if (await limited()) fail("/signup", "Too many attempts. Please wait a few minutes.");
+  if (await limited(String(formData.get("email") ?? "")))
+    fail("/signup", "Too many attempts. Please wait a few minutes.");
   const parsed = SignupSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) fail("/signup", parsed.error.issues[0]?.message ?? "Invalid input");
   const { email, password, full_name, role } = parsed.data!;
@@ -44,7 +49,8 @@ export async function signUp(formData: FormData) {
 
 export async function logIn(formData: FormData) {
   const next = String(formData.get("next") ?? "");
-  if (await limited()) fail("/login", "Too many attempts. Please wait a few minutes.");
+  if (await limited(String(formData.get("email") ?? "")))
+    fail("/login", "Too many attempts. Please wait a few minutes.");
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
   const supabase = await createClient();
@@ -74,7 +80,8 @@ export async function logInWithGoogle() {
 }
 
 export async function requestPasswordReset(formData: FormData) {
-  if (await limited()) fail("/forgot-password", "Too many attempts. Please wait a few minutes.");
+  if (await limited(String(formData.get("email") ?? "")))
+    fail("/forgot-password", "Too many attempts. Please wait a few minutes.");
   const email = String(formData.get("email") ?? "");
   const supabase = await createClient();
   await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${appUrl()}/auth/callback?next=/reset-password` });

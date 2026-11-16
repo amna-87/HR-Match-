@@ -60,6 +60,6 @@ export class ConsoleSender implements EmailSender {
 
 export function getEmailSender(): EmailSender {
   const key = process.env.RESEND_API_KEY;
-  if (key) return new ResendSender(key, process.env.EMAIL_FROM ?? "HireLoop <notifications@example.com>");
+  if (key) return new ResendSender(key, process.env.EMAIL_FROM ?? "Vouch <notifications@example.com>");
   return new ConsoleSender();
 }

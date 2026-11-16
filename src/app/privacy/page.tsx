@@ -1,6 +1,6 @@
 export const metadata = { title: "Privacy Policy" };
 
-const appName = process.env.APP_NAME ?? "HireLoop";
+const appName = process.env.APP_NAME ?? "Vouch";
 
 export default function PrivacyPage() {
   return (

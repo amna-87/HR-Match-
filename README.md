@@ -1,4 +1,4 @@
-# HireLoop — consent-first HR matching platform
+# Vouch — consent-first hiring marketplace
 
 "Your resume gets matched to jobs automatically, and nothing happens without your permission."
 
@@ -54,12 +54,25 @@ Seeded accounts (password `Password123!`): `admin@example.test`, recruiters `rit
   run). Covers the happy path (recruiter posts → candidate matched → approves → recruiter sees applicant), role guards,
   sourced labeling, resume upload fallback, email-link decline, sourced duplicate detection and takedown.
 
+## Environments (local, staging, production)
+
+|           | Local                | Staging                                                                  | Production                                      |
+| --------- | -------------------- | ------------------------------------------------------------------------ | ----------------------------------------------- |
+| App       | `npm run dev`        | Vercel **Preview** deployments (any branch other than `main`)            | Vercel **Production** (`main`)                  |
+| Database  | `npx supabase start` | a **second** Supabase project (e.g. `vouch-staging`)                     | your main Supabase project                      |
+| Variables | `.env.local`         | Vercel env vars with only **Preview** ticked                             | Vercel env vars with only **Production** ticked |
+| Banner    | "Local development"  | "Staging environment — test data only" (also hidden from search engines) | none                                            |
+
+To set up staging: create the second Supabase project, run the migrations in it (same SQL Editor steps), then in Vercel add
+each variable again with **Preview** ticked and the staging project's values. Push a branch (e.g. `staging`) and Vercel
+builds it as a preview against the staging database. Never point staging at the production database.
+
 ## Deploying
 
 1. Create a Supabase project; enable the `vector` and `pg_trgm` extensions; `supabase link` then `npm run db:migrate`.
    Configure Auth: email confirmations on, Google provider, site URL + `/auth/callback` redirect.
 2. Vercel project with the env vars from `.env.example` (use the Supavisor pooled URL for `DATABASE_URL`).
-   `vercel.json` runs `/api/cron/run` once a day (Hobby plan limit). On Vercel Pro, change it to `*/10 * * * *`; matching and emails also run right after each relevant action, so daily is enough to start.
+   `vercel.json` runs `/api/cron/run` once a day (Hobby plan limit). On Vercel Pro, change it to `*/10 * * * *`; matching and emails also run right after each relevant action. To run it every 10 minutes for free, use Supabase's scheduler: fill in and run `supabase/ops/schedule-background-jobs.sql` in the SQL Editor.
 3. Resend: verify the sending domain; add a webhook to `/api/webhooks/resend` and set `RESEND_WEBHOOK_SECRET`.
 4. Promote an admin: `update public.users set role = 'admin' where email = '…';` (SQL editor; never via the API).
 

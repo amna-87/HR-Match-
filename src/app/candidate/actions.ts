@@ -226,6 +226,7 @@ export async function deleteAccount(formData: FormData) {
   if (String(formData.get("confirm") ?? "") !== "DELETE")
     go("/candidate/privacy", "error", 'Type "DELETE" to confirm.');
   const service = createServiceClient();
+  await getPool().query("select public.erase_invitations_for_email($1)", [user.email ?? ""]);
   const { rows } = await getPool().query<{ paths: string[] }>("select public.erase_user($1) as paths", [user.id]);
   const paths = rows[0]?.paths ?? [];
   if (paths.length) await service.storage.from("resumes").remove(paths);

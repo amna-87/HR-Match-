@@ -25,7 +25,7 @@ const links = {
 
 export async function SiteHeader() {
   const { profile } = await getSession();
-  const appName = process.env.APP_NAME ?? "HireLoop";
+  const appName = process.env.APP_NAME ?? "Vouch";
   const nav = profile?.onboarded ? links[profile.role] : [];
   return (
     <header className="border-border bg-card border-b">

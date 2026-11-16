@@ -35,7 +35,7 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
             <Input id="full_name" name="full_name" autoComplete="name" required maxLength={200} />
           </Field>
           <Field label="Email" htmlFor="email">
-            <Input id="email" name="email" type="email" autoComplete="email" required />
+            <Input id="email" name="email" type="email" autoComplete="email" required defaultValue={sp.email ?? ""} />
           </Field>
           <Field label="Password" htmlFor="password" hint="At least 10 characters.">
             <Input

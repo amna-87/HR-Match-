@@ -5,6 +5,8 @@ import { requireRecruiter } from "@/lib/auth/session";
 import { getPool } from "@/lib/db";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 import { scheduleEmailDelivery, scheduleJobMatching } from "@/lib/server/background";
+import { getEmailSender } from "@/lib/email/sender";
+import { recruiterInvitationEmail } from "@/lib/email/templates";
 import { parseJobText } from "@/lib/parsing/job";
 import { AiUnavailableError } from "@/lib/parsing/claude";
 import type { ParsedJob } from "@/lib/parsing/schemas";
@@ -49,15 +51,58 @@ export async function updateCompany(formData: FormData) {
   go("/recruiter/company", "ok", "Company updated.");
 }
 
-export async function addMember(formData: FormData) {
-  const { supabase, company } = await requireRecruiter();
-  const { error } = await supabase.rpc("add_company_member", {
-    p_company_id: company?.id,
-    p_email: String(formData.get("email") ?? ""),
-    p_role: formData.get("role") === "admin" ? "admin" : "recruiter",
-  });
+export async function inviteRecruiter(formData: FormData) {
+  const { supabase, user, company, isCompanyAdmin } = await requireRecruiter();
+  if (!company || !isCompanyAdmin) go("/recruiter/company", "error", "Only company admins can invite recruiters.");
+  if (!(await checkRateLimit(getPool(), "invite", user.id)))
+    go("/recruiter/company", "error", "Too many invitations. Try again later.");
+  const email = String(formData.get("email") ?? "")
+    .trim()
+    .toLowerCase();
+  const role = formData.get("role") === "admin" ? "admin" : "recruiter";
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) go("/recruiter/company", "error", "Enter a valid email address.");
+  const { error } = await supabase.rpc("invite_recruiter", { p_company_id: company!.id, p_email: email, p_role: role });
   if (error) go("/recruiter/company", "error", error.message);
-  go("/recruiter/company", "ok", "Recruiter added.");
+  const base = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
+  const mail = recruiterInvitationEmail(
+    company!.name,
+    role,
+    `${base}/signup?role=recruiter&email=${encodeURIComponent(email)}`,
+    `${base}/login?next=/recruiter`,
+  );
+  try {
+    const sent = await getEmailSender().send({ to: email, ...mail });
+    if (sent.skipped) {
+      go(
+        "/recruiter/company",
+        "ok",
+        `Invitation created. Email sending isn't set up yet, so tell ${email} to sign up as a recruiter with this address.`,
+      );
+    }
+  } catch (e) {
+    if (e && typeof e === "object" && "digest" in e) throw e;
+    go(
+      "/recruiter/company",
+      "ok",
+      `Invitation created, but the email couldn't be sent. Ask ${email} to sign up as a recruiter with this address.`,
+    );
+  }
+  go("/recruiter/company", "ok", `Invitation sent to ${email}.`);
+}
+
+export async function revokeInvitation(formData: FormData) {
+  const { supabase } = await requireRecruiter();
+  const { error } = await supabase.rpc("revoke_invitation", { p_invitation_id: String(formData.get("id") ?? "") });
+  if (error) go("/recruiter/company", "error", error.message);
+  go("/recruiter/company", "ok", "Invitation revoked.");
+}
+
+export async function acceptInvitation(formData: FormData) {
+  const { supabase } = await requireRecruiter();
+  const { error } = await supabase.rpc("accept_invitation", { p_invitation_id: String(formData.get("id") ?? "") });
+  if (error) go("/recruiter", "error", error.message);
+  revalidatePath("/recruiter");
+  go("/recruiter", "ok", "You've joined the company.");
 }
 
 export async function removeMember(formData: FormData) {
@@ -114,6 +159,7 @@ function jobFromForm(formData: FormData) {
     source_company_name: String(formData.get("source_company_name") ?? ""),
     apply_method: String(formData.get("apply_method") || "platform"),
     apply_target: String(formData.get("apply_target") ?? ""),
+    apply_instructions: String(formData.get("apply_instructions") ?? ""),
   });
 }
 
@@ -142,6 +188,7 @@ export async function saveJob(_prev: SaveState, formData: FormData): Promise<Sav
     salary_currency: j.salary_currency,
     expires_at: j.expires_at,
     apply_method: "platform" as const,
+    apply_instructions: j.apply_instructions,
     ...(publish ? { status: "published" as const } : {}),
   };
   const res = id

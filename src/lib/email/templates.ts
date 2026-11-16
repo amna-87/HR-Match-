@@ -1,5 +1,5 @@
 // Email templates. Every email: clear sender identity + unsubscribe link.
-const appName = () => process.env.APP_NAME ?? "HireLoop";
+const appName = () => process.env.APP_NAME ?? "Vouch";
 
 export function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
@@ -99,4 +99,31 @@ export function redistributionEmail(
 Want to be visible to other recruiters hiring in these areas? Review: ${reviewUrl}
 Unsubscribe: ${unsubscribeUrl}`;
   return { subject, html: layout(subject, body, unsubscribeUrl), text };
+}
+
+/** Transactional: a company admin invited this specific address to join as a recruiter. */
+export function recruiterInvitationEmail(
+  companyName: string,
+  role: "recruiter" | "admin",
+  signupUrl: string,
+  loginUrl: string,
+) {
+  const name = appName();
+  const subject = `You're invited to join ${companyName} on ${name}`;
+  const roleLabel = role === "admin" ? "company admin" : "recruiter";
+  const body = `<p>${escapeHtml(companyName)} invited you to join their hiring team on ${escapeHtml(name)} as a ${roleLabel}.</p>
+<p>${button(signupUrl, "Create a recruiter account", true)} &nbsp; ${button(loginUrl, "I already have an account", false)}</p>
+<p style="font-size:13px;color:#555">Use this email address when you sign up — the invitation is tied to it and expires in 14 days.
+If you weren't expecting this, you can ignore this email; we won't email you again about it.</p>`;
+  const html = `<!doctype html><html><body style="margin:0;background:#f6f7f9;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#111">
+<div style="max-width:560px;margin:0 auto;padding:24px"><p style="font-weight:700;font-size:18px;margin:0 0 16px">${escapeHtml(name)}</p>
+<div style="background:#fff;border-radius:12px;padding:24px"><h1 style="font-size:20px;margin:0 0 12px">${escapeHtml(subject)}</h1>${body}</div>
+<p style="font-size:12px;color:#555;margin-top:16px">Sent by ${escapeHtml(name)} on behalf of ${escapeHtml(companyName)}. This is a one-off invitation, not a mailing list.</p>
+</div></body></html>`;
+  const text = `${companyName} invited you to join their hiring team on ${name} as a ${roleLabel}.
+Create a recruiter account (use this email address): ${signupUrl}
+Already have one? Log in: ${loginUrl}
+The invitation expires in 14 days. If you weren't expecting this, ignore this email.
+Sent by ${name} on behalf of ${companyName}.`;
+  return { subject, html, text };
 }

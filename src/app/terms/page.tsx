@@ -1,6 +1,6 @@
 export const metadata = { title: "Terms of Service" };
 
-const appName = process.env.APP_NAME ?? "HireLoop";
+const appName = process.env.APP_NAME ?? "Vouch";
 
 export default function TermsPage() {
   return (

@@ -60,4 +60,5 @@ npm run db:migrate     # supabase db push (linked remote project)
 npm run db:reset       # plain-Postgres test DB (shim + migrations + seed) — no Docker needed
 npm run matching:run   # run the matching engine for everything flagged needs_matching
 npm run notify:run     # send pending match notifications (respects throttling)
+# supabase/ops/*.sql are per-environment ops scripts (contain secrets once filled in) — run by hand, never as migrations
 ```

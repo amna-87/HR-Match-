@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { requireRecruiter } from "@/lib/auth/session";
-import { updateCompany, addMember, removeMember } from "../actions";
+import { updateCompany, inviteRecruiter, revokeInvitation, removeMember } from "../actions";
+import { formatDate } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, Input, Textarea, Select, Checkbox } from "@/components/ui/form";
 import { SubmitButton } from "@/components/submit-button";
@@ -21,10 +22,15 @@ export default async function CompanyPage({ searchParams }: { searchParams: Prom
     location: string | null;
     show_name_on_vetted_badge: boolean;
   };
-  const { data: members } = await supabase
-    .from("company_members")
-    .select("id, role, user_id, user:users(email)")
-    .eq("company_id", c.id);
+  const [{ data: members }, { data: invites }] = await Promise.all([
+    supabase.rpc("company_member_list", { p_company_id: c.id }),
+    supabase
+      .from("company_invitations")
+      .select("id, email, role, expires_at")
+      .eq("company_id", c.id)
+      .eq("status", "pending")
+      .order("created_at", { ascending: false }),
+  ]);
   return (
     <div className="space-y-6">
       <Flash searchParams={await searchParams} />
@@ -69,13 +75,15 @@ export default async function CompanyPage({ searchParams }: { searchParams: Prom
       <Card>
         <CardHeader>
           <CardTitle>Recruiter seats</CardTitle>
-          <CardDescription>Add colleagues who already have a recruiter account.</CardDescription>
+          <CardDescription>
+            Invite colleagues by email. They join after signing up or logging in as a recruiter with that address.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <ul className="space-y-1 text-sm">
-            {(members ?? []).map((m) => (
+            {((members ?? []) as { id: string; role: string; user_id: string; email: string }[]).map((m) => (
               <li key={m.id} className="flex items-center gap-2">
-                {(m.user as unknown as { email: string } | null)?.email ?? m.user_id} · {m.role}
+                {m.email} · {m.role}
                 {isCompanyAdmin && m.user_id !== user.id && (
                   <form action={removeMember}>
                     <input type="hidden" name="id" value={m.id} />
@@ -87,9 +95,29 @@ export default async function CompanyPage({ searchParams }: { searchParams: Prom
               </li>
             ))}
           </ul>
+          {(invites ?? []).length > 0 && (
+            <div className="space-y-1">
+              <p className="text-sm font-medium">Pending invitations</p>
+              <ul className="space-y-1 text-sm">
+                {(invites ?? []).map((inv) => (
+                  <li key={inv.id} className="flex flex-wrap items-center gap-2">
+                    {inv.email} · {inv.role} · expires {formatDate(inv.expires_at)}
+                    {isCompanyAdmin && (
+                      <form action={revokeInvitation}>
+                        <input type="hidden" name="id" value={inv.id} />
+                        <Button size="sm" variant="ghost">
+                          Revoke
+                        </Button>
+                      </form>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {isCompanyAdmin && (
-            <form action={addMember} className="flex flex-wrap items-end gap-2">
-              <Field label="Email" htmlFor="email">
+            <form action={inviteRecruiter} className="flex flex-wrap items-end gap-2">
+              <Field label="Invite by email" htmlFor="email">
                 <Input id="email" name="email" type="email" required />
               </Field>
               <Field label="Role" htmlFor="role">
@@ -98,7 +126,7 @@ export default async function CompanyPage({ searchParams }: { searchParams: Prom
                   <option value="admin">Admin</option>
                 </Select>
               </Field>
-              <SubmitButton variant="outline">Add</SubmitButton>
+              <SubmitButton variant="outline">Send invitation</SubmitButton>
             </form>
           )}
         </CardContent>

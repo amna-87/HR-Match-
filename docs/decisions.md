@@ -99,7 +99,44 @@ characteristics; output is sanitized and protected details are stripped again. P
 nothing is saved to the profile until the candidate saves. If parsing fails or AI isn't configured, the file is kept and
 the candidate fills the form manually. Claude calls opt into server-side refusal fallbacks (`fallbacks: "default"`).
 
-## D-015 Recruiter seats
+## D-015 Recruiter seats (updated by D-017)
 
-Company admins add colleagues who already have a recruiter account (`add_company_member`). Email invitations are not in
-MVP.
+Originally: company admins add colleagues who already have a recruiter account. Superseded by email invitations (D-017).
+
+## D-016 "How to apply" on verified jobs
+
+Spec 5.3 lists "how to apply" in the job form. For verified jobs, applying always goes through the candidate's approval
+(principle 1), so `apply_method` stays `platform`. The field is `jobs.apply_instructions`: the employer's next steps
+(e.g. reply time, interview stages), shown on the job page, after approving from an email, and with the candidate's
+applications. Sourced jobs keep `apply_method` / `apply_target` (email, phone or link).
+
+## D-017 Recruiter invitations
+
+`company_invitations` + `invite_recruiter` / `revoke_invitation` / `accept_invitation`. A company admin invites an
+email; the invitee signs up or logs in as a recruiter **with that verified email** and accepts on /recruiter. There is
+no token in the link: acceptance is bound to the signed-in account's email. Invitations expire after 14 days; re-inviting
+refreshes the pending one; all steps are audited. The invitation email is a one-off transactional email to an address
+the company admin typed in — not a resume-derived address and not a mailing list. `company_member_list()` lets members
+see colleagues' emails (users RLS only exposes your own row).
+
+## D-018 Background schedule on the Vercel Hobby plan
+
+Vercel Hobby crons run at most daily, so `vercel.json` runs `/api/cron/run` daily. For a 10-minute cadence at no cost,
+`supabase/ops/schedule-background-jobs.sql` uses Supabase `pg_cron` + `pg_net` to call the same endpoint, with the
+`CRON_SECRET` and app URL stored in Supabase Vault. It is an ops script, not a migration, because it holds a secret and
+is per-environment.
+
+## D-019 Environments
+
+`APP_ENV` (or Vercel's `VERCEL_ENV=preview`) marks staging: a banner is shown and search engines are told not to index.
+Staging = Vercel Preview deployments + a separate Supabase project, with Preview-scoped env vars (see README).
+
+## D-020 Auth rate limits
+
+Login/sign-up/reset are limited per account+IP (10 per 10 min, stops password guessing) and per IP (60 per 10 min,
+stops spraying many accounts). A per-IP-only limit would lock out whole offices behind one IP.
+
+## D-021 Accessibility
+
+`tests/e2e/a11y.spec.ts` runs axe-core (WCAG 2.1 A/AA rules) on 22 pages across all roles and fails on serious or
+critical violations. Automated checks don't replace a manual screen-reader pass before launch.

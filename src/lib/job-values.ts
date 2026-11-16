@@ -21,6 +21,7 @@ export interface JobValues {
   source_company_name?: string | null;
   apply_method?: string;
   apply_target?: string | null;
+  apply_instructions?: string | null;
 }
 
 export const emptyJob: JobValues = {
