@@ -63,7 +63,7 @@ export default async function ApplicationPage({
       <Flash searchParams={await searchParams} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">{c.full_name}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{c.full_name}</h1>
           <p className="text-muted-foreground">
             Applied to {job.title} on {formatDate(app.applied_at)}
             {match ? ` · score ${Math.round(Number(match.score))}` : ""}

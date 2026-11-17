@@ -81,7 +81,7 @@ export default async function TalentPoolPage({ searchParams }: { searchParams: P
     <div className="space-y-6">
       <Flash searchParams={sp} />
       <div>
-        <h1 className="text-2xl font-semibold">Talent pool</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Talent pool</h1>
         <p className="text-muted-foreground text-sm">
           Resumes you add are visible in full to your company only. Other companies see an anonymous card (headline,
           location, years of experience, skills) — never the name, contact details or file. We never email these people.

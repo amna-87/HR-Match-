@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { homeFor, type AppRole } from "./routes";
@@ -11,14 +12,24 @@ export interface SessionProfile {
   onboarded: boolean;
 }
 
-export async function getSession() {
+export interface SessionUser {
+  id: string;
+  email: string | undefined;
+}
+
+/**
+ * Current session, memoised per request (the header and the page share one lookup).
+ * The access token is verified locally against the project's signing keys (getClaims),
+ * so no network round trip to Supabase Auth; data access still goes through RLS.
+ */
+export const getSession = cache(async () => {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     return { supabase: null, user: null, profile: null } as const;
   }
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims;
+  const user: SessionUser | null = claims?.sub ? { id: claims.sub, email: claims.email as string | undefined } : null;
   if (!user) return { supabase, user: null, profile: null } as const;
   const { data: profile } = await supabase
     .from("users")
@@ -26,7 +37,7 @@ export async function getSession() {
     .eq("id", user.id)
     .single();
   return { supabase, user, profile: (profile as SessionProfile | null) ?? null } as const;
-}
+});
 
 /** Server-side guard (middleware also enforces this; defense in depth). */
 export async function requireRole(role: AppRole) {

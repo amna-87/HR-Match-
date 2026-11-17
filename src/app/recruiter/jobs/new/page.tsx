@@ -12,7 +12,7 @@ export default async function NewJobPage({ searchParams }: { searchParams: Promi
   if (!company) redirect("/recruiter");
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">Post a job for {company.name}</h1>
+      <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Post a job for {company.name}</h1>
       <Flash searchParams={await searchParams} />
       <JobEditor initial={emptyJob} mode="verified" extractAction={extractJob} saveAction={saveJob} />
     </div>

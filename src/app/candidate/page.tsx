@@ -9,7 +9,7 @@ import {
 } from "./actions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonClasses } from "@/components/ui/button";
 import { Alert } from "@/components/ui/alert";
 import { Flash } from "@/components/flash";
 import { SourcedNotice, applyHref } from "@/components/job-source";
@@ -77,14 +77,22 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
   return (
     <div className="space-y-8">
       <Flash searchParams={await searchParams} />
-      <div className="flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <h1 className="text-2xl font-semibold">
-            Hi{candidate.full_name ? `, ${candidate.full_name.split(" ")[0]}` : ""}
+      <div className="hero-glow border-border bg-card flex flex-wrap items-center justify-between gap-4 rounded-3xl border p-6 shadow-(--shadow-card) sm:p-8">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            Hi{candidate.full_name ? `, ${candidate.full_name.split(" ")[0]}` : ""} 👋
           </h1>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground">
             Nothing is sent to an employer unless you approve it here or from an email.
           </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/candidate/profile" className={buttonClasses("outline")}>
+            Edit profile
+          </Link>
+          <Link href="/jobs" className={buttonClasses("default")}>
+            Browse jobs
+          </Link>
         </div>
         {(!candidate.open_to_work || candidate.visibility_paused) && (
           <Alert tone="warning">
@@ -131,7 +139,7 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
       )}
 
       <section aria-labelledby="matches-h" className="space-y-3">
-        <h2 id="matches-h" className="text-xl font-semibold">
+        <h2 id="matches-h" className="text-xl font-semibold tracking-tight">
           Matches waiting for you
         </h2>
         {!matches?.length && (
@@ -207,7 +215,7 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
       </section>
 
       <section id="visibility" aria-labelledby="vis-h" className="space-y-3">
-        <h2 id="vis-h" className="text-xl font-semibold">
+        <h2 id="vis-h" className="text-xl font-semibold tracking-tight">
           Recruiter recommendations
         </h2>
         {!offers?.length && (
@@ -263,7 +271,7 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
       </section>
 
       <section aria-labelledby="apps-h" className="space-y-3">
-        <h2 id="apps-h" className="text-xl font-semibold">
+        <h2 id="apps-h" className="text-xl font-semibold tracking-tight">
           Your applications
         </h2>
         {!applications?.length && <p className="text-muted-foreground text-sm">No applications yet.</p>}
@@ -297,7 +305,7 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
 
       <section aria-labelledby="notes-h" className="space-y-3">
         <div className="flex items-center gap-3">
-          <h2 id="notes-h" className="text-xl font-semibold">
+          <h2 id="notes-h" className="text-xl font-semibold tracking-tight">
             Notifications
           </h2>
           {unread > 0 && (

@@ -254,7 +254,11 @@ export async function deleteAccount(formData: FormData) {
   const service = createServiceClient();
   await getPool().query("select public.erase_invitations_for_email($1)", [user.email ?? ""]);
   // profiles recruiters uploaded for this verified email (D-022)
-  if (user.email_confirmed_at && user.email) {
+  // full user record from Auth (the session only carries token claims)
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser();
+  if (authUser?.email_confirmed_at && user.email) {
     const up = await getPool().query<{ paths: string[] }>(
       "select public.erase_uploaded_profiles_for_email($1) as paths",
       [user.email],

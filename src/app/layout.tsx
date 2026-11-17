@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
+import { GeistSans } from "geist/font/sans";
 import { SiteHeader } from "@/components/site-header";
+import { Logo } from "@/components/logo";
 import { appEnv } from "@/lib/app-env";
 
 const appName = process.env.APP_NAME ?? "Vouch";
@@ -16,7 +18,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={GeistSans.variable}>
       <body className="flex min-h-screen flex-col antialiased">
         <a
           href="#main"
@@ -30,21 +32,60 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           </div>
         )}
         <SiteHeader />
-        <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
+        <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:py-10">
           {children}
         </main>
-        <footer className="border-border text-muted-foreground border-t py-6 text-sm">
-          <div className="mx-auto flex max-w-6xl flex-wrap gap-4 px-4">
-            <span>© {appName}</span>
-            <Link href="/terms" className="hover:underline">
-              Terms
-            </Link>
-            <Link href="/privacy" className="hover:underline">
-              Privacy
-            </Link>
-            <Link href="/takedown" className="hover:underline">
-              Request removal of a listing
-            </Link>
+        <footer className="border-border bg-card mt-12 border-t">
+          <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 text-sm sm:grid-cols-[2fr_1fr_1fr]">
+            <div className="space-y-3">
+              <Logo name={appName} />
+              <p className="text-muted-foreground max-w-sm">
+                Jobs matched to your skills, and nothing is sent to an employer without your approval.
+              </p>
+            </div>
+            <nav aria-label="Explore" className="space-y-2">
+              <p className="font-semibold">Explore</p>
+              <ul className="text-muted-foreground space-y-2">
+                <li>
+                  <Link href="/jobs" className="hover:text-foreground">
+                    Browse jobs
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/signup?role=candidate" className="hover:text-foreground">
+                    Create a profile
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/signup?role=recruiter" className="hover:text-foreground">
+                    Hire with {appName}
+                  </Link>
+                </li>
+              </ul>
+            </nav>
+            <nav aria-label="Legal" className="space-y-2">
+              <p className="font-semibold">Legal</p>
+              <ul className="text-muted-foreground space-y-2">
+                <li>
+                  <Link href="/terms" className="hover:text-foreground">
+                    Terms
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/privacy" className="hover:text-foreground">
+                    Privacy
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/takedown" className="hover:text-foreground">
+                    Request removal of a listing
+                  </Link>
+                </li>
+              </ul>
+            </nav>
+          </div>
+          <div className="border-border text-muted-foreground border-t py-4 text-center text-xs">
+            © {new Date().getFullYear()} {appName}
           </div>
         </footer>
       </body>

@@ -2,10 +2,10 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const field =
-  "flex w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50";
+  "flex w-full rounded-lg border border-border bg-card px-3 py-2 text-sm shadow-[0_1px_1px_rgb(15_23_42/0.03)] transition-colors placeholder:text-muted-foreground hover:border-slate-300 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/15 disabled:opacity-50 dark:hover:border-slate-600";
 
 export function Input({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
-  return <input className={cn(field, "h-10", className)} {...props} />;
+  return <input className={cn(field, "h-11", className)} {...props} />;
 }
 
 export function Textarea({ className, ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
@@ -13,7 +13,7 @@ export function Textarea({ className, ...props }: React.TextareaHTMLAttributes<H
 }
 
 export function Select({ className, ...props }: React.SelectHTMLAttributes<HTMLSelectElement>) {
-  return <select className={cn(field, "h-10", className)} {...props} />;
+  return <select className={cn(field, "h-11 pr-8", className)} {...props} />;
 }
 
 export function Label({ className, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) {
@@ -49,8 +49,8 @@ export function Field({
 
 export function Checkbox({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
   return (
-    <label className="flex items-center gap-2 text-sm">
-      <input type="checkbox" className="border-border accent-primary h-4 w-4 rounded" {...props} />
+    <label className="flex cursor-pointer items-start gap-2.5 text-sm leading-snug">
+      <input type="checkbox" className="border-border accent-primary mt-0.5 h-4 w-4 shrink-0 rounded" {...props} />
       {label}
     </label>
   );

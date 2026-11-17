@@ -175,3 +175,18 @@ e.g. the email subject the employer asks for). Posts that don't name the employe
 The admin Jobs page can publish drafts. First import: 20 posts from JOB_DOCUMENT.docx became 21 drafts (two duplicate
 Trajital posts merged; one Lime Software Logics post split into three roles); a gender restriction in one post
 ("female opportunity") was removed because it is a protected characteristic (principle 5).
+
+## D-024 Performance and visual refresh (2026-11-17)
+
+- The Supabase project is in `ap-southeast-2` (Sydney) while Vercel functions defaulted to `iad1` (US East), so every
+  query crossed the Pacific (~1 s per page). `vercel.json` now pins functions to `syd1`, and middleware runs on the
+  Node.js runtime so it executes in that region too.
+- Session checks use `supabase.auth.getClaims()`: the project signs tokens with ES256, so the JWT is verified locally
+  against the cached JWKS instead of a call to Supabase Auth on every request. Access control is unchanged: Postgres RLS
+  trusts the same JWT, and `users.status` / role are still read from the database. `getSession()` is memoised per
+  request (React `cache`), so the header and the page share one lookup. Anonymous visitors on public pages skip the
+  middleware session work entirely. Account deletion still fetches the full Auth user (needs `email_confirmed_at`).
+- Visual refresh: indigo/teal design tokens, Geist font (self-hosted via the `geist` package), lucide icons, sticky
+  header with active states and a mobile menu, redesigned home/jobs/job/auth pages. No root `loading.tsx`: a root
+  Suspense boundary blanked pages after server-action redirects and turned `notFound()` into 200s; the skeleton is
+  limited to the read-only jobs list (`src/app/jobs/(list)`).

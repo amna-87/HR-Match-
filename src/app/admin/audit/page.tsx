@@ -15,7 +15,7 @@ export default async function AdminAudit({ searchParams }: { searchParams: Promi
   const { data: rows } = await q;
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Audit log</h1>
+      <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Audit log</h1>
       <form method="get" className="flex flex-wrap items-end gap-2">
         <Field label="Action starts with" htmlFor="action">
           <Input id="action" name="action" defaultValue={sp.action ?? ""} placeholder="match." />

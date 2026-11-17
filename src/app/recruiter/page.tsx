@@ -94,7 +94,7 @@ export default async function RecruiterHome({ searchParams }: { searchParams: Pr
       <Flash searchParams={sp} />
       {invitesCard}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">{company.name} · Jobs</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{company.name} · Jobs</h1>
         <Link href="/recruiter/jobs/new" className={buttonClasses()}>
           Post a job
         </Link>

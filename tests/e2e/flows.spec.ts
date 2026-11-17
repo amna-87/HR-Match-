@@ -128,7 +128,7 @@ test("admin adds a sourced job (duplicate detection), then a takedown removes a 
 
   // Admin honours it
   await admin.goto("/admin/takedowns");
-  const card = admin.locator("div.rounded-lg", { hasText: "legal@northwind.example.test" }).first();
+  const card = admin.locator("div.rounded-2xl", { hasText: "legal@northwind.example.test" }).first();
   await card.getByLabel("Note").fill("Owner request");
   await card.getByRole("button", { name: "Remove listing" }).click();
   await expect(admin.getByText("Listing removed and request resolved.")).toBeVisible();

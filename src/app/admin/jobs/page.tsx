@@ -23,7 +23,7 @@ export default async function AdminJobs({ searchParams }: { searchParams: Promis
     <div className="space-y-4">
       <Flash searchParams={sp} />
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">Job moderation</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Job moderation</h1>
         <Link href="/admin/sourced/new" className={buttonClasses()}>
           Add sourced job
         </Link>

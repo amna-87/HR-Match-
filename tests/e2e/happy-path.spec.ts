@@ -43,7 +43,7 @@ test("recruiter posts a job, candidate approves, recruiter sees the applicant", 
     await candidate.reload();
     await expect(candidate.getByRole("link", { name: title })).toBeVisible({ timeout: 1000 });
   }).toPass({ timeout: 45_000 });
-  const card = candidate.locator("div.rounded-lg", { has: candidate.getByRole("link", { name: title }) });
+  const card = candidate.locator("div.rounded-2xl", { has: candidate.getByRole("link", { name: title }) });
   await expect(card.getByText(/Matched on: .*meta ads/i)).toBeVisible();
 
   // Still invisible to the recruiter until approved
@@ -84,7 +84,7 @@ test("each role lands on its own dashboard and can't open the others", async ({ 
 test("sourced jobs are clearly labeled and link to the original listing", async ({ page }) => {
   await page.goto("/jobs");
   const seeded = page.locator('a[href="/jobs/00000000-0000-4000-8000-00000000f101"]');
-  await expect(page.locator("div.rounded-lg", { has: seeded }).getByText("Sourced listing")).toBeVisible();
+  await expect(page.locator("li", { has: seeded }).getByText("Sourced listing")).toBeVisible();
   await seeded.click();
   await expect(page.getByText("Sourced from Northwind careers page. Apply via the original listing.")).toBeVisible();
   await expect(page.getByRole("link", { name: "Apply via the original listing" })).toHaveAttribute("href", /northwind/);

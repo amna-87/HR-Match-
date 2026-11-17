@@ -22,7 +22,7 @@ export default async function AdminHome() {
   const counts = (data ?? {}) as Record<string, number>;
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Platform overview</h1>
+      <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Platform overview</h1>
       <div className="grid gap-4 sm:grid-cols-3">
         {Object.entries(LABELS).map(([k, label]) => (
           <Card key={k}>

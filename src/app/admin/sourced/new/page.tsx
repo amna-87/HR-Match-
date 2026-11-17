@@ -9,7 +9,7 @@ export default async function NewSourcedJob() {
   await requireRole("admin");
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">Add a sourced job</h1>
+      <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Add a sourced job</h1>
       <p className="text-muted-foreground text-sm">
         Manual paste only — no automated scraping. Sourced jobs are always labeled, expire automatically (30 days by
         default), never accept in-platform applications, and can be removed on request.

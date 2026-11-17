@@ -15,7 +15,7 @@ export function Alert({
   return (
     <div
       role={tone === "error" ? "alert" : "status"}
-      className={cn("rounded-md border px-4 py-3 text-sm", t, className)}
+      className={cn("rounded-xl border px-4 py-3 text-sm", t, className)}
       {...props}
     />
   );

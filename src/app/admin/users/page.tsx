@@ -24,7 +24,7 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
   return (
     <div className="space-y-4">
       <Flash searchParams={sp} />
-      <h1 className="text-2xl font-semibold">Users</h1>
+      <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Users</h1>
       <form className="flex gap-2" method="get">
         <label htmlFor="q" className="sr-only">
           Search by email

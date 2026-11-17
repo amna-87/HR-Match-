@@ -68,7 +68,7 @@ export default async function RecruiterJobPage({
     <div className="space-y-8">
       <Flash searchParams={sp} />
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
           {job.title} <Badge tone={job.status === "published" ? "success" : "muted"}>{job.status}</Badge>
         </h1>
         <div className="flex flex-wrap gap-2">
@@ -88,7 +88,7 @@ export default async function RecruiterJobPage({
       </div>
 
       <section aria-labelledby="pipeline-h" className="space-y-3">
-        <h2 id="pipeline-h" className="text-xl font-semibold">
+        <h2 id="pipeline-h" className="text-xl font-semibold tracking-tight">
           Applicants ({applicants.length})
         </h2>
         <p className="text-muted-foreground text-sm">
@@ -193,7 +193,7 @@ export default async function RecruiterJobPage({
 
       {vetted.length > 0 && (
         <section aria-labelledby="vetted-h" className="space-y-3">
-          <h2 id="vetted-h" className="text-xl font-semibold">
+          <h2 id="vetted-h" className="text-xl font-semibold tracking-tight">
             Interview-vetted candidates in this area
           </h2>
           <p className="text-muted-foreground text-sm">
@@ -228,7 +228,7 @@ export default async function RecruiterJobPage({
       )}
 
       <section aria-labelledby="edit-h" className="space-y-3">
-        <h2 id="edit-h" className="text-xl font-semibold">
+        <h2 id="edit-h" className="text-xl font-semibold tracking-tight">
           Edit job
         </h2>
         <JobEditor initial={values} mode="verified" extractAction={extractJob} saveAction={saveJob} />

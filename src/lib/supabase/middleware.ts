@@ -11,6 +11,8 @@ export async function updateSession(request: NextRequest) {
     // Not configured (e.g. health check in CI): allow public pages only.
     return required ? NextResponse.redirect(new URL("/login", request.url)) : response;
   }
+  // Anonymous visitors on public pages: no session cookie, nothing to refresh or check.
+  if (!required && !request.cookies.getAll().some((c) => c.name.startsWith("sb-"))) return response;
   const supabase = createServerClient(url, anon, {
     cookies: {
       getAll: () => request.cookies.getAll(),
@@ -21,9 +23,9 @@ export async function updateSession(request: NextRequest) {
       },
     },
   });
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Refreshes the session cookie if needed and verifies the token locally (ES256 signing keys).
+  const { data } = await supabase.auth.getClaims();
+  const user = data?.claims?.sub ? { id: data.claims.sub } : null;
 
   if (!required) return response;
   if (!user) {

@@ -20,7 +20,7 @@ export default async function AdminTakedowns({ searchParams }: { searchParams: P
   return (
     <div className="space-y-4">
       <Flash searchParams={await searchParams} />
-      <h1 className="text-2xl font-semibold">Takedown requests</h1>
+      <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Takedown requests</h1>
       {(reqs ?? []).map((r) => {
         const job = r.job as { id: string; title: string; status: string; source_name: string | null } | null;
         return (
