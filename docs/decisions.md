@@ -190,3 +190,99 @@ Trajital posts merged; one Lime Software Logics post split into three roles); a 
   header with active states and a mobile menu, redesigned home/jobs/job/auth pages. No root `loading.tsx`: a root
   Suspense boundary blanked pages after server-action redirects and turned `notFound()` into 200s; the skeleton is
   limited to the read-only jobs list (`src/app/jobs/(list)`).
+
+## D-025 Audit against the v1.0 launch addendum (2026-11-17)
+
+Audit of the deployed app (vouch-jobs.vercel.app, commit 109565b, migrations 000001-000009) against
+`docs/requirements.md` and `docs/requirements-v1.0-addendum.md`. Status: **Done** / **Partial** / **Missing**.
+Items marked **[ASK]** conflict with something already built and need an owner decision before that milestone.
+
+### What exists today
+
+- Screens: home, `/jobs` search, `/jobs/[uuid]`, auth (signup, login, forgot/reset), onboarding, candidate dashboard /
+  profile / settings / privacy, recruiter jobs / new job / job detail / application / company & team / talent pool,
+  admin overview / jobs / add sourced job / users / takedowns / audit / feedback, `/takedown`, `/terms`, `/privacy`,
+  `/m/[token]` (consent link), `/unsubscribe/[token]`, `/api/health`, `/api/cron/run` (daily).
+- Tables: users, candidates (+ skills, experiences, education, certifications), resumes, companies, company_members,
+  company_invitations, jobs, matches, consent_events, applications, application_stage_history, interview_feedback,
+  redistribution_consent, notifications, audit_log, blocked_companies, takedown_requests, rate_limits. RLS on all.
+- Talent pool today (D-022): uploads are rows in `candidates` with `uploaded_by_company_id`; 10 files per upload,
+  parsed inside the request; other companies see an anonymous card.
+
+### A1 Workspaces + membership + RLS: Partial
+
+- `companies` + `company_members` (roles admin/recruiter, invitations) already act as a workspace. Gap: no
+  `workspaces` / `workspace_members` naming, no workspace for a recruiter without a company (company is now optional),
+  no plan/limits columns.
+- Proposal: keep `companies` as the workspace table (rename in UI to "Workspace", company name optional) rather than a
+  parallel table, so existing jobs, seats and RLS keep working. Add `workspace_id` alias views only if needed.
+- **[ASK] Pool visibility.** Addendum: pool is "visible to nobody else". Built (owner choice, D-022): other
+  recruiters see an anonymous card. Addendum overrides, so the default plan is to make pools fully private.
+
+### A2 Bulk upload + queue + parse + dedupe + pool search: Partial
+
+- Missing: drag-and-drop, ZIP, 200 files x 5 MB per batch, configurable pool cap (500), per-file status list
+  (queued / parsing / done / failed + reason), background queue with retries (today parsing runs in the request).
+- Missing: separate `pool_candidates` table scoped by workspace (today uploads share `candidates`); dedupe on
+  phone and name+latest employer (today email only); duplicates flagged/merged.
+- Missing: tags, private notes, source, status (new/contacted/interested/not interested/hired), `do_not_contact`.
+- Missing: pool search and filters (skills, title, location, experience, tags, status) and semantic search.
+- Done: protected-characteristic stripping, delete removes file + parsed data + embeddings, Claude parser with
+  offline fallback (Claude key not yet set in production, so the fallback parser is used today).
+- Plan: browser uploads files straight to private Storage (avoids Vercel's 4.5 MB request limit); a `pool_imports`
+  queue table; workers run via `/api/pool/process` called while the page is open plus a pg_cron backstop
+  (`supabase/ops/schedule-background-jobs.sql`), because Vercel Hobby cron is daily only (D-018). Move existing
+  uploads into `pool_candidates`.
+
+### B1 Optional company, contact validation, source labels, expiry: Partial
+
+- Done: sourced jobs without company ("Company not disclosed"), apply via email/phone/link, 30-day expiry on sourced
+  jobs, takedown flow, optional source URL.
+- Missing: `source_type` values `employer_posted`, `api_feed`, `csv_import`, `pasted` (today `verified`/`sourced`);
+  WhatsApp apply method + click-to-chat; "Hiring directly" and "Source: not specified" labels; any recruiter can add
+  sourced jobs to their own workspace (today admin-only); workspace-private vs public-board visibility; expiry +
+  "still open?" refresh on all jobs; duplicate detection.
+- Gap: job page shows phone/WhatsApp numbers and emails in page text. 7c requires a login or human check to reveal
+  them.
+
+### B2 CSV import, then one official connector: Missing
+
+- Missing: connector interface; paste-to-job for every recruiter with review screen (admin-only today); CSV import
+  with column mapping; ATS feed (Greenhouse and/or Lever public job-board API) with daily refresh, close-on-disappear,
+  dedupe, "From [company] careers page" label, summary in our own words. Terms check per provider to be recorded here
+  before building. No scraping (rule 8).
+
+### C1 Pool-vs-job matching and reverse view: Partial
+
+- Done: "Find people for a job" ranks the pool against one job (scoring engine reused).
+- Missing: "Top matches from your pool" on the job page with one-line reasons; "Best jobs for this person" on a pool
+  candidate; selection of candidates for outreach.
+
+### C2 Outreach: Missing (launch: copy/export only, per 7d)
+
+- Launch scope: "Copy message" and "Export contact + job" (CSV), lawful-basis checkbox stored in the audit log,
+  `do_not_contact` respected. Global suppression list table built now; direct email sending after launch (v1.1).
+- Note: CLAUDE.md rule 2 (never email resume addresses) still holds at launch because nothing is emailed.
+
+### G1 Public job pages, usage counters and limits: Partial
+
+- Done: public home with live counts, public search, public job pages (server-rendered, per-job title/description),
+  rate limits on actions, Terms, Privacy, removal request page.
+- Missing: readable job URLs (`/jobs/<slug>-<n>`, old UUID URLs redirect); JSON-LD `JobPosting` with `validThrough`;
+  canonical URLs; `sitemap.xml`, `robots.txt`; Open Graph image per job; share buttons (copy, WhatsApp, LinkedIn);
+  closed/expired jobs show a friendly "closed" page with similar jobs (today 404); filters for location, job type and
+  date posted (today keyword + work mode); company pages; category/location landing pages (only with enough jobs);
+  About, How matching works, For recruiters pages; per-IP rate limits on job pages/search; "Get matched to jobs like
+  this" signup on job pages; usage counters and plan limits (pool size, sends, sources).
+
+### 8. Remaining v1.0 items
+
+- Done: consent state machine, feedback loop (interview feedback + admin feedback view), admin panel, privacy tools
+  (export, delete, consent withdrawal), audit log, takedowns.
+- To verify during G1: save a job / job alerts are v1.1 (alerts) or need login (save) and are not built.
+
+### Launch cut line (7d)
+
+Before launch: A1, A2, B1, B2 (CSV + at least one feed connector), C1, 7c, privacy tools, takedown, Terms and Privacy
+(legal review still needed). C2 at launch: copy message + export only. After launch (v1.1): direct email outreach,
+billing, recruiter network, agency roles, job-alert emails, more connectors.

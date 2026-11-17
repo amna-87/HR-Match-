@@ -5,7 +5,8 @@
 Two-sided HR matching platform: candidates upload resumes, recruiters post jobs, the system ranks matches and asks the
 candidate for permission before any application is sent.
 
-Read `docs/requirements.md` first. It is the source of truth. Log any design decision you make in `docs/decisions.md`.
+Read `docs/requirements.md` first, then `docs/requirements-v1.0-addendum.md` (it overrides requirements.md where they
+conflict; build order is its section 7, launch cut line 7d). Log any design decision you make in `docs/decisions.md`.
 
 ## Stack
 
