@@ -55,6 +55,8 @@ test("recruiter pages", async ({ page }) => {
     "/recruiter/jobs/new",
     "/recruiter/jobs/00000000-0000-4000-8000-00000000f001",
     "/recruiter/company",
+    "/recruiter/sources",
+    "/recruiter/jobs/add",
     "/recruiter/talent",
     "/recruiter/talent?job=00000000-0000-4000-8000-00000000f001",
   ]) {

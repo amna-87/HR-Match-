@@ -9,6 +9,7 @@ import {
   Shield,
   UserRound,
   Users,
+  Rss,
 } from "lucide-react";
 import { getSession } from "@/lib/auth/session";
 import { Logo } from "@/components/logo";
@@ -28,6 +29,7 @@ const links: Record<Role, NavItem[]> = {
     ["/recruiter", "Jobs"],
     ["/recruiter/jobs/new", "Post a job"],
     ["/recruiter/talent", "Talent pool"],
+    ["/recruiter/sources", "Job sources"],
   ],
   admin: [
     ["/admin", "Overview"],
@@ -50,6 +52,7 @@ const accountLinks: Record<Role, AccountLink[]> = {
     { href: "/recruiter", label: "My jobs", icon: <Briefcase /> },
     { href: "/recruiter/company", label: "Workspace & team", icon: <Building2 /> },
     { href: "/recruiter/talent", label: "Talent pool", icon: <Users /> },
+    { href: "/recruiter/sources", label: "Job sources & feeds", icon: <Rss /> },
   ],
   admin: [
     { href: "/admin", label: "Admin overview", icon: <LayoutDashboard /> },

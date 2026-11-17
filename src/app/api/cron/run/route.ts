@@ -5,6 +5,7 @@ import { getEmailSender } from "@/lib/email/sender";
 import { engineDeps } from "@/lib/server/context";
 import { runScheduledTick } from "@/lib/server/cron";
 import { poolDeps } from "@/lib/pool/server";
+import { feedDeps } from "@/lib/connectors/server";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -20,6 +21,6 @@ function authorized(req: NextRequest) {
 // Vercel Cron calls this with "Authorization: Bearer $CRON_SECRET" (see vercel.json).
 export async function GET(req: NextRequest) {
   if (!authorized(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  const result = await runScheduledTick(getPool(), engineDeps(), getEmailSender(), poolDeps());
+  const result = await runScheduledTick(getPool(), engineDeps(), getEmailSender(), poolDeps(), feedDeps());
   return NextResponse.json(result);
 }

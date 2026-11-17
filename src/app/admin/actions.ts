@@ -7,6 +7,7 @@ import { audit } from "@/lib/server/context";
 import { scheduleJobMatching } from "@/lib/server/background";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 import { parseJobText } from "@/lib/parsing/job";
+import { basicParseJob } from "@/lib/parsing/basic-job";
 import { AiUnavailableError } from "@/lib/parsing/claude";
 import { findSimilarJobs, insertSourcedJob, parseSourcedForm } from "@/lib/jobs/sourced";
 import { sanitizeText } from "@/lib/security/sanitize";
@@ -50,12 +51,8 @@ export async function extractSourcedJob(_prev: ExtractState, formData: FormData)
   try {
     return { parsed: await parseJobText(text) };
   } catch (e) {
-    return {
-      error:
-        e instanceof AiUnavailableError
-          ? "Automatic extraction is unavailable — please fill in the form."
-          : "Couldn't extract fields.",
-    };
+    if (!(e instanceof AiUnavailableError)) console.warn("[jobs] AI extraction failed, using basic reader", e);
+    return { parsed: basicParseJob(text) };
   }
 }
 

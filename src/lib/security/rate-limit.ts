@@ -13,6 +13,8 @@ export const RATE_LIMITS = {
   talentUpload: { limit: 60, windowSeconds: 3600 }, // resumes a recruiter adds to the talent pool
   poolImport: { limit: 30, windowSeconds: 3600 }, // bulk uploads started (each up to the batch cap)
   reveal: { limit: 40, windowSeconds: 3600 }, // apply contacts revealed per user or IP (7c)
+  csvImport: { limit: 20, windowSeconds: 3600 }, // CSV job imports
+  feedRun: { limit: 20, windowSeconds: 3600 }, // manual feed connects / fetches
 } as const;
 
 export type RateLimitName = keyof typeof RATE_LIMITS;

@@ -20,7 +20,11 @@ export default async function NewJobPage({ searchParams }: { searchParams: Promi
         <Link href="/recruiter/jobs/add" className="text-primary underline">
           Add a job from another source
         </Link>{" "}
-        (any company, website or WhatsApp group).
+        (any company, website or WhatsApp group). For spreadsheets and company career feeds, see{" "}
+        <Link href="/recruiter/sources" className="text-primary underline">
+          Job sources
+        </Link>
+        .
       </p>
       <JobEditor initial={emptyJob} mode="verified" extractAction={extractJob} saveAction={saveJob} />
     </div>

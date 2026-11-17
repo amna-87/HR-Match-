@@ -7,7 +7,7 @@ import { cleanParsedResume, computeExperienceYears } from "./resume";
 import { SKILL_ALIASES, normalizeSkill } from "@/lib/matching/skills";
 import { stripProtectedCharacteristics } from "@/lib/matching/sanitize";
 
-const SKILLS = [
+export const SKILLS = [
   "javascript",
   "typescript",
   "python",

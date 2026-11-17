@@ -351,3 +351,26 @@ billing, recruiter network, agency roles, job-alert emails, more connectors.
   personal emails (company addresses like jobs@ are shown) and reveals them to signed-in users, or after a signed,
   15-minute "what is a + b" check bound to the job, rate limited per IP (`reveal`, 40/hour). Apply links are shown
   directly. WhatsApp opens click-to-chat (`wa.me`).
+
+## D-029 Paste, CSV import and company career feeds (B2, 2026-11-17)
+
+- Connectors are plugin-style (`src/lib/connectors`): a `FeedConnector` turns one company's public board into
+  normalized jobs; adding a provider is one file plus one registry line (and the `job_feeds.provider` check).
+- Paste: every recruiter can paste a post (`/recruiter/jobs/add`) and review the extracted fields. When AI parsing is
+  off (no Claude key in production yet) an offline reader pre-fills title, company, location, apply method
+  (email / WhatsApp / phone / link), work mode, job type, years and skills.
+- CSV: `/recruiter/sources`, up to 500 rows, comma/semicolon/tab files, column-mapping step with automatic guesses,
+  preview, then per-row results (added / skipped as duplicate / not added with the reason). Rows go through the same
+  validation as the form (title + one way to apply) and land in the workspace with `origin = csv_import`.
+- Feeds: Greenhouse Job Board API and Lever Postings API. Terms check (2026-11-17): both offer public, unauthenticated
+  GET endpoints documented for building career sites / job sites (Greenhouse: developers.greenhouse.io/job-board;
+  Lever: github.com/lever/postings-api, which also notes published postings are public). We use only those read
+  endpoints, once a day per board (cron; "Fetch now" is rate limited), identify ourselves with a `VouchJobsBot`
+  User-Agent, store a summary in our own words (AI rewrite when available, otherwise a factual template: title, team,
+  location, type, skills mentioned) plus the company's own apply link, label jobs "From [company] careers page", and
+  never apply for anyone. The owner should re-read each provider's terms before scaling. Plain career-page fetching
+  (robots.txt + schema.org JobPosting) and other ATSs (Ashby, SmartRecruiters, Workable) are not built yet (v1.1
+  "additional connectors"); no scraping of job portals (rule 8).
+- Every run re-checks each job: listed jobs stay open (+30 days), missing ones are closed (takedown removals stay
+  removed), reappearing ones re-open, and new jobs that duplicate an existing listing (public board or this
+  workspace) are skipped. Feeds count against the plan's `source_cap` (3 on free).

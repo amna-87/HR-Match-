@@ -52,7 +52,8 @@ const SCHEMA_CHECK = `
        where conname = 'jobs_sourced_shape' and pg_get_constraintdef(oid) like '%source_url IS NULL%')),
     ('000010_workspaces', exists (select 1 from pg_proc where proname = 'create_workspace')),
     ('000011_pool', to_regclass('public.pool_candidates') is not null),
-    ('000012_job_sources', exists (select 1 from pg_proc where proname = 'confirm_job_open'))
+    ('000012_job_sources', exists (select 1 from pg_proc where proname = 'confirm_job_open')),
+    ('000013_job_feeds', to_regclass('public.job_feeds') is not null)
   ) as t(name, present)`;
 
 /** A short, non-secret category for setup troubleshooting (never the URL or password). */
