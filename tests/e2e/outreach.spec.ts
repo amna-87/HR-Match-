@@ -2,6 +2,7 @@
 // send the opportunity (copy messages), and an address that opted out can no
 // longer be contacted by anyone.
 import { test, expect } from "@playwright/test";
+import { minimalPdf } from "../fixtures/minimal-pdf";
 
 test("send an opportunity to 5 people; opt-out blocks them afterwards", async ({ page, context }) => {
   await page.goto("/login");
@@ -9,6 +10,38 @@ test("send an opportunity to 5 people; opt-out blocks them afterwards", async ({
   await page.getByLabel("Password").fill("Password123!");
   await page.getByRole("button", { name: "Log in", exact: true }).click();
   await page.waitForURL((u) => !u.pathname.startsWith("/login"));
+
+  // make sure the pool has 5 matching people (CI starts from an empty pool)
+  const JSZip = (await import("jszip")).default;
+  const zip = new JSZip();
+  const stamp = Date.now();
+  const tag = String(stamp)
+    .slice(-5)
+    .split("")
+    .map((d) => String.fromCharCode(97 + Number(d)))
+    .join("");
+  ["Aisha", "Bilal", "Sara", "Omar", "Zainab"].forEach((first, i) =>
+    zip.file(
+      `${first}.pdf`,
+      minimalPdf([
+        `${first} Marketer${tag}`,
+        "Social Media Manager",
+        `${first.toLowerCase()}${stamp}@example.test | London, UK`,
+        "Social Media Manager at Brandly (2016 - present)",
+        "Skills: social media marketing, meta ads, content strategy, copywriting, community management",
+        `${8 + i} years of experience in social media marketing.`,
+      ]),
+    ),
+  );
+  await page.goto("/recruiter/talent");
+  await page.getByLabel("Resume files").setInputFiles({
+    name: "five.zip",
+    mimeType: "application/zip",
+    buffer: Buffer.from(await zip.generateAsync({ type: "uint8array" })),
+  });
+  await page.getByLabel(/These people gave us their resume/).check();
+  await page.getByRole("button", { name: "Upload" }).click();
+  await expect(page.getByRole("status")).toContainText(/Added 5 profiles/, { timeout: 60_000 });
 
   await page.goto("/recruiter/jobs/00000000-0000-4000-8000-00000000f001");
   await expect(page.getByRole("heading", { name: "Top matches from your pool" })).toBeVisible();
