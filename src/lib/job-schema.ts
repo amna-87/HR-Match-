@@ -45,7 +45,7 @@ export const JobFormSchema = z
       .string()
       .optional()
       .transform((s) => (s ? sanitizeLine(s, 200) : null)),
-    apply_method: z.enum(["platform", "email", "phone", "link"]).default("platform"),
+    apply_method: z.enum(["platform", "email", "phone", "link", "whatsapp"]).default("platform"),
     apply_target: z
       .string()
       .optional()
@@ -64,10 +64,24 @@ export const JobFormSchema = z
 export type JobFormInput = z.input<typeof JobFormSchema>;
 export type JobForm = z.output<typeof JobFormSchema>;
 
-export const SourcedJobSchema = JobFormSchema.refine((j) => !!j.source_name, "Source name is required")
+export const OFF_PLATFORM_METHODS = ["link", "email", "phone", "whatsapp"] as const;
+
+/**
+ * Jobs from other sources (addendum 4): only a title and ONE way to apply are
+ * required. Company and source are optional ("Hiring directly" / "Source: not
+ * specified").
+ */
+export const SourcedJobSchema = JobFormSchema.refine(
+  (j) => (OFF_PLATFORM_METHODS as readonly string[]).includes(j.apply_method),
+  "Choose how people apply: link, email, phone or WhatsApp",
+)
+  .refine((j) => !!j.apply_target, "Add the apply link, email or number")
+  .refine((j) => j.apply_method !== "link" || !!safeHttpUrl(j.apply_target), "Apply link must be a valid URL")
   .refine(
-    (j) => ["email", "phone", "link"].includes(j.apply_method),
-    "Choose how candidates apply (email, phone or link)",
+    (j) => j.apply_method !== "email" || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(j.apply_target ?? ""),
+    "Enter a valid email address",
   )
-  .refine((j) => !!j.apply_target, "How to apply is required")
-  .refine((j) => j.apply_method !== "link" || !!safeHttpUrl(j.apply_target), "Apply link must be a valid URL");
+  .refine(
+    (j) => !["phone", "whatsapp"].includes(j.apply_method) || (j.apply_target ?? "").replace(/\D/g, "").length >= 7,
+    "Enter a valid phone number, with country code for WhatsApp",
+  );

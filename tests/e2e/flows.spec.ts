@@ -94,10 +94,10 @@ test("admin adds a sourced job (duplicate detection), then a takedown removes a 
     .getByLabel("Summary (in our own words)")
     .fill("Remote content writer for blog articles, newsletters and social copy.");
   await admin.getByLabel("Required skills").fill("copywriting");
-  await admin.getByLabel("Source name").fill("Northwind careers page");
+  await admin.getByLabel(/Where it was posted/).fill("Northwind careers page");
   await admin.getByLabel("Source URL").fill("https://careers.northwind.example.test/jobs/content-writer-2");
-  await admin.getByLabel("Hiring company").fill("Northwind Traders");
-  await admin.getByLabel("Apply link / email / phone").fill("jobs@northwind.example.test");
+  await admin.getByLabel(/Hiring company/).fill("Northwind Traders");
+  await admin.getByLabel(/Apply link \/ email \/ phone/).fill("jobs@northwind.example.test");
   await admin.getByLabel("Apply via").selectOption("email");
   await admin.getByLabel("Work mode").selectOption("remote");
   await admin.getByRole("button", { name: "Publish" }).click();

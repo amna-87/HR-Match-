@@ -328,3 +328,26 @@ billing, recruiter network, agency roles, job-alert emails, more connectors.
 - Claiming (person signs up with the same verified email) copies the details into their own profile; the recruiter's
   pool entry stays, marked "On Vouch" (the addendum makes the pool the recruiter's workspace data). The person can
   still delete it from the pool at any time; account deletion erases pool profiles for their email everywhere.
+
+## D-028 Job sources: optional company, contact methods, labels, expiry (B1, 2026-11-17)
+
+- `source_type` keeps its v1.0 meaning for rule 4 (`verified` = posted by the hiring company and applied to on Vouch;
+  `sourced` = from elsewhere, applied to off-platform, always labeled). The addendum's source kinds are a new `origin`
+  column: `employer_posted`, `pasted`, `csv_import`, `api_feed`, `email_forwarded`, `manual` (admin-added).
+- Company and source are optional. Required: a title and one way to apply (`jobs_contact_method`); sourced jobs need an
+  off-platform method: link, email, phone or the new `whatsapp`. Display: company name if known, otherwise "Hiring
+  directly"; source label "Sourced from X", "From X careers page" (feeds) or "Source: not specified".
+- Any recruiter can add a job from another source to their own workspace (`owner_workspace_id`,
+  `visibility = 'workspace'`): only members see it, it is matched against their pool (C1), not marketplace candidates.
+  The public board stays admin-moderated: the recruiter asks (`request_job_public`), an admin approves (sets
+  `visibility = 'public'`). Only admins can change visibility (trigger). Employer-posted jobs are owned by their company
+  workspace and public as before. Public pages filter `visibility = 'public'` explicitly.
+- Expiry: sourced jobs expire after 30 days; "Still open?" (`confirm_job_open`) extends by 30 days and re-opens an
+  expired job. Recruiters see "Closes in N days. Still open?" in their list from 7 days before.
+- Duplicates: `find_similar_jobs` checks the public board plus the caller's own workspace only, so it never reveals
+  another workspace's private jobs.
+- Private contacts (7c): anonymous visitors cannot read `apply_target` or `apply_instructions` at all (column grants on
+  `jobs` for `anon`; new public columns must be added to that grant). The job page masks phone/WhatsApp numbers and
+  personal emails (company addresses like jobs@ are shown) and reveals them to signed-in users, or after a signed,
+  15-minute "what is a + b" check bound to the job, rate limited per IP (`reveal`, 40/hour). Apply links are shown
+  directly. WhatsApp opens click-to-chat (`wa.me`).

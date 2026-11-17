@@ -6,7 +6,7 @@ import { employmentLabel, workModeLabel } from "@/components/job-source";
 import { firstParagraph, timeAgo } from "@/lib/utils";
 
 export const PUBLIC_JOB_COLUMNS =
-  "id, title, location, work_mode, employment_type, published_at, source_type, source_name, source_company_name, description_summary, company:companies(name)";
+  "id, title, location, work_mode, employment_type, published_at, source_type, source_name, source_company_name, description_summary, company:companies!jobs_company_id_fkey(name)";
 
 export type PublicJob = {
   id: string;

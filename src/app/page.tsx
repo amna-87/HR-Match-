@@ -109,9 +109,15 @@ export default async function Home() {
           .from("jobs")
           .select(PUBLIC_JOB_COLUMNS, { count: "exact" })
           .eq("status", "published")
+          .eq("visibility", "public")
           .order("published_at", { ascending: false })
           .limit(6),
-        supabase.from("jobs").select("company_id, source_company_name").eq("status", "published").limit(1000),
+        supabase
+          .from("jobs")
+          .select("company_id, source_company_name")
+          .eq("status", "published")
+          .eq("visibility", "public")
+          .limit(1000),
       ])
     : [{ data: [], count: 0 }, { data: [] }];
   const latest = (data ?? []) as PublicJob[];

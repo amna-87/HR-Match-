@@ -220,7 +220,10 @@ export async function prepareJobForRanking(deps: EngineDeps, jobId: string): Pro
 export async function matchJob(deps: EngineDeps, jobId: string): Promise<MatchRunResult> {
   const threshold = deps.threshold ?? MATCHING_CONFIG.threshold;
   const job = await loadJob(deps.db, jobId);
-  if (!job || job.status !== "published") {
+  // Only jobs on the public board are matched to marketplace candidates (D-028);
+  // workspace-only jobs are matched against that workspace's pool instead.
+  const vis = await deps.db.query<{ visibility: string }>("select visibility from public.jobs where id = $1", [jobId]);
+  if (!job || job.status !== "published" || vis.rows[0]?.visibility !== "public") {
     await deps.db.query("update public.jobs set needs_matching = false where id = $1", [jobId]);
     return { scored: 0, kept: 0, removed: 0, matches: [] };
   }
@@ -295,7 +298,7 @@ export async function matchCandidate(deps: EngineDeps, candidateId: string): Pro
 /** Process everything flagged needs_matching (cron / after writes). */
 export async function runPendingMatching(deps: EngineDeps, limit = 50) {
   const jobs = await deps.db.query<{ id: string }>(
-    "select id from public.jobs where needs_matching and status = 'published' order by updated_at limit $1",
+    "select id from public.jobs where needs_matching and status = 'published' and visibility = 'public' order by updated_at limit $1",
     [limit],
   );
   let jobMatches = 0;

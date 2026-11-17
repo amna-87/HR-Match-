@@ -11,6 +11,8 @@ import { parseJobText } from "@/lib/parsing/job";
 import { AiUnavailableError } from "@/lib/parsing/claude";
 import type { ParsedJob } from "@/lib/parsing/schemas";
 import { JobFormSchema } from "@/lib/job-schema";
+import { findSimilarJobs, insertSourcedJob, parseSourcedForm, sourcedRow } from "@/lib/jobs/sourced";
+import { audit } from "@/lib/server/context";
 import type { SaveState } from "@/lib/job-values";
 import { safeHttpUrl, sanitizeLine, sanitizeList, sanitizeText } from "@/lib/security/sanitize";
 import { listFromForm, numOrNull } from "@/lib/utils";
@@ -261,4 +263,56 @@ export async function submitFeedback(formData: FormData) {
       ? "Feedback saved. The candidate will be asked whether to share their strengths."
       : "Feedback saved.",
   );
+}
+
+// ---------------------------------------------------------------------------
+// Jobs from other sources, kept in the recruiter's own workspace (addendum 4, D-028)
+// ---------------------------------------------------------------------------
+export async function saveWorkspaceJob(_prev: SaveState, formData: FormData): Promise<SaveState> {
+  const { supabase, company, user } = await requireRecruiter();
+  if (!company) return { error: "Set up your workspace first." };
+  const p = parseSourcedForm(formData);
+  if (!p.ok) return p.state;
+  const j = p.job;
+  const id = String(formData.get("id") ?? "");
+  const publish = formData.get("intent") === "publish";
+  if (formData.get("allow_duplicate") !== "on") {
+    const d = await findSimilarJobs(j, company.id, id || undefined);
+    if (d?.length) return { error: "This looks like a job that is already listed.", duplicates: d };
+  }
+  let jobId = id;
+  if (id) {
+    const { error } = await supabase
+      .from("jobs")
+      .update({ ...sourcedRow(j), ...(publish ? { status: "published" as const } : {}) })
+      .eq("id", id);
+    if (error) return { error: error.message };
+  } else {
+    const r = await insertSourcedJob(supabase, j, { ownerWorkspaceId: company.id, origin: "pasted", publish });
+    if (r.error || !r.id) return { error: r.error ?? "Could not save." };
+    jobId = r.id;
+    await audit(user.id, "recruiter", "workspace.sourced_job_created", "jobs", jobId, { source_name: j.source_name });
+  }
+  revalidatePath("/recruiter");
+  return go(`/recruiter/jobs/${jobId}`, "ok", publish ? "Job saved and open in your workspace." : "Draft saved.");
+}
+
+/** "Still open?" — extends the job by 30 days (re-opens it if it expired). */
+export async function confirmJobOpen(formData: FormData) {
+  const { supabase } = await requireRecruiter();
+  const id = String(formData.get("id") ?? "");
+  const back = String(formData.get("back") ?? "/recruiter");
+  const { error } = await supabase.rpc("confirm_job_open", { p_job_id: id });
+  if (error) go(back, "error", error.message);
+  revalidatePath("/recruiter");
+  go(back, "ok", "Thanks, the job stays open for another 30 days.");
+}
+
+/** Ask Vouch to put a workspace job on the public board (admins review it). */
+export async function requestPublicBoard(formData: FormData) {
+  const { supabase } = await requireRecruiter();
+  const id = String(formData.get("id") ?? "");
+  const { error } = await supabase.rpc("request_job_public", { p_job_id: id });
+  if (error) go(`/recruiter/jobs/${id}`, "error", error.message);
+  go(`/recruiter/jobs/${id}`, "ok", "Requested. A Vouch admin will review it for the public job board.");
 }

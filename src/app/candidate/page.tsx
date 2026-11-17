@@ -35,13 +35,15 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
       supabase
         .from("matches")
         .select(
-          "id, status, score, explanation, expires_at, notified_at, job:jobs(id, title, source_type, source_name, source_url, apply_method, apply_target, source_company_name, location, work_mode, company:companies(name))",
+          "id, status, score, explanation, expires_at, notified_at, job:jobs(id, title, source_type, source_name, source_url, apply_method, apply_target, source_company_name, location, work_mode, company:companies!jobs_company_id_fkey(name))",
         )
         .in("status", ["notified", "viewed"])
         .order("score", { ascending: false }),
       supabase
         .from("applications")
-        .select("id, stage, applied_at, job:jobs(id, title, apply_instructions, company:companies(name))")
+        .select(
+          "id, stage, applied_at, job:jobs(id, title, apply_instructions, company:companies!jobs_company_id_fkey(name))",
+        )
         .order("applied_at", { ascending: false }),
       supabase.from("redistribution_consent").select("*").order("created_at", { ascending: false }),
       supabase

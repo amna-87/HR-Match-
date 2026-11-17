@@ -27,6 +27,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
       .from("jobs")
       .select(PUBLIC_JOB_COLUMNS)
       .eq("status", "published")
+      .eq("visibility", "public")
       .order("published_at", { ascending: false })
       .limit(100);
     if (q) {

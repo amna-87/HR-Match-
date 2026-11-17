@@ -8,10 +8,8 @@ import { scheduleJobMatching } from "@/lib/server/background";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 import { parseJobText } from "@/lib/parsing/job";
 import { AiUnavailableError } from "@/lib/parsing/claude";
-import { SourcedJobSchema } from "@/lib/job-schema";
-import { SOURCED_JOB_CONFIG } from "@/lib/matching/config";
+import { findSimilarJobs, insertSourcedJob, parseSourcedForm } from "@/lib/jobs/sourced";
 import { sanitizeText } from "@/lib/security/sanitize";
-import { listFromForm, numOrNull } from "@/lib/utils";
 import type { SaveState } from "@/lib/job-values";
 import type { ExtractState } from "@/app/recruiter/actions";
 
@@ -63,86 +61,39 @@ export async function extractSourcedJob(_prev: ExtractState, formData: FormData)
 
 export async function saveSourcedJob(_prev: SaveState, formData: FormData): Promise<SaveState> {
   const { supabase, user } = await requireRole("admin");
-  const parsed = SourcedJobSchema.safeParse({
-    title: String(formData.get("title") ?? ""),
-    description_summary: String(formData.get("description_summary") ?? ""),
-    required_skills: listFromForm(formData.get("required_skills")),
-    nice_skills: listFromForm(formData.get("nice_skills")),
-    required_certifications: listFromForm(formData.get("required_certifications")),
-    domains: listFromForm(formData.get("domains")),
-    min_exp: numOrNull(formData.get("min_exp")),
-    max_exp: numOrNull(formData.get("max_exp")),
-    location: String(formData.get("location") ?? ""),
-    work_mode: String(formData.get("work_mode") ?? "onsite"),
-    employment_type: String(formData.get("employment_type") ?? "full_time"),
-    salary_min: numOrNull(formData.get("salary_min")),
-    salary_max: numOrNull(formData.get("salary_max")),
-    salary_currency: String(formData.get("salary_currency") ?? ""),
-    expires_at: String(formData.get("expires_at") ?? ""),
-    source_name: String(formData.get("source_name") ?? ""),
-    source_url: String(formData.get("source_url") ?? ""),
-    source_company_name: String(formData.get("source_company_name") ?? ""),
-    apply_method: String(formData.get("apply_method") ?? "link"),
-    apply_target: String(formData.get("apply_target") ?? ""),
-  });
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Please check the form." };
-  const j = parsed.data;
-  if (j.description_summary.length > 1500) {
-    return {
-      error: "Keep the summary short and in our own words (max 1500 characters) — don't copy the full listing.",
-    };
-  }
-
+  const p = parseSourcedForm(formData);
+  if (!p.ok) return p.state;
+  const j = p.job;
   // Duplicate detection: title + company + location + text similarity.
   if (formData.get("allow_duplicate") !== "on") {
-    const d = await getPool().query("select * from public.find_duplicate_jobs($1, $2, $3, $4)", [
-      j.title,
-      j.source_company_name,
-      j.location,
-      j.description_summary,
-    ]);
-    if (d.rows.length) return { error: "This looks like a duplicate.", duplicates: d.rows };
+    const d = await findSimilarJobs(j, null);
+    if (d?.length) return { error: "This looks like a duplicate.", duplicates: d };
   }
-
   const publish = formData.get("intent") === "publish";
-  const expires = j.expires_at ?? new Date(Date.now() + SOURCED_JOB_CONFIG.defaultExpiryDays * 86400_000).toISOString();
-  const { data, error } = await supabase
-    .from("jobs")
-    .insert({
-      source_type: "sourced",
-      company_id: null,
-      source_name: j.source_name,
-      source_url: j.source_url,
-      source_company_name: j.source_company_name,
-      title: j.title,
-      description_summary: j.description_summary,
-      required_skills: j.required_skills,
-      nice_skills: j.nice_skills,
-      required_certifications: j.required_certifications,
-      domains: j.domains,
-      min_exp: j.min_exp,
-      max_exp: j.max_exp,
-      location: j.location,
-      work_mode: j.work_mode,
-      employment_type: j.employment_type,
-      salary_min: j.salary_min,
-      salary_max: j.salary_max,
-      salary_currency: j.salary_currency,
-      apply_method: j.apply_method,
-      apply_target: j.apply_target,
-      expires_at: expires,
-      status: publish ? "published" : "draft",
-    })
-    .select("id")
-    .single();
-  if (error || !data) return { error: error?.message ?? "Could not save." };
-  await audit(user.id, "admin", "admin.sourced_job_created", "jobs", data.id, {
+  const { id, error } = await insertSourcedJob(supabase, j, { ownerWorkspaceId: null, origin: "manual", publish });
+  if (error || !id) return { error: error ?? "Could not save." };
+  await audit(user.id, "admin", "admin.sourced_job_created", "jobs", id, {
     source_name: j.source_name,
     source_url: j.source_url,
   });
-  if (publish) scheduleJobMatching(data.id);
+  if (publish) scheduleJobMatching(id);
   revalidatePath("/admin/jobs");
   return go("/admin/jobs", "ok", publish ? "Sourced job published." : "Sourced job saved as draft.");
+}
+
+/** Approve a recruiter's request to put their sourced job on the public board. */
+export async function approvePublicJob(formData: FormData) {
+  const { supabase, user } = await requireRole("admin");
+  const id = String(formData.get("id") ?? "");
+  const approve = formData.get("decision") !== "reject";
+  const { error } = await supabase
+    .from("jobs")
+    .update(approve ? { visibility: "public", public_requested_at: null } : { public_requested_at: null })
+    .eq("id", id);
+  if (error) go("/admin/jobs", "error", error.message);
+  await audit(user.id, "admin", approve ? "admin.job_made_public" : "admin.job_public_declined", "jobs", id);
+  if (approve) scheduleJobMatching(id);
+  go("/admin/jobs", "ok", approve ? "Job is now on the public board." : "Request declined.");
 }
 
 export async function resolveTakedown(formData: FormData) {

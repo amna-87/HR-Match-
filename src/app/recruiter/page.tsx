@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireRecruiter } from "@/lib/auth/session";
-import { createCompany, acceptInvitation } from "./actions";
+import { createCompany, acceptInvitation, confirmJobOpen } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/form";
@@ -107,8 +107,8 @@ export default async function RecruiterHome({ searchParams }: { searchParams: Pr
   }
   const { data: jobs } = await supabase
     .from("jobs")
-    .select("id, title, status, published_at, expires_at, applications(count)")
-    .eq("company_id", company.id)
+    .select("id, title, status, published_at, expires_at, source_type, visibility, applications(count)")
+    .eq("owner_workspace_id", company.id)
     .order("created_at", { ascending: false });
   return (
     <div className="space-y-6">
@@ -116,22 +116,52 @@ export default async function RecruiterHome({ searchParams }: { searchParams: Pr
       {invitesCard}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{company.name} · Jobs</h1>
-        <Link href="/recruiter/jobs/new" className={buttonClasses()}>
-          Post a job
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/recruiter/jobs/add" className={buttonClasses("outline")}>
+            Add a job from another source
+          </Link>
+          <Link href="/recruiter/jobs/new" className={buttonClasses()}>
+            Post a job
+          </Link>
+        </div>
       </div>
       <ul className="divide-border border-border bg-card divide-y rounded-lg border">
         {(jobs ?? []).map((j) => (
           <li key={j.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
-            <Link href={`/recruiter/jobs/${j.id}`} className="font-medium hover:underline">
+            <Link href={`/recruiter/jobs/${j.id}`} prefetch={false} className="font-medium hover:underline">
               {j.title}
             </Link>
-            <span className="flex items-center gap-3 text-sm">
-              <span>{(j.applications as unknown as { count: number }[])[0]?.count ?? 0} applicants</span>
+            <span className="flex flex-wrap items-center gap-3 text-sm">
+              {j.source_type === "sourced" ? (
+                <Badge tone="sourced">
+                  {j.visibility === "public" ? "Sourced · public" : "Sourced · workspace only"}
+                </Badge>
+              ) : (
+                <span>{(j.applications as unknown as { count: number }[])[0]?.count ?? 0} applicants</span>
+              )}
               <Badge tone={statusTone[j.status as keyof typeof statusTone]}>{j.status}</Badge>
-              <span className="text-muted-foreground">
-                {j.published_at ? `Published ${formatDate(j.published_at)}` : "Not published"}
-              </span>
+              {(() => {
+                const days = j.expires_at
+                  ? Math.ceil((new Date(j.expires_at).getTime() - Date.now()) / 86400_000)
+                  : null;
+                if (days == null || days > 7 || !["published", "expired"].includes(j.status))
+                  return (
+                    <span className="text-muted-foreground">
+                      {j.published_at ? `Published ${formatDate(j.published_at)}` : "Not published"}
+                    </span>
+                  );
+                return (
+                  <form action={confirmJobOpen} className="flex items-center gap-2">
+                    <input type="hidden" name="id" value={j.id} />
+                    <span className="text-amber-700 dark:text-amber-300">
+                      {days > 0 ? `Closes in ${days} day${days === 1 ? "" : "s"}` : "Expired"}. Still open?
+                    </span>
+                    <Button size="sm" variant="outline">
+                      Yes
+                    </Button>
+                  </form>
+                );
+              })()}
             </span>
           </li>
         ))}

@@ -254,7 +254,7 @@ export default async function TalentPoolPage({ searchParams }: { searchParams: P
                 <li key={r.id} className="flex flex-wrap items-start justify-between gap-3 py-3">
                   <div className="min-w-0 space-y-1">
                     <p className="flex flex-wrap items-center gap-2 font-medium">
-                      <Link href={`/recruiter/talent/${r.id}`} className="hover:underline">
+                      <Link href={`/recruiter/talent/${r.id}`} prefetch={false} className="hover:underline">
                         {r.full_name || "Unnamed profile"}
                       </Link>
                       {r.do_not_contact && <Badge tone="danger">Do not contact</Badge>}
@@ -363,7 +363,7 @@ export default async function TalentPoolPage({ searchParams }: { searchParams: P
                   <div className="min-w-0 space-y-1">
                     <p className="font-medium">
                       {r.is_own ? (
-                        <Link href={`/recruiter/talent/${r.candidate_id}`} className="hover:underline">
+                        <Link href={`/recruiter/talent/${r.candidate_id}`} prefetch={false} className="hover:underline">
                           {r.full_name || "Unnamed profile"}
                         </Link>
                       ) : (

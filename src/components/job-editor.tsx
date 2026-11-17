@@ -247,13 +247,18 @@ export function JobEditor({
             <CardHeader>
               <CardTitle>Source &amp; how to apply</CardTitle>
               <CardDescription>
-                Required. Prefer sources that allow reuse (career pages, official APIs, jobs sent directly). Use company
-                hiring addresses (jobs@, careers@) — not individual recruiters&apos; personal contacts.
+                Only one way to apply is required; company and source are optional. Use company hiring addresses (jobs@,
+                careers@) where possible, not someone&apos;s personal contact, unless it was published as the apply
+                contact. Phone and WhatsApp numbers are hidden from anonymous visitors.
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
-              <Field label="Source name" htmlFor="source_name" hint="e.g. Northwind careers page">
-                <Input id="source_name" name="source_name" required defaultValue={v.source_name ?? ""} />
+              <Field
+                label="Where it was posted (optional)"
+                htmlFor="source_name"
+                hint="e.g. Northwind careers page, a WhatsApp group. Empty shows “Source: not specified”"
+              >
+                <Input id="source_name" name="source_name" defaultValue={v.source_name ?? ""} />
               </Field>
               <Field
                 label="Source URL (optional)"
@@ -262,7 +267,11 @@ export function JobEditor({
               >
                 <Input id="source_url" name="source_url" type="url" defaultValue={v.source_url ?? ""} />
               </Field>
-              <Field label="Hiring company" htmlFor="source_company_name">
+              <Field
+                label="Hiring company (optional)"
+                htmlFor="source_company_name"
+                hint="Empty shows “Hiring directly”"
+              >
                 <Input id="source_company_name" name="source_company_name" defaultValue={v.source_company_name ?? ""} />
               </Field>
               <Field label="Apply via" htmlFor="apply_method">
@@ -274,10 +283,29 @@ export function JobEditor({
                   <option value="link">Link</option>
                   <option value="email">Email</option>
                   <option value="phone">Phone</option>
+                  <option value="whatsapp">WhatsApp</option>
                 </Select>
               </Field>
-              <Field label="Apply link / email / phone" htmlFor="apply_target" className="sm:col-span-2">
+              <Field
+                label="Apply link / email / phone / WhatsApp number"
+                htmlFor="apply_target"
+                hint="Numbers with country code, e.g. +92 300 1234567"
+              >
                 <Input id="apply_target" name="apply_target" required defaultValue={v.apply_target ?? ""} />
+              </Field>
+              <Field
+                label="How to apply (optional)"
+                htmlFor="apply_instructions"
+                className="sm:col-span-2"
+                hint="e.g. Put the job title in the email subject. Attach your CV as PDF."
+              >
+                <Textarea
+                  id="apply_instructions"
+                  name="apply_instructions"
+                  rows={2}
+                  maxLength={2000}
+                  defaultValue={v.apply_instructions ?? ""}
+                />
               </Field>
               {duplicates && duplicates.length > 0 && (
                 <label className="flex items-center gap-2 text-sm sm:col-span-2">

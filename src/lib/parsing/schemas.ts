@@ -54,7 +54,7 @@ export const ParsedJobSchema = z.object({
   salary_min: z.number().nullable(),
   salary_max: z.number().nullable(),
   salary_currency: z.string().describe("ISO 4217 code or empty string"),
-  apply_method: z.enum(["email", "phone", "link", "unknown"]),
+  apply_method: z.enum(["email", "phone", "link", "whatsapp", "unknown"]),
   apply_target: z.string().describe("Application email/phone/URL if stated, else empty string"),
 });
 export type ParsedJob = z.infer<typeof ParsedJobSchema>;

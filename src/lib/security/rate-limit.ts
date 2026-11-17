@@ -12,6 +12,7 @@ export const RATE_LIMITS = {
   invite: { limit: 20, windowSeconds: 3600 },
   talentUpload: { limit: 60, windowSeconds: 3600 }, // resumes a recruiter adds to the talent pool
   poolImport: { limit: 30, windowSeconds: 3600 }, // bulk uploads started (each up to the batch cap)
+  reveal: { limit: 40, windowSeconds: 3600 }, // apply contacts revealed per user or IP (7c)
 } as const;
 
 export type RateLimitName = keyof typeof RATE_LIMITS;

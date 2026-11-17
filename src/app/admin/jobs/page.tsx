@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/auth/session";
-import { moderateJob } from "../actions";
+import { approvePublicJob, moderateJob } from "../actions";
+import { sourceLabel } from "@/components/job-source";
 import { Button, buttonClasses } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { JobSourceBadge } from "@/components/job-source";
@@ -15,10 +16,19 @@ export default async function AdminJobs({ searchParams }: { searchParams: Promis
   const { data: jobs } = await supabase
     .from("jobs")
     .select(
-      "id, title, status, source_type, source_name, source_url, source_company_name, published_at, expires_at, company:companies(name)",
+      "id, title, status, source_type, source_name, source_url, source_company_name, published_at, expires_at, company:companies!jobs_company_id_fkey(name)",
     )
+    .eq("visibility", "public")
     .order("created_at", { ascending: false })
     .limit(200);
+  const { data: requests } = await supabase
+    .from("jobs")
+    .select(
+      "id, title, status, source_type, origin, source_name, source_url, source_company_name, apply_method, public_requested_at, owner:companies!jobs_owner_workspace_id_fkey(name)",
+    )
+    .eq("visibility", "workspace")
+    .not("public_requested_at", "is", null)
+    .order("public_requested_at");
   return (
     <div className="space-y-4">
       <Flash searchParams={sp} />
@@ -28,6 +38,40 @@ export default async function AdminJobs({ searchParams }: { searchParams: Promis
           Add sourced job
         </Link>
       </div>
+      {(requests ?? []).length > 0 && (
+        <section aria-labelledby="req-h" className="space-y-2">
+          <h2 id="req-h" className="text-lg font-semibold">
+            Requests for the public board ({requests!.length})
+          </h2>
+          <ul className="divide-border divide-y rounded-lg border border-amber-400 bg-amber-50/50 dark:bg-amber-950/30">
+            {requests!.map((j) => (
+              <li key={j.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                <div>
+                  <p className="font-medium">{j.title}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {j.source_company_name ?? "Hiring directly"} · {sourceLabel(j)} · apply by {j.apply_method} · from
+                    workspace {(j.owner as unknown as { name: string } | null)?.name ?? "—"} · requested{" "}
+                    {formatDate(j.public_requested_at!)}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <form action={approvePublicJob}>
+                    <input type="hidden" name="id" value={j.id} />
+                    <Button size="sm">Put on public board</Button>
+                  </form>
+                  <form action={approvePublicJob}>
+                    <input type="hidden" name="id" value={j.id} />
+                    <input type="hidden" name="decision" value="reject" />
+                    <Button size="sm" variant="outline">
+                      Decline
+                    </Button>
+                  </form>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <ul className="divide-border border-border bg-card divide-y rounded-lg border">
         {(jobs ?? []).map((j) => (
           <li key={j.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">

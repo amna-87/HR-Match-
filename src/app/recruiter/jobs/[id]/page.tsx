@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/form";
 import { Flash } from "@/components/flash";
+import { SourcedJobView } from "./sourced-view";
 
 export const dynamic = "force-dynamic";
 
@@ -46,7 +47,8 @@ export default async function RecruiterJobPage({
   const sp = await searchParams;
   const { supabase } = await requireRecruiter();
   const { data: job } = await supabase.from("jobs").select("*").eq("id", id).maybeSingle();
-  if (!job || job.source_type !== "verified") notFound();
+  if (!job) notFound();
+  if (job.source_type === "sourced") return <SourcedJobView job={job} sp={sp} />;
   const { data: rows } = await supabase.rpc("recruiter_job_matches", { p_job_id: id });
   const all = (rows ?? []) as PipelineRow[];
 

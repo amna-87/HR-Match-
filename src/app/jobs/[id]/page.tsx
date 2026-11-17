@@ -9,15 +9,23 @@ import {
   GraduationCap,
   Mail,
   MapPin,
+  MessageCircle,
   Phone,
   ExternalLink,
 } from "lucide-react";
+import { getPool } from "@/lib/db";
+import { APPLY_LABEL, isPrivateContact, maskContact, maskContactsInText } from "@/lib/jobs/contact";
+import { newChallenge } from "@/lib/jobs/human-check";
+import { RevealContact } from "@/components/reveal-contact";
 import { getSession } from "@/lib/auth/session";
 import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { JobDescription } from "@/components/job-description";
 import { JobSourceBadge, SourcedNotice, applyHref, employmentLabel, workModeLabel } from "@/components/job-source";
+
+const JOB_PAGE_COLUMNS =
+  "id, company_id, source_type, origin, visibility, source_name, source_url, source_company_name, title, description_summary, required_skills, nice_skills, required_certifications, domains, min_exp, max_exp, location, work_mode, employment_type, salary_min, salary_max, salary_currency, apply_method, status, expires_at, published_at, company:companies!jobs_company_id_fkey(name, website)";
 import { formatDate, timeAgo } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -34,21 +42,48 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
   const { id } = await params;
   const { supabase, profile } = await getSession();
   if (!supabase || !/^[0-9a-f-]{36}$/i.test(id)) notFound();
+  // Public columns only (anonymous visitors can't read apply contacts, 7c).
   const { data: job } = await supabase
     .from("jobs")
-    .select("*, company:companies(name, website)")
+    .select(JOB_PAGE_COLUMNS)
     .eq("id", id)
+    .eq("visibility", "public")
     .maybeSingle();
   if (!job) notFound();
+  // The apply contact and notes, read by the server for this visible job; private
+  // contacts are masked for anonymous visitors and revealed after a check.
+  const priv = (
+    await getPool().query<{ apply_target: string | null; apply_instructions: string | null }>(
+      "select apply_target, apply_instructions from public.jobs where id = $1",
+      [id],
+    )
+  ).rows[0] ?? { apply_target: null, apply_instructions: null };
+  const signedIn = !!profile;
+  const privateContact = isPrivateContact(job.apply_method, priv.apply_target);
+  const showContact = signedIn || !privateContact;
+  const instructions = priv.apply_instructions
+    ? signedIn
+      ? priv.apply_instructions
+      : maskContactsInText(priv.apply_instructions)
+    : null;
   const companyName =
-    (job.company as { name: string; website: string | null } | null)?.name ?? job.source_company_name ?? null;
+    (job.company as unknown as { name: string; website: string | null } | null)?.name ??
+    job.source_company_name ??
+    null;
   const company = companyName ?? HIRING_DIRECTLY;
-  const href = applyHref(job.apply_method, job.apply_target);
+  const href = showContact ? applyHref(job.apply_method, priv.apply_target, job.title) : null;
   const sourced = job.source_type === "sourced";
   const salary = job.salary_min
     ? `${job.salary_currency ?? ""} ${job.salary_min.toLocaleString()}–${(job.salary_max ?? job.salary_min).toLocaleString()}`
     : null;
-  const ApplyIcon = job.apply_method === "email" ? Mail : job.apply_method === "phone" ? Phone : ExternalLink;
+  const ApplyIcon =
+    job.apply_method === "email"
+      ? Mail
+      : job.apply_method === "phone"
+        ? Phone
+        : job.apply_method === "whatsapp"
+          ? MessageCircle
+          : ExternalLink;
 
   const details: [React.ComponentType<{ className?: string }>, string, string | null][] = [
     [MapPin, "Location", job.location],
@@ -128,31 +163,51 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
         <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
           <div className="border-border bg-card space-y-4 rounded-2xl border p-6 shadow-(--shadow-card)">
             {sourced ? (
-              <>
-                {href && (
-                  <a
-                    href={href}
-                    rel="noopener noreferrer nofollow"
-                    target="_blank"
-                    className={buttonClasses("default", "lg", "w-full text-center whitespace-normal")}
-                  >
-                    <ApplyIcon className="h-4 w-4 shrink-0" aria-hidden />
-                    {job.apply_method === "email"
-                      ? `Apply by email: ${job.apply_target}`
-                      : job.apply_method === "phone"
-                        ? `Call / WhatsApp: ${job.apply_target}`
-                        : job.source_url
+              showContact ? (
+                <>
+                  {href && (
+                    <a
+                      href={href}
+                      rel="noopener noreferrer nofollow"
+                      target={job.apply_method === "link" || job.apply_method === "whatsapp" ? "_blank" : undefined}
+                      className={buttonClasses("default", "lg", "w-full text-center whitespace-normal")}
+                    >
+                      <ApplyIcon className="h-4 w-4 shrink-0" aria-hidden />
+                      {job.apply_method === "link"
+                        ? job.source_url
                           ? "Apply via the original listing"
-                          : "Apply on the employer's form"}
-                  </a>
-                )}
-                {job.apply_instructions && (
-                  <div className="space-y-1 text-sm">
-                    <p className="font-semibold">How to apply</p>
-                    <p className="text-muted-foreground break-words whitespace-pre-line">{job.apply_instructions}</p>
-                  </div>
-                )}
-              </>
+                          : "Apply on the employer's site"
+                        : APPLY_LABEL[job.apply_method]}
+                    </a>
+                  )}
+                  {job.apply_method !== "link" && priv.apply_target && (
+                    <p className="text-center text-sm font-medium break-all">{priv.apply_target}</p>
+                  )}
+                  {instructions && (
+                    <div className="space-y-1 text-sm">
+                      <p className="font-semibold">How to apply</p>
+                      <p className="text-muted-foreground break-words whitespace-pre-line">{instructions}</p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <RevealContact
+                    jobId={job.id}
+                    title={job.title}
+                    method={job.apply_method}
+                    masked={maskContact(job.apply_method, priv.apply_target ?? "")}
+                    signedIn={false}
+                    challenge={newChallenge(job.id)}
+                  />
+                  {instructions && (
+                    <div className="space-y-1 text-sm">
+                      <p className="font-semibold">How to apply</p>
+                      <p className="text-muted-foreground break-words whitespace-pre-line">{instructions}</p>
+                    </div>
+                  )}
+                </>
+              )
             ) : (
               <>
                 <div className="space-y-1 text-sm">
@@ -167,10 +222,10 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
                     Create a candidate profile
                   </Link>
                 )}
-                {job.apply_instructions && (
+                {instructions && (
                   <div className="space-y-1 text-sm">
                     <p className="font-semibold">What happens after you apply</p>
-                    <p className="text-muted-foreground whitespace-pre-line">{job.apply_instructions}</p>
+                    <p className="text-muted-foreground whitespace-pre-line">{instructions}</p>
                   </div>
                 )}
               </>

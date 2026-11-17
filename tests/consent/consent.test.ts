@@ -212,10 +212,19 @@ describe("sourced jobs", () => {
     ).rejects.toThrow(/sourced jobs/);
   });
 
-  it("sourced jobs must carry a source name, URL and apply route", async () => {
+  it("sourced jobs need one off-platform way to apply; source and company are optional (addendum 4)", async () => {
+    // no source name or company: allowed ("Source: not specified", "Hiring directly")
+    await db.service(
+      "insert into jobs(source_type, title, apply_method, apply_target) values ('sourced', 'No provenance', 'whatsapp', '+92 300 1234567')",
+    );
+    // no way to apply: rejected
+    await expect(
+      db.service("insert into jobs(source_type, title, apply_method) values ('sourced', 'No contact', 'link')"),
+    ).rejects.toThrow(/jobs_sourced_shape|jobs_contact_method/);
+    // never applied to on Vouch
     await expect(
       db.service(
-        "insert into jobs(source_type, title, apply_method, apply_target) values ('sourced', 'No provenance', 'link', 'https://x.test')",
+        "insert into jobs(source_type, title, apply_method, apply_target) values ('sourced', 'On platform', 'platform', 'x')",
       ),
     ).rejects.toThrow(/jobs_sourced_shape/);
   });

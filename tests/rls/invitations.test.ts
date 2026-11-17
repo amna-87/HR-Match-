@@ -114,7 +114,11 @@ describe("apply instructions", () => {
     expect(
       (await db.as(IDS.gary)("update jobs set apply_instructions = 'x' where id = $1", [IDS.jobSocial])).rowCount,
     ).toBe(0);
-    const pub = await db.anon("select apply_instructions from jobs where id = $1", [IDS.jobSocial]);
-    expect(pub.rows[0].apply_instructions).toBe("We reply within 5 days.");
+    // signed-in users read them; anonymous visitors can't (they may hold contacts, 7c)
+    const signedIn = await db.as(IDS.maya)("select apply_instructions from jobs where id = $1", [IDS.jobSocial]);
+    expect(signedIn.rows[0].apply_instructions).toBe("We reply within 5 days.");
+    await expect(db.anon("select apply_instructions from jobs where id = $1", [IDS.jobSocial])).rejects.toThrow(
+      /permission denied/,
+    );
   });
 });
