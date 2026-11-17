@@ -22,17 +22,9 @@ function Score({ score }: { score: number }) {
 /**
  * C1: "Top matches from your pool" for one job, plus anonymous cards from pools
  * shared with the Vouch network (introduction only with the person's consent).
- * `outreach` renders the selection tools (C2) around the own-pool list.
+ * The own-pool list is selectable for outreach (C2).
  */
-export async function PoolMatches({
-  supabase,
-  jobId,
-  outreach,
-}: {
-  supabase: SupabaseClient;
-  jobId: string;
-  outreach?: (own: PoolMatch[]) => React.ReactNode;
-}) {
+export async function PoolMatches({ supabase, jobId }: { supabase: SupabaseClient; jobId: string }) {
   const { own, network } = await rankPoolForJob(supabase, jobId, 30);
   return (
     <div className="space-y-8">
@@ -41,11 +33,10 @@ export async function PoolMatches({
           <Users className="h-5 w-5" aria-hidden /> Top matches from your pool
         </h2>
         {own.length ? (
-          outreach ? (
-            outreach(own)
-          ) : (
-            <OwnList own={own} />
-          )
+          <form action={`/recruiter/jobs/${jobId}/outreach`} method="get" className="space-y-3">
+            <OwnList own={own} selectable />
+            <Button>Send this opportunity to selected</Button>
+          </form>
         ) : (
           <p className="text-muted-foreground text-sm">
             No profiles in your talent pool yet.{" "}

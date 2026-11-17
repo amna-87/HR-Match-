@@ -27,5 +27,8 @@ export async function POST(req: NextRequest) {
       status,
     ]);
   }
+  // outreach email complaints: suppress the address everywhere; pause noisy workspaces (D-031)
+  if (event.type === "email.complained" && event.data?.email_id)
+    await getPool().query("select public.record_outreach_complaint($1)", [event.data.email_id]);
   return NextResponse.json({ ok: true });
 }

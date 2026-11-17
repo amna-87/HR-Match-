@@ -54,7 +54,8 @@ const SCHEMA_CHECK = `
     ('000011_pool', to_regclass('public.pool_candidates') is not null),
     ('000012_job_sources', exists (select 1 from pg_proc where proname = 'confirm_job_open')),
     ('000013_job_feeds', to_regclass('public.job_feeds') is not null),
-    ('000014_matching_intros', to_regclass('public.intro_requests') is not null)
+    ('000014_matching_intros', to_regclass('public.intro_requests') is not null),
+    ('000015_outreach', to_regclass('public.suppression_list') is not null)
   ) as t(name, present)`;
 
 /** A short, non-secret category for setup troubleshooting (never the URL or password). */

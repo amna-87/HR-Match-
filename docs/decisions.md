@@ -390,3 +390,23 @@ billing, recruiter network, agency roles, job-alert emails, more connectors.
   resume (signed URL) for that job. Declines reveal nothing. The uploading workspace is never named to the requester,
   and private notes, tags and status never leave the workspace (all reads go through definer functions that select
   only profile columns). Charging for introductions waits for billing (v1.1); requests are counted.
+
+## D-031 Outreach with safeguards (C2, 2026-11-17)
+
+- From a job's "Top matches from your pool", the recruiter selects people and clicks "Send this opportunity". The
+  preview shows the message: their note, the job summary, how to apply (Vouch job page for employer-posted public jobs,
+  the employer's link/email/phone/WhatsApp for sourced jobs, otherwise "reply to me"), the recruiter's name and
+  workspace, why the person is receiving it, and a personal one-click opt-out link.
+- Launch scope (7d): "Copy message" and "Export contact + job" (CSV). Direct email is built and uses the same checks,
+  but is off unless `OUTREACH_EMAIL_ENABLED=true` (turn on after SPF/DKIM/DMARC and warm-up). Emails carry
+  `List-Unsubscribe` + `List-Unsubscribe-Post` (RFC 8058).
+- `prepare_outreach` (database) decides who may be contacted, for every channel: requires the lawful-basis checkbox
+  (audited), skips do-not-contact people and anyone on the global suppression list, applies the workspace daily cap
+  (`daily_send_cap`, 50 on free) and, for email, 1 message per address per 7 days across all of Vouch. Contacted people
+  move from "new" to "contacted".
+- Opt-out: `/stop/<signed token>` (a button confirms, so mail scanners can't trigger it). It suppresses the address for
+  every workspace. We store only a salted SHA-256 of the normalised email/phone (`contact_hash`).
+- Complaints (Resend webhook `email.complained`) suppress the address and pause email outreach for a workspace whose
+  complaint rate over 30 days exceeds 0.3% (min. 3 complaints). Only Vouch can lift the pause.
+- Note for the owner (addendum 5): laws on contacting people from collected resumes vary by country; have a qualified
+  person review before sending at scale.

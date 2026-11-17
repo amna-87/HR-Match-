@@ -4,7 +4,7 @@
 // and respond_to_match is idempotent for repeat clicks.
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
-export type TokenPurpose = "match_approve" | "match_decline" | "match_view" | "unsubscribe";
+export type TokenPurpose = "match_approve" | "match_decline" | "match_view" | "unsubscribe" | "outreach_opt_out";
 
 export interface TokenPayload {
   p: TokenPurpose; // purpose
