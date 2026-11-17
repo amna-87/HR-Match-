@@ -1,12 +1,57 @@
 import Link from "next/link";
-import { ArrowRight, BellRing, FileText, Lock, Search, ShieldCheck, Sparkles, ThumbsUp, Users } from "lucide-react";
+import {
+  ArrowRight,
+  BellRing,
+  Briefcase,
+  CheckCircle2,
+  FileText,
+  Lock,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  ThumbsUp,
+  Upload,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import { buttonClasses } from "@/components/ui/button";
 import { getSession } from "@/lib/auth/session";
 import { JobList, PUBLIC_JOB_COLUMNS, type PublicJob } from "@/components/job-list";
 
 export const dynamic = "force-dynamic";
 
-const steps = [
+const audiences = [
+  {
+    id: "seekers",
+    icon: Search,
+    tag: "For job seekers",
+    title: "Find the job that suits you best",
+    points: [
+      "Upload your resume once and we match you to the right jobs",
+      "See why each job fits your skills and experience",
+      "Apply with one click, only when you say yes",
+    ],
+    cta: { href: "/signup?role=candidate", label: "Create my free profile" },
+    alt: { href: "/jobs", label: "Browse jobs" },
+    tone: "bg-primary-soft text-primary-soft-foreground",
+  },
+  {
+    id: "recruiters",
+    icon: Briefcase,
+    tag: "For recruiters & employers",
+    title: "Find the best candidates for your role",
+    points: [
+      "Post your job here, free, and reach people who fit",
+      "Have lots of resumes? Upload them and build your private talent pool",
+      "Get candidates ranked by fit, and meet the ones who want the job",
+    ],
+    cta: { href: "/signup?role=recruiter", label: "Post a job" },
+    alt: { href: "/signup?role=recruiter", label: "Upload resumes" },
+    tone: "bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-200",
+  },
+];
+
+const seekerSteps = [
   {
     icon: FileText,
     title: "Upload your resume",
@@ -21,6 +66,24 @@ const steps = [
     icon: ThumbsUp,
     title: "You decide",
     text: "Approve to apply, or decline. Employers only see people who said yes.",
+  },
+];
+
+const recruiterSteps = [
+  {
+    icon: Briefcase,
+    title: "Post your job",
+    text: "Describe the role and the skills you need. It goes live on Vouch for everyone to see.",
+  },
+  {
+    icon: Upload,
+    title: "Upload your resumes",
+    text: "Add the resumes you already have. Only your company sees them in full.",
+  },
+  {
+    icon: Users,
+    title: "Meet the best fits",
+    text: "We rank candidates for your job and introduce the ones who want it.",
   },
 ];
 
@@ -57,23 +120,23 @@ export default async function Home() {
 
   return (
     <div className="space-y-16 sm:space-y-20">
-      <section className="hero-glow border-border bg-card relative grid gap-10 overflow-hidden rounded-3xl border px-6 py-12 shadow-(--shadow-card) sm:px-12 sm:py-16 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-center">
-        <div className="max-w-3xl space-y-6">
+      <section className="hero-glow border-border bg-card relative space-y-10 overflow-hidden rounded-3xl border px-6 py-12 shadow-(--shadow-card) sm:px-12 sm:py-16">
+        <div className="mx-auto max-w-3xl space-y-6 text-center">
           <span className="bg-primary-soft text-primary-soft-foreground inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium">
             <ShieldCheck className="h-4 w-4" aria-hidden /> Consent-first hiring
           </span>
           <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
-            Find work that fits you — <span className="text-primary">on your terms.</span>
+            The right job for you. <span className="text-primary">The right people for your team.</span>
           </h1>
-          <p className="text-muted-foreground max-w-2xl text-lg text-pretty">
-            Upload your resume once. We match you to the right jobs automatically, and nothing reaches an employer until
-            you approve it.
+          <p className="text-muted-foreground mx-auto max-w-2xl text-lg text-pretty">
+            Vouch connects job seekers and recruiters. Find a job that fits you, or post a job and find the best
+            candidates, with nothing shared until people agree.
           </p>
           <form
             action="/jobs"
             method="get"
             role="search"
-            className="border-border bg-background flex max-w-xl items-center gap-2 rounded-2xl border p-1.5 shadow-sm"
+            className="border-border bg-background mx-auto flex max-w-xl items-center gap-2 rounded-2xl border p-1.5 shadow-sm"
           >
             <Search className="text-muted-foreground ml-2 h-5 w-5 shrink-0" aria-hidden />
             <label htmlFor="hero-q" className="sr-only">
@@ -87,15 +150,7 @@ export default async function Home() {
             />
             <button className={buttonClasses("default", "default", "h-11 rounded-xl px-5")}>Search</button>
           </form>
-          <div className="flex flex-wrap gap-3">
-            <Link href="/signup?role=candidate" className={buttonClasses("default", "lg")}>
-              Create my profile <ArrowRight className="h-4 w-4" aria-hidden />
-            </Link>
-            <Link href="/signup?role=recruiter" className={buttonClasses("outline", "lg")}>
-              I&apos;m hiring
-            </Link>
-          </div>
-          <div className="text-muted-foreground flex flex-wrap gap-x-8 gap-y-2 pt-2 text-sm">
+          <div className="text-muted-foreground flex flex-wrap justify-center gap-x-8 gap-y-2 text-sm">
             <p>
               <span className="text-foreground mr-1.5 text-2xl font-semibold">{count ?? 0}</span>open roles
             </p>
@@ -104,7 +159,41 @@ export default async function Home() {
             </p>
           </div>
         </div>
-        <HeroPreview />
+        <div className="grid gap-4 md:grid-cols-2">
+          {audiences.map(({ id, icon: Icon, tag, title, points, cta, alt, tone }) => (
+            <article
+              key={id}
+              aria-labelledby={`${id}-h`}
+              className="border-border bg-background flex flex-col gap-5 rounded-2xl border p-6 text-left shadow-sm sm:p-8"
+            >
+              <div className="flex items-center gap-3">
+                <span className={`inline-flex h-11 w-11 items-center justify-center rounded-xl ${tone}`}>
+                  <Icon className="h-5 w-5" aria-hidden />
+                </span>
+                <span className="text-muted-foreground text-sm font-semibold tracking-wide uppercase">{tag}</span>
+              </div>
+              <h2 id={`${id}-h`} className="text-2xl font-semibold tracking-tight">
+                {title}
+              </h2>
+              <ul className="space-y-3">
+                {points.map((p) => (
+                  <li key={p} className="flex gap-3">
+                    <CheckCircle2 className="text-accent mt-0.5 h-5 w-5 shrink-0" aria-hidden />
+                    <span>{p}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-auto flex flex-wrap gap-3 pt-2">
+                <Link href={cta.href} className={buttonClasses("default", "lg")}>
+                  {cta.label} <ArrowRight className="h-4 w-4" aria-hidden />
+                </Link>
+                <Link href={alt.href} className={buttonClasses("outline", "lg")}>
+                  {alt.label}
+                </Link>
+              </div>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section aria-labelledby="latest-h" className="space-y-6">
@@ -127,22 +216,12 @@ export default async function Home() {
           <h2 id="how-h" className="text-2xl font-semibold tracking-tight">
             How it works
           </h2>
-          <p className="text-muted-foreground">Three steps. You stay in control at every one.</p>
+          <p className="text-muted-foreground">Simple for both sides. Everyone stays in control.</p>
         </div>
-        <ol className="grid gap-4 sm:grid-cols-3">
-          {steps.map(({ icon: Icon, title, text }, i) => (
-            <li key={title} className="border-border bg-card rounded-2xl border p-6 shadow-(--shadow-card)">
-              <div className="flex items-center gap-3">
-                <span className="bg-primary-soft text-primary-soft-foreground inline-flex h-10 w-10 items-center justify-center rounded-xl">
-                  <Icon className="h-5 w-5" aria-hidden />
-                </span>
-                <span className="text-muted-foreground text-sm font-medium">Step {i + 1}</span>
-              </div>
-              <h3 className="mt-4 font-semibold">{title}</h3>
-              <p className="text-muted-foreground mt-1 text-sm">{text}</p>
-            </li>
-          ))}
-        </ol>
+        <div className="grid gap-8 lg:grid-cols-2">
+          <Steps heading="If you're looking for a job" steps={seekerSteps} />
+          <Steps heading="If you're hiring" steps={recruiterSteps} />
+        </div>
       </section>
 
       <section aria-labelledby="promise-h" className="grid gap-8 lg:grid-cols-[1fr_2fr] lg:items-center">
@@ -169,10 +248,10 @@ export default async function Home() {
         <div className="flex flex-wrap items-center justify-between gap-6">
           <div className="max-w-xl space-y-2">
             <h2 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
-              <Users className="h-6 w-6" aria-hidden /> Hiring? Meet people who want the job.
+              <Users className="h-6 w-6" aria-hidden /> Hiring? Post your job or upload your resumes.
             </h2>
             <p className="text-indigo-100">
-              Post a role in minutes. We rank matching candidates and only introduce the ones who said yes.
+              Post a role in minutes, or add the resumes you already have. We rank the best candidates for you.
             </p>
           </div>
           <Link
@@ -187,38 +266,26 @@ export default async function Home() {
   );
 }
 
-/** Decorative example of a match notification (not real data). */
-function HeroPreview() {
+function Steps({ heading, steps }: { heading: string; steps: { icon: LucideIcon; title: string; text: string }[] }) {
   return (
-    <div aria-hidden className="relative hidden lg:block">
-      <div className="absolute -inset-6 rounded-[2rem] bg-gradient-to-br from-indigo-500/15 to-teal-400/15 blur-2xl" />
-      <div className="border-border bg-card relative space-y-4 rounded-2xl border p-5 shadow-(--shadow-lift)">
-        <div className="flex items-center justify-between">
-          <span className="text-muted-foreground text-xs font-medium">New match for you</span>
-          <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
-            92% fit
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-teal-100 text-sm font-semibold text-teal-800 dark:bg-teal-950 dark:text-teal-200">
-            BS
-          </span>
-          <div>
-            <p className="font-semibold">Product Designer</p>
-            <p className="text-muted-foreground text-sm">Bright Studio · Remote</p>
-          </div>
-        </div>
-        <p className="bg-muted text-muted-foreground rounded-xl p-3 text-sm">
-          Matched on Figma, user research and 4 years of product design.
-        </p>
-        <div className="grid grid-cols-2 gap-2">
-          <span className={buttonClasses("default", "default", "pointer-events-none")}>Approve &amp; apply</span>
-          <span className={buttonClasses("outline", "default", "pointer-events-none")}>Not for me</span>
-        </div>
-        <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
-          <Lock className="h-3.5 w-3.5" /> Your profile stays private until you approve.
-        </p>
-      </div>
+    <div className="space-y-3">
+      <h3 className="text-lg font-semibold">{heading}</h3>
+      <ol className="space-y-3">
+        {steps.map(({ icon: Icon, title, text }, i) => (
+          <li key={title} className="border-border bg-card flex gap-4 rounded-2xl border p-5 shadow-(--shadow-card)">
+            <span className="bg-primary-soft text-primary-soft-foreground inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+              <Icon className="h-5 w-5" aria-hidden />
+            </span>
+            <div>
+              <p className="font-semibold">
+                <span className="text-muted-foreground mr-1.5 text-sm font-medium">Step {i + 1}</span>
+                {title}
+              </p>
+              <p className="text-muted-foreground mt-1 text-sm">{text}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }
