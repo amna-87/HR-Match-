@@ -376,7 +376,7 @@ Must-have automated tests:
 
 - ~~Bulk resume import UI with claim/verify flow for unclaimed profiles~~ — brought forward by the product owner on 2026-11-16 as the recruiter talent pool (D-022)
 - Opt-in job alert emails for claimed candidates
-- Job aggregation from official APIs (aggregator APIs, applicant-tracking-system public job feeds), checking each provider's terms
+- ~~Job aggregation from official APIs~~ — brought forward by the v1.0 launch addendum (Greenhouse and Lever feeds, D-029)
 - Auto-approve rules (opt-in)
 - Recruiter-candidate messaging
 - Monetization: free for candidates always; recruiters pay later, starting with pay-per-unlock of matched candidates, then subscriptions (Stripe)

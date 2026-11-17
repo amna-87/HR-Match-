@@ -29,12 +29,22 @@ export default function TermsPage() {
         No scraping, spam, discriminatory job requirements, or misuse of candidate data. We may suspend accounts that
         break these rules.
       </p>
-      <h2 className="text-xl font-semibold tracking-tight">5. Fees</h2>
+      <h2 className="text-xl font-semibold tracking-tight">5. Recruiter workspaces</h2>
       <p>
-        {appName} is currently free. We will give notice before introducing any recruiter fees. Candidates will never
-        pay.
+        Recruiters may upload only resumes they are allowed to use for recruiting (for example, received from the person
+        for job opportunities) and must confirm this on every upload. Recruiters may contact people only when they have
+        a lawful basis, must honour opt-outs and must not use contact details shown after an introduction for any other
+        purpose. Laws on contacting people from collected resumes differ by country; recruiters are responsible for
+        following the law where they and the people they contact are. We may pause outreach or suspend workspaces that
+        receive complaints or break these rules. Jobs added from other sources must be shared with you or published for
+        reuse; no scraping.
       </p>
-      <h2 className="text-xl font-semibold tracking-tight">6. Liability</h2>
+      <h2 className="text-xl font-semibold tracking-tight">6. Fees and plans</h2>
+      <p>
+        {appName} is currently free, with usage limits on the free plan (talent pool size, messages per day, connected
+        job sources). We will give notice before introducing any recruiter fees. Candidates will never pay.
+      </p>
+      <h2 className="text-xl font-semibold tracking-tight">7. Liability</h2>
       <p>We provide the service as-is and do not guarantee employment outcomes. [To be completed with legal review.]</p>
     </article>
   );

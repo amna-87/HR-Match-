@@ -33,6 +33,8 @@ describe("export", () => {
     expect(d.candidate.full_name).toBe("Maya Chen");
     expect(d.candidate).not.toHaveProperty("embedding");
     expect(d.resumes).toHaveLength(1);
+    // launch features are part of the export too
+    for (const k of ["saved_jobs", "introduction_requests", "profiles_in_recruiter_pools"]) expect(d).toHaveProperty(k);
     expect(d.resumes[0]).not.toHaveProperty("embedding");
     expect(d.applications).toHaveLength(1);
     expect(d.consent_events.length).toBeGreaterThan(0);

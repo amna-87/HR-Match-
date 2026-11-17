@@ -15,16 +15,35 @@ export default function PrivacyPage() {
         <li>Account details (email, name) and the resume you upload (stored privately; never public).</li>
         <li>Your structured profile: skills, experience, education, certifications, preferences.</li>
         <li>Consent records: when you approve or decline a match (with hashed, not raw, IP and browser details).</li>
+        <li>Jobs you save and introduction requests you answer.</li>
       </ul>
       <h2 className="text-xl font-semibold tracking-tight">Resumes uploaded by recruiters</h2>
       <p>
-        A recruiter may add the resume of someone who is not on {appName} to their company&apos;s talent pool, after
-        confirming that person gave it to them for job opportunities. That company sees the full profile. Other
-        companies see only an anonymous summary (headline, location, years of experience, skills) — never your name,
-        contact details or resume file. We never email you because of such an upload. If you sign up with the same email
-        address, your dashboard shows which company added it, and you can add it to your own profile (the company then
-        loses access) or delete it. Deleting your account also deletes these uploads. You can also ask us to remove one
-        at {process.env.SUPPORT_EMAIL ?? "support@example.com"}.
+        A recruiter may add resumes they received (for example, people who applied to them) to their private talent pool
+        on {appName}, after confirming they may do so. A pool is visible only to that recruiter&apos;s workspace. A
+        workspace may choose to let other recruiters see an <strong>anonymous card</strong> (headline, location, years
+        of experience, skills), never your name, contact details or resume file. Another recruiter can only see your
+        details if you agree to an introduction: in your dashboard if you are on {appName}, or by telling the recruiter
+        who holds your resume.
+      </p>
+      <p>
+        If you sign up with the same email address, your dashboard shows which recruiter holds your resume. You can add
+        it to your own profile or delete it from their pool. Deleting your account deletes these profiles too. You can
+        also ask us to remove one at {process.env.SUPPORT_EMAIL ?? "support@example.com"}.
+      </p>
+      <h2 className="text-xl font-semibold tracking-tight">Messages from recruiters</h2>
+      <p>
+        A recruiter who holds your resume may send you a job opportunity through {appName}. Every such message says who
+        sent it and why and has a one-click link to stop all recruiter messages through {appName}. When you use it, we
+        keep only a one-way fingerprint (hash) of your email or phone number so that no recruiter can contact you
+        through us again. {appName} itself never sends you marketing because a recruiter uploaded your resume.
+      </p>
+      <h2 className="text-xl font-semibold tracking-tight">Job listings</h2>
+      <p>
+        Jobs can come from employers on {appName}, from recruiters, from spreadsheets or from companies&apos; official
+        job-board feeds. Jobs from elsewhere are labeled with their source. Phone and WhatsApp numbers and personal
+        email addresses published as a job&apos;s apply contact are hidden from anonymous visitors and shown only to
+        signed-in users or after a quick human check. Anyone can ask us to remove a listing at /takedown.
       </p>
       <h2 className="text-xl font-semibold tracking-tight">What we never do</h2>
       <ul className="list-disc pl-6">
@@ -44,7 +63,7 @@ export default function PrivacyPage() {
         resume files, embeddings and consents), and unsubscribe from emails at any time. Contact:{" "}
         {process.env.SUPPORT_EMAIL ?? "support@example.com"}.
       </p>
-      <p className="text-muted-foreground text-sm">{appName} · Draft version 0.1</p>
+      <p className="text-muted-foreground text-sm">{appName} · Draft version 0.2</p>
     </article>
   );
 }

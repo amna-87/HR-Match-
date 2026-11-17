@@ -436,3 +436,22 @@ billing, recruiter network, agency roles, job-alert emails, more connectors.
   for local/CI end-to-end runs and is ignored in production.
 - Usage counters for plans: `workspace_usage` (pool size, messages today and in 30 days, connected sources,
   introductions, open jobs) shown against the plan's limits on the workspace page. Billing is v1.1.
+
+## D-033 v1.0 launch status (2026-11-17)
+
+Everything in the addendum's build order (section 7) and the 7d launch cut line is built and deployed: A1, A2, B1, B2,
+C1, C2 (launch scope: copy message + export; email behind `OUTREACH_EMAIL_ENABLED`), G1 and 7c. Remaining v1.0
+items were re-checked: privacy export now also covers saved jobs, introduction requests and profiles recruiters hold
+about the person; Privacy and Terms drafts describe talent pools, introductions, recruiter messages and opt-outs.
+
+Still needed from the owner before or at launch (not code):
+- Legal review of Terms and Privacy (both marked DRAFT), and of recruiter outreach for the countries you operate in.
+- API keys in Vercel: `ANTHROPIC_API_KEY` (AI parsing and summaries; the offline readers are used until then),
+  `VOYAGE_API_KEY` + `EMBEDDINGS_PROVIDER=voyage` (better matching), `RESEND_API_KEY` + `EMAIL_FROM` and
+  `RESEND_WEBHOOK_SECRET` (email + complaint handling).
+- Sending domain with SPF/DKIM/DMARC, warmed up, before setting `OUTREACH_EMAIL_ENABLED=true` (right after launch).
+- Optional: `supabase/ops/schedule-background-jobs.sql` for frequent background runs (Vercel Hobby cron is daily).
+
+After launch (v1.1, per 7d): direct email outreach at scale, paid plans and billing, recruiter-to-recruiter job
+sharing, agency roles beyond the current admin/recruiter seats, job-alert emails, more connectors (Ashby,
+SmartRecruiters, Workable, schema.org career pages with robots.txt checks).
