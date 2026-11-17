@@ -58,6 +58,7 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
     headline: string | null;
     skills_count: number;
     uploaded_at: string;
+    claimed: boolean;
   }[];
   const unread = (notes ?? []).filter((n) => !n.read_at).length;
   type JobRef = {
@@ -108,21 +109,27 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
       {uploadedProfiles.map((u) => (
         <Card key={u.id} className="border-sky-300">
           <CardHeader>
-            <CardTitle>A recruiter added a profile for you</CardTitle>
+            <CardTitle>{u.claimed ? "A recruiter has your resume" : "A recruiter added a profile for you"}</CardTitle>
             <CardDescription>
-              A recruiter at <strong>{u.company_name}</strong> uploaded your resume on {formatDate(u.uploaded_at)}
-              {u.headline ? ` (${u.headline}, ${u.skills_count} skills)` : ""}. Add it to your profile to get matched to
-              jobs right away, or delete it. Either way, that company no longer sees it afterwards.
+              <strong>{u.company_name}</strong> added your resume to their private talent pool on{" "}
+              {formatDate(u.uploaded_at)}
+              {u.headline ? ` (${u.headline}, ${u.skills_count} skills)` : ""}. Only that recruiter&apos;s workspace can
+              see it.{" "}
+              {u.claimed
+                ? "You already added it to your profile. You can ask for it to be deleted from their pool at any time."
+                : "Add it to your profile to get matched to jobs right away, or delete it from their pool."}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
-            <form action={claimUploadedProfile}>
-              <input type="hidden" name="id" value={u.id} />
-              <Button>Add to my profile</Button>
-            </form>
+            {!u.claimed && (
+              <form action={claimUploadedProfile}>
+                <input type="hidden" name="id" value={u.id} />
+                <Button>Add to my profile</Button>
+              </form>
+            )}
             <form action={deleteUploadedProfile}>
               <input type="hidden" name="id" value={u.id} />
-              <Button variant="outline">Delete it</Button>
+              <Button variant="outline">Delete it from their pool</Button>
             </form>
           </CardContent>
         </Card>

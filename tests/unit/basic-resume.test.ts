@@ -29,3 +29,36 @@ describe("basicParseResume (offline fallback)", () => {
     expect(r.summary.toLowerCase()).not.toMatch(/married|date of birth/);
   });
 });
+
+describe("basic reader: work history and location", () => {
+  it("reads dated job lines and a City, Country contact segment", () => {
+    const r = basicParseResume(
+      [
+        "Ayesha Khan",
+        "Digital Marketing Lead",
+        "ayesha@example.test | +92 300 1234567 | Lahore, Pakistan",
+        "Experience",
+        "Digital Marketing Lead at Brightside (Jan 2021 - Present)",
+        "Social Media Executive | Foodco | 2017 – 2020",
+        "Skills: Meta Ads, SEO",
+      ].join("\n"),
+    );
+    expect(r.location).toBe("Lahore, Pakistan");
+    expect(r.experiences).toHaveLength(2);
+    expect(r.experiences[0]).toMatchObject({
+      title: "Digital Marketing Lead",
+      company: "Brightside",
+      is_current: true,
+    });
+    expect(r.experiences[0].start_date).toBe("2021-01-01");
+    expect(r.experiences[1]).toMatchObject({ title: "Social Media Executive", company: "Foodco", is_current: false });
+    expect(r.experience_years_hint).toBeGreaterThan(5);
+  });
+});
+
+it("never reads digits inside an email address as a phone number", () => {
+  const r = basicParseResume(
+    "Omar Butt\nAccountant\nomar1794952386814@example.test | Karachi, Pakistan\nSkills: payroll",
+  );
+  expect(r.phone).toBe("");
+});

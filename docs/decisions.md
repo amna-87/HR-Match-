@@ -301,3 +301,30 @@ billing, recruiter network, agency roles, job-alert emails, more connectors.
   uploading recruiter, who asks them and confirms with a recorded lawful-basis checkbox. Never sold or released
   without consent. Charging for requests waits for billing (v1.1); usage is counted from the start.
 - Job display rule (addendum 4): company name when known, otherwise "Hiring directly".
+
+## D-027 Talent Pool bulk upload (A2, 2026-11-17)
+
+- Pool profiles live in `pool_candidates` (scoped by `workspace_id`), separate from the public `candidates` table, as
+  the addendum asks. D-022 uploads were moved over by migration 000011 (production had none). RLS: members of the
+  workspace only; inserts by the trusted backend only; members edit profile, tags, private notes, status and
+  `do_not_contact` (audited); workspace, file, embedding and claim fields are protected by a trigger.
+- Upload path: the browser uploads each file straight to the private `resumes` bucket under
+  `pool/<workspace>/<import>/` (storage RLS checks membership), so batches of 200 never pass through a Vercel request
+  (4.5 MB body limit). ZIPs are unpacked in the browser. `start_pool_import` records the lawful-basis confirmation in
+  the audit log and checks the batch cap (200) and pool room (cap 500); `queue_pool_files` only accepts paths in the
+  workspace's own folder.
+- Queue: `pool_import_files` rows are claimed with `FOR UPDATE SKIP LOCKED`; stale locks re-queue after 5 minutes;
+  up to 3 attempts, then `failed` with a reason. Bad files fail immediately and never block others. Workers: the open
+  upload page calls `/api/pool/process` until its queue is empty; the daily cron (and the optional pg_cron schedule)
+  picks up the rest. Parsing runs in parallel; de-duplication and saving run one file at a time so a batch can't
+  insert the same person twice.
+- Parsing reuses the Claude parser, falling back to the offline reader. The offline reader now reads work history from
+  dated lines, location from the contact line, and never takes digits inside an email as a phone number.
+- De-duplication inside a workspace: normalised email, then phone (last 10 digits), then name + latest employer.
+  Duplicates are merged (blanks filled, skills added; the first resume file is kept) and the file is marked
+  "duplicate" with the matched key. Never silently doubled.
+- Search: `search_pool` (security invoker, RLS applies) with keyword, skills (all must match), title, location, minimum
+  years, tag and status filters, plus semantic ordering by an embedded query (protected characteristics stripped).
+- Claiming (person signs up with the same verified email) copies the details into their own profile; the recruiter's
+  pool entry stays, marked "On Vouch" (the addendum makes the pool the recruiter's workspace data). The person can
+  still delete it from the pool at any time; account deletion erases pool profiles for their email everywhere.
