@@ -6,6 +6,7 @@ import {
   markNotificationsRead,
   claimUploadedProfile,
   deleteUploadedProfile,
+  answerIntroduction,
 } from "./actions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -54,6 +55,20 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
       // profiles a recruiter uploaded for this (verified) email address — D-022
       supabase.rpc("my_uploaded_profiles"),
     ]);
+  const { data: introData } = await supabase.rpc("my_introduction_requests");
+  const introRequests = (
+    (introData ?? []) as {
+      id: string;
+      status: string;
+      message: string | null;
+      job_id: string;
+      job_title: string;
+      company: string;
+      location: string | null;
+      job_summary: string;
+      job_public: boolean;
+    }[]
+  ).filter((r) => r.status === "waiting_person");
   const uploadedProfiles = (uploaded ?? []) as {
     id: string;
     company_name: string;
@@ -107,6 +122,39 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
           </Alert>
         )}
       </div>
+
+      {introRequests.map((r) => (
+        <Card key={r.id} className="border-indigo-300">
+          <CardHeader>
+            <CardTitle>{r.company} would like to talk to you</CardTitle>
+            <CardDescription>
+              About the <strong>{r.job_title}</strong> role{r.location ? ` (${r.location})` : ""}. If you agree, they
+              see your profile, contact details and resume for this opportunity. If not, they never learn who you are.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {r.job_summary && <p className="line-clamp-4 text-sm">{r.job_summary}</p>}
+            {r.message && <p className="text-muted-foreground text-sm italic">&ldquo;{r.message}&rdquo;</p>}
+            <div className="flex flex-wrap gap-2">
+              <form action={answerIntroduction}>
+                <input type="hidden" name="id" value={r.id} />
+                <input type="hidden" name="decision" value="accept" />
+                <Button>Yes, introduce me</Button>
+              </form>
+              <form action={answerIntroduction}>
+                <input type="hidden" name="id" value={r.id} />
+                <input type="hidden" name="decision" value="decline" />
+                <Button variant="outline">No thanks</Button>
+              </form>
+              {r.job_public && (
+                <Link href={`/jobs/${r.job_id}`} className={buttonClasses("ghost")}>
+                  View the job
+                </Link>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
 
       {uploadedProfiles.map((u) => (
         <Card key={u.id} className="border-sky-300">

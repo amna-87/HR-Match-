@@ -374,3 +374,19 @@ billing, recruiter network, agency roles, job-alert emails, more connectors.
 - Every run re-checks each job: listed jobs stay open (+30 days), missing ones are closed (takedown removals stay
   removed), reappearing ones re-open, and new jobs that duplicate an existing listing (public board or this
   workspace) are skipped. Feeds count against the plan's `source_cap` (3 on free).
+
+## D-030 Pool matching views and network introductions (C1, 2026-11-17)
+
+- Every recruiter job page (employer-posted or from another source) shows "Top matches from your pool": the v1.0
+  pipeline (vector similarity, skill overlap, experience fit) with the score and a one-line reason. Workspace jobs are
+  embedded on demand. The reverse view on a pool profile shows "Best jobs for this person" across the workspace's open
+  jobs and the public board.
+- Below it, "From the Vouch network" lists anonymous cards from pools whose workspace opted in to sharing (D-026);
+  do-not-contact people never appear. "Request introduction" (`intro_requests`, rate limited 30/day per recruiter):
+  - if the person is on Vouch (claimed the profile), they answer in their dashboard;
+  - otherwise the uploading workspace asks them outside Vouch and records the answer; "they agreed" requires a
+    lawful-basis confirmation, stored in the audit log.
+  The requester sees only an anonymous, pending request until it is accepted; then the profile, contact details and
+  resume (signed URL) for that job. Declines reveal nothing. The uploading workspace is never named to the requester,
+  and private notes, tags and status never leave the workspace (all reads go through definer functions that select
+  only profile columns). Charging for introductions waits for billing (v1.1); requests are counted.

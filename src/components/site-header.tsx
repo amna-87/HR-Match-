@@ -10,6 +10,7 @@ import {
   UserRound,
   Users,
   Rss,
+  Handshake,
 } from "lucide-react";
 import { getSession } from "@/lib/auth/session";
 import { Logo } from "@/components/logo";
@@ -53,6 +54,7 @@ const accountLinks: Record<Role, AccountLink[]> = {
     { href: "/recruiter/company", label: "Workspace & team", icon: <Building2 /> },
     { href: "/recruiter/talent", label: "Talent pool", icon: <Users /> },
     { href: "/recruiter/sources", label: "Job sources & feeds", icon: <Rss /> },
+    { href: "/recruiter/introductions", label: "Introductions", icon: <Handshake /> },
   ],
   admin: [
     { href: "/admin", label: "Admin overview", icon: <LayoutDashboard /> },

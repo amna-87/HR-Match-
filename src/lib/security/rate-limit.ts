@@ -15,6 +15,7 @@ export const RATE_LIMITS = {
   reveal: { limit: 40, windowSeconds: 3600 }, // apply contacts revealed per user or IP (7c)
   csvImport: { limit: 20, windowSeconds: 3600 }, // CSV job imports
   feedRun: { limit: 20, windowSeconds: 3600 }, // manual feed connects / fetches
+  intro: { limit: 30, windowSeconds: 86400 }, // network introduction requests per recruiter per day
 } as const;
 
 export type RateLimitName = keyof typeof RATE_LIMITS;

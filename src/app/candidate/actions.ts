@@ -273,3 +273,22 @@ export async function deleteAccount(formData: FormData) {
   await supabase.auth.signOut();
   redirect("/?ok=" + encodeURIComponent("Your account and data have been deleted."));
 }
+
+// ---------------------------------------------------------------------------
+// Introductions: a recruiter asked to be introduced to you for a job (D-030)
+// ---------------------------------------------------------------------------
+export async function answerIntroduction(formData: FormData) {
+  const { supabase } = await requireCandidate();
+  const accept = formData.get("decision") === "accept";
+  const { error } = await supabase.rpc("answer_introduction_as_person", {
+    p_id: String(formData.get("id") ?? ""),
+    p_accept: accept,
+  });
+  if (error) go("/candidate", "error", error.message);
+  revalidatePath("/candidate");
+  go(
+    "/candidate",
+    "ok",
+    accept ? "Done. The recruiter can now see your profile and contact you." : "Declined. They won't see your details.",
+  );
+}

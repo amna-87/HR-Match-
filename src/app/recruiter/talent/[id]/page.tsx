@@ -12,6 +12,7 @@ import { Button, buttonClasses } from "@/components/ui/button";
 import { Flash } from "@/components/flash";
 import { formatDate } from "@/lib/utils";
 import { POOL_STATUS_LABELS } from "@/lib/pool/labels";
+import { bestJobsForPoolCandidate } from "@/lib/pool/rank";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Talent pool profile" };
@@ -63,6 +64,7 @@ export default async function PoolProfilePage({
   // RLS: only members of the owning workspace get the row.
   const { data: p } = await supabase.from("pool_candidates").select("*").eq("id", id).maybeSingle();
   if (!p) notFound();
+  const jobs = p.embedding_hash ? await bestJobsForPoolCandidate(supabase, p, 8) : [];
 
   return (
     <div className="space-y-6">
@@ -101,6 +103,44 @@ export default async function PoolProfilePage({
               Delete profile and resume
             </Button>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Best jobs for this person</CardTitle>
+          <CardDescription>Your open jobs and the public job board, ranked by fit.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {jobs.length ? (
+            <ul className="divide-border divide-y">
+              {jobs.map((j) => (
+                <li key={j.jobId} className="flex flex-wrap items-start justify-between gap-3 py-3">
+                  <div className="min-w-0 space-y-1">
+                    <p className="font-medium">
+                      <Link
+                        href={j.isOwn ? `/recruiter/jobs/${j.jobId}` : `/jobs/${j.jobId}`}
+                        prefetch={false}
+                        className="hover:underline"
+                      >
+                        {j.title}
+                      </Link>{" "}
+                      {j.isOwn ? <Badge tone="info">Your job</Badge> : <Badge>Public board</Badge>}
+                    </p>
+                    <p className="text-muted-foreground text-sm">
+                      {[j.company ?? "Hiring directly", j.location].filter(Boolean).join(" · ")}
+                    </p>
+                    <p className="text-sm">{j.reason}</p>
+                  </div>
+                  <Badge tone={j.score >= 70 ? "success" : j.score >= 50 ? "info" : "muted"}>
+                    {Math.round(j.score)}% fit
+                  </Badge>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-muted-foreground text-sm">No open jobs to compare yet.</p>
+          )}
         </CardContent>
       </Card>
 

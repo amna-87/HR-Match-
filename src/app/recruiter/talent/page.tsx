@@ -16,6 +16,8 @@ import { Flash } from "@/components/flash";
 import { PoolUploader } from "@/components/pool-uploader";
 import { POOL_STATUS_LABELS } from "@/lib/pool/labels";
 import { setPoolStatus } from "./actions";
+import { answerIntroAsOwner } from "../introductions/actions";
+import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Talent pool" };
@@ -103,6 +105,18 @@ export default async function TalentPoolPage({ searchParams }: { searchParams: P
         .order("created_at", { ascending: false }),
       supabase.from("pool_candidates").select("tags").eq("workspace_id", ws.id).neq("tags", "{}").limit(1000),
     ]);
+  const { data: introData } = await supabase.rpc("introductions_for_my_pool", { p_workspace_id: ws.id });
+  const intros = (
+    (introData ?? []) as {
+      id: string;
+      status: string;
+      message: string | null;
+      pool_candidate_id: string;
+      person: string;
+      job_title: string;
+      requesting_company: string;
+    }[]
+  ).filter((i) => i.status === "waiting_owner");
   const list = (rows ?? []) as PoolRow[];
   const total = list[0]?.total ?? 0;
   const allTags = [...new Set((tags ?? []).flatMap((t) => t.tags as string[]))].sort();
@@ -159,6 +173,52 @@ export default async function TalentPoolPage({ searchParams }: { searchParams: P
           <span className="text-foreground text-2xl font-semibold">{poolCount ?? 0}</span> / {ws.pool_cap} profiles
         </p>
       </div>
+
+      {intros.length > 0 && (
+        <Card className="border-sky-300">
+          <CardHeader>
+            <CardTitle>Introduction requests ({intros.length})</CardTitle>
+            <CardDescription>
+              Another recruiter would like to meet someone from your pool. Ask the person (outside Vouch). Their details
+              are shared only if they agree.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="divide-border divide-y">
+              {intros.map((i) => (
+                <li key={i.id} className="space-y-2 py-3">
+                  <p className="text-sm">
+                    <strong>{i.requesting_company}</strong> asks about{" "}
+                    <Link href={`/recruiter/talent/${i.pool_candidate_id}`} prefetch={false} className="underline">
+                      {i.person}
+                    </Link>{" "}
+                    for <strong>{i.job_title}</strong>.
+                  </p>
+                  {i.message && <p className="text-muted-foreground text-sm italic">&ldquo;{i.message}&rdquo;</p>}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <form action={answerIntroAsOwner} className="flex flex-wrap items-center gap-2">
+                      <input type="hidden" name="id" value={i.id} />
+                      <input type="hidden" name="decision" value="agreed" />
+                      <label className="flex items-center gap-2 text-sm">
+                        <input type="checkbox" name="lawful_basis" required /> The person agreed to share their resume
+                        with this recruiter
+                      </label>
+                      <Button size="sm">They agreed</Button>
+                    </form>
+                    <form action={answerIntroAsOwner}>
+                      <input type="hidden" name="id" value={i.id} />
+                      <input type="hidden" name="decision" value="declined" />
+                      <Button size="sm" variant="outline">
+                        They said no
+                      </Button>
+                    </form>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
