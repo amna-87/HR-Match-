@@ -38,7 +38,7 @@ export async function prepareOutreachAction(
   const { data: job } = await supabase
     .from("jobs")
     .select(
-      "id, title, location, description_summary, source_type, source_company_name, apply_method, apply_target, visibility, status, company:companies!jobs_company_id_fkey(name, kind)",
+      "id, title, location, description_summary, source_type, source_company_name, apply_method, apply_target, visibility, status, public_number, company:companies!jobs_company_id_fkey(name, kind)",
     )
     .eq("id", jobId)
     .maybeSingle();
@@ -61,6 +61,7 @@ export async function prepareOutreachAction(
     applyMethod: job.apply_method,
     applyTarget: job.apply_target,
     isPublic: job.visibility === "public" && job.status === "published",
+    publicNumber: job.public_number,
   };
   const recruiterName = user.name || user.email || "A recruiter";
   const cleanIntro = sanitizeText(intro, 1500);

@@ -3,6 +3,7 @@
 // Vouch for that address.
 import { createHash } from "node:crypto";
 import { signToken, verifyToken } from "@/lib/consent/tokens";
+import { jobPath } from "@/lib/slug";
 
 /** Same normalisation and hash as public.contact_hash() in the database. */
 export function contactHash(contact: string | null | undefined): string | null {
@@ -41,12 +42,13 @@ export interface OutreachJob {
   applyMethod: string;
   applyTarget: string | null;
   isPublic: boolean;
+  publicNumber?: number | null;
 }
 
 export function applyLine(job: OutreachJob): string {
   if (job.sourceType === "verified")
     return job.isPublic
-      ? `See the job and apply on Vouch: ${appUrl()}/jobs/${job.id}`
+      ? `See the job and apply on Vouch: ${appUrl()}${jobPath({ id: job.id, title: job.title, location: job.location, public_number: job.publicNumber })}`
       : "Reply to me if you're interested.";
   switch (job.applyMethod) {
     case "link":
