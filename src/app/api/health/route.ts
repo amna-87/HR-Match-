@@ -49,7 +49,8 @@ const SCHEMA_CHECK = `
                    where table_schema = 'public' and table_name = 'jobs' and column_name = 'apply_instructions')),
     ('000008_talent_pool', exists (select 1 from pg_proc where proname = 'talent_pool_for_job')),
     ('000009_sourced_link_optional', exists (select 1 from pg_constraint
-       where conname = 'jobs_sourced_shape' and pg_get_constraintdef(oid) like '%source_url IS NULL%'))
+       where conname = 'jobs_sourced_shape' and pg_get_constraintdef(oid) like '%source_url IS NULL%')),
+    ('000010_workspaces', exists (select 1 from pg_proc where proname = 'create_workspace'))
   ) as t(name, present)`;
 
 /** A short, non-secret category for setup troubleshooting (never the URL or password). */

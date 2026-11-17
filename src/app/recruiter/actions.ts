@@ -19,10 +19,13 @@ const go = (path: string, key: "ok" | "error", msg: string): never =>
   redirect(`${path}${path.includes("?") ? "&" : "?"}${key}=${encodeURIComponent(msg)}`);
 
 export async function createCompany(formData: FormData) {
-  const { supabase } = await requireRecruiter();
-  const name = sanitizeLine(String(formData.get("name") ?? ""), 200);
+  const { supabase, profile, user } = await requireRecruiter();
+  const kind = formData.get("kind") === "personal" ? "personal" : "company";
+  const fallback = `${user.name || profile.email.split("@")[0]}'s workspace`;
+  const name = sanitizeLine(String(formData.get("name") ?? ""), 200) || (kind === "personal" ? fallback : "");
   if (!name) go("/recruiter", "error", "Company name is required.");
-  const { error } = await supabase.rpc("create_company", {
+  const { error } = await supabase.rpc("create_workspace", {
+    p_kind: kind,
     p_name: name,
     p_website: safeHttpUrl(String(formData.get("website") ?? "")),
     p_description: sanitizeText(String(formData.get("description") ?? ""), 3000) || null,
@@ -30,12 +33,12 @@ export async function createCompany(formData: FormData) {
     p_location: sanitizeLine(String(formData.get("location") ?? ""), 200) || null,
   });
   if (error) go("/recruiter", "error", error.message);
-  go("/recruiter", "ok", "Company created. You can now post jobs.");
+  go("/recruiter", "ok", "Workspace created. You can now post jobs and build your talent pool.");
 }
 
 export async function updateCompany(formData: FormData) {
   const { supabase, company, isCompanyAdmin } = await requireRecruiter();
-  if (!company || !isCompanyAdmin) go("/recruiter/company", "error", "Only company admins can edit the company.");
+  if (!company || !isCompanyAdmin) go("/recruiter/company", "error", "Only workspace admins can edit the workspace.");
   const { error } = await supabase
     .from("companies")
     .update({
@@ -45,10 +48,12 @@ export async function updateCompany(formData: FormData) {
       size: sanitizeLine(String(formData.get("size") ?? ""), 50) || null,
       location: sanitizeLine(String(formData.get("location") ?? ""), 200) || null,
       show_name_on_vetted_badge: formData.get("show_name_on_vetted_badge") === "on",
+      kind: formData.get("kind") === "personal" ? "personal" : "company",
+      share_pool_anonymously: formData.get("share_pool_anonymously") === "on",
     })
     .eq("id", company!.id);
   if (error) go("/recruiter/company", "error", error.message);
-  go("/recruiter/company", "ok", "Company updated.");
+  go("/recruiter/company", "ok", "Workspace updated.");
 }
 
 export async function inviteRecruiter(formData: FormData) {

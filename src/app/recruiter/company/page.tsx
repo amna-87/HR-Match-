@@ -21,6 +21,13 @@ export default async function CompanyPage({ searchParams }: { searchParams: Prom
     size: string | null;
     location: string | null;
     show_name_on_vetted_badge: boolean;
+    kind: "company" | "personal";
+    plan: string;
+    pool_cap: number;
+    batch_file_cap: number;
+    daily_send_cap: number;
+    source_cap: number;
+    share_pool_anonymously: boolean;
   };
   const [{ data: members }, { data: invites }] = await Promise.all([
     supabase.rpc("company_member_list", { p_company_id: c.id }),
@@ -36,13 +43,24 @@ export default async function CompanyPage({ searchParams }: { searchParams: Prom
       <Flash searchParams={await searchParams} />
       <Card>
         <CardHeader>
-          <CardTitle>Company profile</CardTitle>
+          <CardTitle>Workspace</CardTitle>
+          <CardDescription>
+            {c.kind === "personal"
+              ? "Personal workspace: your jobs show \u201cHiring directly\u201d instead of a company name."
+              : "Company workspace: the name below appears on your jobs."}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form action={updateCompany} className="grid gap-4 sm:grid-cols-2">
             <fieldset disabled={!isCompanyAdmin} className="contents">
-              <Field label="Name" htmlFor="name">
+              <Field label={c.kind === "personal" ? "Workspace name" : "Company name"} htmlFor="name">
                 <Input id="name" name="name" defaultValue={c.name} required />
+              </Field>
+              <Field label="Type" htmlFor="kind">
+                <Select id="kind" name="kind" defaultValue={c.kind}>
+                  <option value="company">Company (name shown on jobs)</option>
+                  <option value="personal">Personal (jobs show &ldquo;Hiring directly&rdquo;)</option>
+                </Select>
               </Field>
               <Field label="Website" htmlFor="website">
                 <Input id="website" name="website" type="url" defaultValue={c.website ?? ""} />
@@ -67,9 +85,44 @@ export default async function CompanyPage({ searchParams }: { searchParams: Prom
                   recruiter&rdquo;.
                 </p>
               </div>
+              <div className="border-border space-y-1 rounded-xl border p-4 sm:col-span-2">
+                <Checkbox
+                  name="share_pool_anonymously"
+                  label="Share anonymous cards from our talent pool with the Vouch network"
+                  defaultChecked={c.share_pool_anonymously}
+                />
+                <p className="text-muted-foreground text-xs">
+                  Off by default: your uploaded resumes are visible only to your workspace. If on, other recruiters see
+                  a card with headline, location, experience and skills, never the name, contact details or file. They
+                  get full details only after the person agrees to an introduction.
+                </p>
+              </div>
               {isCompanyAdmin && <SubmitButton>Save</SubmitButton>}
             </fieldset>
           </form>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Plan and limits</CardTitle>
+          <CardDescription>You&apos;re on the {c.plan} plan. Paid plans with higher limits are coming.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <dl className="grid gap-4 text-sm sm:grid-cols-4">
+            {(
+              [
+                ["Talent pool size", c.pool_cap],
+                ["Files per upload", c.batch_file_cap],
+                ["Messages per day", c.daily_send_cap],
+                ["Connected job sources", c.source_cap],
+              ] as const
+            ).map(([label, value]) => (
+              <div key={label}>
+                <dt className="text-muted-foreground">{label}</dt>
+                <dd className="text-lg font-semibold">{value}</dd>
+              </div>
+            ))}
+          </dl>
         </CardContent>
       </Card>
       <Card>

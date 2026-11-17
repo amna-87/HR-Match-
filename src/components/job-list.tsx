@@ -26,6 +26,9 @@ export function companyName(j: Pick<PublicJob, "company" | "source_company_name"
   return (j.company as { name: string } | null)?.name ?? j.source_company_name ?? null;
 }
 
+/** Display rule (addendum 4): the company name when known, otherwise "Hiring directly". */
+export const HIRING_DIRECTLY = "Hiring directly";
+
 /** Public job cards (anyone can browse published jobs; RLS jobs_select_published). */
 export function JobList({ jobs, empty = "No open roles yet." }: { jobs: PublicJob[]; empty?: string }) {
   if (!jobs.length)
@@ -55,7 +58,7 @@ export function JobList({ jobs, empty = "No open roles yet." }: { jobs: PublicJo
                     {j.title}
                   </Link>
                 </h3>
-                <p className="text-muted-foreground mt-0.5 truncate text-sm">{company ?? "Company not disclosed"}</p>
+                <p className="text-muted-foreground mt-0.5 truncate text-sm">{company ?? HIRING_DIRECTLY}</p>
               </div>
               {j.source_type === "sourced" ? (
                 <Badge tone="sourced">Sourced listing</Badge>

@@ -286,3 +286,18 @@ Items marked **[ASK]** conflict with something already built and need an owner d
 Before launch: A1, A2, B1, B2 (CSV + at least one feed connector), C1, 7c, privacy tools, takedown, Terms and Privacy
 (legal review still needed). C2 at launch: copy message + export only. After launch (v1.1): direct email outreach,
 billing, recruiter network, agency roles, job-alert emails, more connectors.
+
+## D-026 Workspaces, private pools and network introductions (owner decision, 2026-11-17)
+
+- A1: a company row is the workspace (`companies` + `company_members`), so existing jobs, seats, invitations and RLS
+  keep working. `kind` is `company` (name shown on jobs) or `personal` (a recruiter hiring without a company; jobs show
+  "Hiring directly"; not readable by the public). One workspace per recruiter (`create_workspace`). Plan fields
+  (`plan`, `pool_cap` 500, `batch_file_cap` 200, `daily_send_cap` 50, `source_cap` 3) can only be changed by Vouch.
+- Talent pools are private to the workspace by default (addendum section 3). This replaces D-022's "other companies
+  see an anonymous card": a workspace admin may opt in (`share_pool_anonymously`, audited) to show anonymous cards
+  (headline, location, years, skills; never name, contacts or file) to other workspaces.
+- Network introductions (C1, owner-approved): a recruiter who sees an anonymous card can request an introduction. The
+  full resume is released only after the person agrees: in the app if they have a Vouch account, otherwise via the
+  uploading recruiter, who asks them and confirms with a recorded lawful-basis checkbox. Never sold or released
+  without consent. Charging for requests waits for billing (v1.1); usage is counted from the start.
+- Job display rule (addendum 4): company name when known, otherwise "Hiring directly".

@@ -33,5 +33,5 @@ test("profile button is available on phones too", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await login(page, "rita@acme.example.test");
   await page.getByRole("button", { name: /account menu/ }).click();
-  await expect(page.getByRole("menuitem", { name: "Company profile & team" })).toBeVisible();
+  await expect(page.getByRole("menuitem", { name: "Workspace & team" })).toBeVisible();
 });

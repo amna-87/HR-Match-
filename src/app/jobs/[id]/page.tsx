@@ -1,3 +1,4 @@
+import { HIRING_DIRECTLY } from "@/components/job-list";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -41,7 +42,7 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
   if (!job) notFound();
   const companyName =
     (job.company as { name: string; website: string | null } | null)?.name ?? job.source_company_name ?? null;
-  const company = companyName ?? "Company not disclosed";
+  const company = companyName ?? HIRING_DIRECTLY;
   const href = applyHref(job.apply_method, job.apply_target);
   const sourced = job.source_type === "sourced";
   const salary = job.salary_min

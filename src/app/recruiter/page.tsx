@@ -3,7 +3,7 @@ import { requireRecruiter } from "@/lib/auth/session";
 import { createCompany, acceptInvitation } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field, Input, Textarea } from "@/components/ui/form";
+import { Field, Input } from "@/components/ui/form";
 import { SubmitButton } from "@/components/submit-button";
 import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
@@ -55,32 +55,53 @@ export default async function RecruiterHome({ searchParams }: { searchParams: Pr
       <div className="space-y-6">
         <Flash searchParams={sp} />
         {invitesCard}
-        <Card className="mx-auto max-w-xl">
-          <CardHeader>
-            <CardTitle>Set up your company</CardTitle>
-            <CardDescription>You can only post jobs for a company you belong to.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form action={createCompany} className="space-y-4">
-              <Field label="Company name" htmlFor="name">
-                <Input id="name" name="name" required maxLength={200} />
-              </Field>
-              <Field label="Website" htmlFor="website">
-                <Input id="website" name="website" type="url" placeholder="https://" />
-              </Field>
-              <Field label="Location" htmlFor="location">
-                <Input id="location" name="location" />
-              </Field>
-              <Field label="Size" htmlFor="size" hint="e.g. 11-50">
-                <Input id="size" name="size" />
-              </Field>
-              <Field label="Description" htmlFor="description">
-                <Textarea id="description" name="description" />
-              </Field>
-              <SubmitButton>Create company</SubmitButton>
-            </form>
-          </CardContent>
-        </Card>
+        <div className="mx-auto max-w-3xl space-y-2 text-center">
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Set up your workspace</h1>
+          <p className="text-muted-foreground">
+            Your workspace holds your jobs and your private talent pool. Nobody outside it can see your resumes.
+          </p>
+        </div>
+        <div className="mx-auto grid max-w-3xl gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Just me</CardTitle>
+              <CardDescription>
+                For independent recruiters and HR people. Your jobs show &ldquo;Hiring directly&rdquo; with how to
+                apply.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form action={createCompany} className="space-y-4">
+                <input type="hidden" name="kind" value="personal" />
+                <Field label="Workspace name (optional)" htmlFor="pname">
+                  <Input id="pname" name="name" maxLength={200} placeholder="My recruiting" />
+                </Field>
+                <SubmitButton>Start my workspace</SubmitButton>
+              </form>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>A company</CardTitle>
+              <CardDescription>The company name appears on your jobs. Invite colleagues later.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form action={createCompany} className="space-y-4">
+                <input type="hidden" name="kind" value="company" />
+                <Field label="Company name" htmlFor="name">
+                  <Input id="name" name="name" required maxLength={200} />
+                </Field>
+                <Field label="Website" htmlFor="website">
+                  <Input id="website" name="website" type="url" placeholder="https://" />
+                </Field>
+                <Field label="Location" htmlFor="location">
+                  <Input id="location" name="location" />
+                </Field>
+                <SubmitButton>Create company</SubmitButton>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }

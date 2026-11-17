@@ -83,9 +83,12 @@ export default async function TalentPoolPage({ searchParams }: { searchParams: P
       <div>
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Talent pool</h1>
         <p className="text-muted-foreground text-sm">
-          Resumes you add are visible in full to your company only. Other companies see an anonymous card (headline,
-          location, years of experience, skills) — never the name, contact details or file. We never email these people.
-          If someone signs up with the same email, they can claim their profile and get matched to jobs, or delete it.
+          Resumes you add are private to your workspace. Nobody else sees them unless you turn on anonymous sharing in{" "}
+          <Link href="/recruiter/company" className="underline">
+            workspace settings
+          </Link>
+          , and even then only a card without the name, contact details or file. We never email these people. If someone
+          signs up with the same email, they can claim their profile and get matched to jobs, or delete it.
         </p>
       </div>
 
@@ -157,7 +160,7 @@ export default async function TalentPoolPage({ searchParams }: { searchParams: P
                       ) : (
                         <span>Anonymous profile</span>
                       )}{" "}
-                      {r.is_own ? <Badge tone="info">Your upload</Badge> : <Badge>Another company&apos;s upload</Badge>}
+                      {r.is_own ? <Badge tone="info">Your upload</Badge> : <Badge>Vouch network</Badge>}
                     </p>
                     <p className="text-muted-foreground text-sm">
                       {[r.headline, r.location, `${Number(r.experience_years) || 0} yrs`].filter(Boolean).join(" · ")}

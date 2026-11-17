@@ -87,7 +87,7 @@ describe("talent pool uploads", () => {
     expect((await db.anon("select count(*)::int n from candidates where id = $1", [uploadId])).rows[0].n).toBe(0);
   });
 
-  it("other companies get an anonymous card in the ranked pool; the uploader gets full details", async () => {
+  it("pools are private by default; other workspaces get anonymous cards only after opt-in", async () => {
     const mine = await db.as(IDS.rita)("select * from talent_pool_for_job($1)", [IDS.jobSocial]);
     const row = mine.rows.find((r) => r.candidate_id === uploadId)!;
     expect(row).toMatchObject({ is_own: true, full_name: "Pat Example", contact_email: "pat@example.test" });
@@ -105,6 +105,15 @@ describe("talent pool uploads", () => {
         [IDS.globex, vec(0)],
       )
     ).rows[0].id;
+    // private by default: Globex sees nothing from Acme's pool
+    const hidden = await db.as(IDS.gary)("select * from talent_pool_for_job($1)", [globexJob]);
+    expect(hidden.rows.find((r) => r.candidate_id === uploadId)).toBeUndefined();
+    // only a workspace admin can opt in (Globex can't flip Acme's switch)
+    await db.as(IDS.gary)("update companies set share_pool_anonymously = true where id = $1", [IDS.acme]);
+    expect((await db.root("select share_pool_anonymously s from companies where id = $1", [IDS.acme])).rows[0].s).toBe(
+      false,
+    );
+    await db.as(IDS.rita)("update companies set share_pool_anonymously = true where id = $1", [IDS.acme]);
     const anon = await db.as(IDS.gary)("select * from talent_pool_for_job($1)", [globexJob]);
     const card = anon.rows.find((r) => r.candidate_id === uploadId)!;
     expect(card).toMatchObject({ is_own: false, full_name: null, contact_email: null, contact_phone: null });

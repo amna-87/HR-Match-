@@ -48,7 +48,7 @@ const accountLinks: Record<Role, AccountLink[]> = {
   ],
   recruiter: [
     { href: "/recruiter", label: "My jobs", icon: <Briefcase /> },
-    { href: "/recruiter/company", label: "Company profile & team", icon: <Building2 /> },
+    { href: "/recruiter/company", label: "Workspace & team", icon: <Building2 /> },
     { href: "/recruiter/talent", label: "Talent pool", icon: <Users /> },
   ],
   admin: [
