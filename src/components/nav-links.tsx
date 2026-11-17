@@ -13,7 +13,17 @@ function isActive(pathname: string, href: string) {
 }
 
 /** Desktop pill nav + a mobile menu that closes itself after navigation. */
-export function NavLinks({ items, account }: { items: NavItem[]; account: React.ReactNode }) {
+export function NavLinks({
+  items,
+  account,
+  pinned,
+}: {
+  items: NavItem[];
+  /** shown in the header on desktop and inside the mobile menu (e.g. Log in / Sign up) */
+  account?: React.ReactNode;
+  /** always visible on every screen size (e.g. the profile button) */
+  pinned?: React.ReactNode;
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   useEffect(() => setOpen(false), [pathname]);
@@ -40,10 +50,14 @@ export function NavLinks({ items, account }: { items: NavItem[]; account: React.
       <nav aria-label="Main" className="hidden flex-1 items-center gap-1 md:flex">
         {items.map(([h, l]) => link(h, l))}
       </nav>
-      <div className="hidden items-center gap-2 md:flex">{account}</div>
+      {account && <div className="hidden items-center gap-2 md:flex">{account}</div>}
+      {pinned && <div className="ml-auto md:ml-0">{pinned}</div>}
       <button
         type="button"
-        className="hover:bg-muted ml-auto inline-flex h-10 w-10 items-center justify-center rounded-lg md:hidden"
+        className={cn(
+          "hover:bg-muted inline-flex h-10 w-10 items-center justify-center rounded-lg md:hidden",
+          !pinned && "ml-auto",
+        )}
         aria-expanded={open}
         aria-controls="mobile-menu"
         aria-label={open ? "Close menu" : "Open menu"}
@@ -56,7 +70,7 @@ export function NavLinks({ items, account }: { items: NavItem[]; account: React.
           <nav aria-label="Main (mobile)" className="space-y-1">
             {items.map(([h, l]) => link(h, l, true))}
           </nav>
-          <div className="border-border flex flex-wrap items-center gap-2 border-t pt-3">{account}</div>
+          {account && <div className="border-border flex flex-wrap items-center gap-2 border-t pt-3">{account}</div>}
         </div>
       )}
     </>

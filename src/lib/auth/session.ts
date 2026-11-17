@@ -15,6 +15,8 @@ export interface SessionProfile {
 export interface SessionUser {
   id: string;
   email: string | undefined;
+  /** display name given at sign-up (token claim user_metadata.full_name), if any */
+  name: string | null;
 }
 
 /**
@@ -29,7 +31,11 @@ export const getSession = cache(async () => {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   const claims = data?.claims;
-  const user: SessionUser | null = claims?.sub ? { id: claims.sub, email: claims.email as string | undefined } : null;
+  const meta = (claims?.user_metadata ?? {}) as { full_name?: unknown; name?: unknown };
+  const rawName = typeof meta.full_name === "string" ? meta.full_name : typeof meta.name === "string" ? meta.name : "";
+  const user: SessionUser | null = claims?.sub
+    ? { id: claims.sub, email: claims.email as string | undefined, name: rawName.trim().slice(0, 100) || null }
+    : null;
   if (!user) return { supabase, user: null, profile: null } as const;
   const { data: profile } = await supabase
     .from("users")

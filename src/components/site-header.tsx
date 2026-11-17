@@ -1,22 +1,33 @@
 import Link from "next/link";
-import { LogOut } from "lucide-react";
+import {
+  Briefcase,
+  Building2,
+  FileCheck2,
+  LayoutDashboard,
+  ScrollText,
+  Settings,
+  Shield,
+  UserRound,
+  Users,
+} from "lucide-react";
 import { getSession } from "@/lib/auth/session";
 import { Logo } from "@/components/logo";
 import { NavLinks, type NavItem } from "@/components/nav-links";
+import { AccountMenu, type AccountLink } from "@/components/account-menu";
 import { buttonClasses } from "@/components/ui/button";
 
-const links: Record<"candidate" | "recruiter" | "admin", NavItem[]> = {
+type Role = "candidate" | "recruiter" | "admin";
+
+const links: Record<Role, NavItem[]> = {
   candidate: [
     ["/candidate", "Dashboard"],
     ["/candidate/profile", "Profile"],
     ["/candidate/settings", "Preferences"],
-    ["/candidate/privacy", "Privacy"],
   ],
   recruiter: [
     ["/recruiter", "Jobs"],
     ["/recruiter/jobs/new", "Post a job"],
     ["/recruiter/talent", "Talent pool"],
-    ["/recruiter/company", "Company"],
   ],
   admin: [
     ["/admin", "Overview"],
@@ -24,47 +35,69 @@ const links: Record<"candidate" | "recruiter" | "admin", NavItem[]> = {
     ["/admin/sourced/new", "Add job"],
     ["/admin/users", "Users"],
     ["/admin/takedowns", "Takedowns"],
-    ["/admin/audit", "Audit log"],
   ],
 };
 
+/** Links in the profile dropdown, per role. */
+const accountLinks: Record<Role, AccountLink[]> = {
+  candidate: [
+    { href: "/candidate", label: "My dashboard", icon: <LayoutDashboard /> },
+    { href: "/candidate/profile", label: "My profile & resume", icon: <UserRound /> },
+    { href: "/candidate/settings", label: "Job preferences & emails", icon: <Settings /> },
+    { href: "/candidate/privacy", label: "Privacy & my data", icon: <Shield /> },
+  ],
+  recruiter: [
+    { href: "/recruiter", label: "My jobs", icon: <Briefcase /> },
+    { href: "/recruiter/company", label: "Company profile & team", icon: <Building2 /> },
+    { href: "/recruiter/talent", label: "Talent pool", icon: <Users /> },
+  ],
+  admin: [
+    { href: "/admin", label: "Admin overview", icon: <LayoutDashboard /> },
+    { href: "/admin/jobs", label: "Job moderation", icon: <FileCheck2 /> },
+    { href: "/admin/audit", label: "Audit log", icon: <ScrollText /> },
+  ],
+};
+
+const roleLabels: Record<Role, string> = { candidate: "Job seeker", recruiter: "Recruiter", admin: "Admin" };
+
 export async function SiteHeader() {
-  const { profile } = await getSession();
+  const { profile, user } = await getSession();
   const appName = process.env.APP_NAME ?? "Vouch";
-  const items: NavItem[] = [["/jobs", "Browse jobs"], ...(profile?.onboarded ? links[profile.role] : [])];
-  const account = profile ? (
-    <>
-      <span className="bg-muted text-muted-foreground flex items-center gap-2 rounded-full py-1 pr-3 pl-1 text-sm">
-        <span
-          aria-hidden
-          className="bg-primary text-primary-foreground inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold uppercase"
-        >
-          {profile.email.slice(0, 1)}
-        </span>
-        <span className="max-w-[14rem] truncate">{profile.email}</span>
-      </span>
-      <form action="/auth/signout" method="post">
-        <button className={buttonClasses("ghost", "sm")}>
-          <LogOut className="h-4 w-4" aria-hidden />
-          Sign out
-        </button>
-      </form>
-    </>
-  ) : (
-    <>
-      <Link href="/login" className={buttonClasses("ghost", "sm")}>
-        Log in
-      </Link>
-      <Link href="/signup" className={buttonClasses("default", "sm")}>
-        Sign up free
-      </Link>
-    </>
-  );
+  const role = profile?.onboarded ? (profile.role as Role) : null;
+  const items: NavItem[] = [["/jobs", "Browse jobs"], ...(role ? links[role] : [])];
   return (
     <header className="border-border/70 bg-background/80 supports-[backdrop-filter]:bg-background/70 sticky top-0 z-40 border-b backdrop-blur-lg">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
         <Logo name={appName} />
-        <NavLinks items={items} account={account} />
+        {profile ? (
+          <NavLinks
+            items={items}
+            pinned={
+              <AccountMenu
+                name={user?.name ?? null}
+                email={profile.email}
+                roleLabel={role ? roleLabels[role] : "New account"}
+                links={
+                  role ? accountLinks[role] : [{ href: "/onboarding", label: "Finish setting up", icon: <UserRound /> }]
+                }
+              />
+            }
+          />
+        ) : (
+          <NavLinks
+            items={items}
+            account={
+              <>
+                <Link href="/login" className={buttonClasses("ghost", "sm")}>
+                  Log in
+                </Link>
+                <Link href="/signup" className={buttonClasses("default", "sm")}>
+                  Sign up free
+                </Link>
+              </>
+            }
+          />
+        )}
       </div>
     </header>
   );
