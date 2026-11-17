@@ -39,6 +39,7 @@ jobs:
     env:
       NEXT_PUBLIC_APP_URL: http://localhost:3000
       TOKEN_SIGNING_SECRET: ci-token-secret-ci-token-secret-ci-token
+      RATE_LIMIT_SCALE: "10"
       CRON_SECRET: ci-cron
       EMBEDDINGS_PROVIDER: local
     steps:

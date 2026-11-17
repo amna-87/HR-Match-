@@ -1,3 +1,4 @@
+import { jobPath } from "@/lib/slug";
 import Link from "next/link";
 import { ArrowRight, Briefcase, Clock, MapPin, SearchX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +7,7 @@ import { employmentLabel, workModeLabel } from "@/components/job-source";
 import { firstParagraph, timeAgo } from "@/lib/utils";
 
 export const PUBLIC_JOB_COLUMNS =
-  "id, title, location, work_mode, employment_type, published_at, source_type, source_name, source_company_name, description_summary, company:companies!jobs_company_id_fkey(name)";
+  "id, title, location, work_mode, employment_type, published_at, source_type, source_name, source_company_name, description_summary, public_number, company:companies!jobs_company_id_fkey(name)";
 
 export type PublicJob = {
   id: string;
@@ -19,6 +20,7 @@ export type PublicJob = {
   source_name: string | null;
   source_company_name: string | null;
   description_summary: string;
+  public_number?: number | null;
   company: unknown;
 };
 
@@ -52,7 +54,7 @@ export function JobList({ jobs, empty = "No open roles yet." }: { jobs: PublicJo
               <div className="min-w-0 flex-1">
                 <h3 className="leading-snug font-semibold tracking-tight">
                   <Link
-                    href={`/jobs/${j.id}`}
+                    href={jobPath(j)}
                     className="group-hover:text-primary after:absolute after:inset-0 after:rounded-2xl after:content-['']"
                   >
                     {j.title}

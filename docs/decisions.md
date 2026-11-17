@@ -410,3 +410,29 @@ billing, recruiter network, agency roles, job-alert emails, more connectors.
   complaint rate over 30 days exceeds 0.3% (min. 3 complaints). Only Vouch can lift the pause.
 - Note for the owner (addendum 5): laws on contacting people from collected resumes vary by country; have a qualified
   person review before sending at scale.
+
+## D-032 Public pages, discoverability and usage counters (G1 + 7c, 2026-11-17)
+
+- Job URLs are readable and stable: `/jobs/<title>-<city>-<number>` (`jobs.public_number`, from 1001). Old
+  `/jobs/<uuid>` links and slugs with an outdated title redirect permanently to the current URL.
+- Every job page is server-rendered with a unique title and description, a canonical URL, Open Graph / Twitter card
+  tags and a generated share image (`opengraph-image`), schema.org `JobPosting` JSON-LD with `validThrough` (no
+  personal contacts; hiring organization "Confidential employer" when unknown), share buttons (copy link, WhatsApp,
+  LinkedIn), "Get matched to jobs like this" for visitors, save job and, on employer-posted jobs, "Apply with my Vouch
+  profile". Applying directly is a consent: `apply_to_job` creates the match and runs it through `respond_to_match`
+  (rule 1), so a consent event is recorded.
+- A job that was public but is closed or expired shows a friendly "This job is closed" page with similar open jobs
+  (noindex), not a 404.
+- `/sitemap.xml` (live public jobs, landing pages, company pages, static pages; no contacts) and `/robots.txt`
+  (private areas disallowed).
+- Search covers all public jobs with keyword, location, work mode, job type and date posted, paginated (30 per page,
+  no "log in to see more").
+- Landing pages from real data: `/jobs/<category>`, `/jobs/<city>`, `/jobs/<category>/<city>`; generated only when
+  they have at least 3 open jobs. Company pages `/companies/<slug>` for company workspaces and named hiring companies.
+- Static pages: About, How matching works, For recruiters (incl. the VouchJobsBot note), Terms, Privacy, Request
+  removal.
+- Abuse protection: per-IP limits in middleware (240 page / 120 API requests per minute per instance; in memory, no
+  database round trip), plus the database-backed limits on sensitive actions. `RATE_LIMIT_SCALE` multiplies limits
+  for local/CI end-to-end runs and is ignored in production.
+- Usage counters for plans: `workspace_usage` (pool size, messages today and in 30 days, connected sources,
+  introductions, open jobs) shown against the plan's limits on the workspace page. Billing is v1.1.

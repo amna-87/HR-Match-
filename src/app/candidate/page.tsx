@@ -1,3 +1,4 @@
+import { JobList, PUBLIC_JOB_COLUMNS, type PublicJob } from "@/components/job-list";
 import Link from "next/link";
 import { requireCandidate } from "@/lib/auth/session";
 import {
@@ -30,7 +31,7 @@ const stageTone = {
 } as const;
 
 export default async function CandidateDashboard({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
-  const { supabase, candidate } = await requireCandidate();
+  const { supabase, candidate, user } = await requireCandidate();
   const [{ data: matches }, { data: applications }, { data: offers }, { data: notes }, { data: uploaded }] =
     await Promise.all([
       supabase
@@ -56,6 +57,15 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
       supabase.rpc("my_uploaded_profiles"),
     ]);
   const { data: introData } = await supabase.rpc("my_introduction_requests");
+  const { data: savedRows } = await supabase
+    .from("saved_jobs")
+    .select(`job:jobs(${PUBLIC_JOB_COLUMNS})`)
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(50);
+  const savedJobs = ((savedRows ?? []) as unknown as { job: PublicJob | null }[])
+    .map((r) => r.job)
+    .filter((j): j is PublicJob => !!j);
   const introRequests = (
     (introData ?? []) as {
       id: string;
@@ -359,6 +369,15 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
           })}
         </ul>
       </section>
+
+      {savedJobs.length > 0 && (
+        <section aria-labelledby="saved-h" className="space-y-3">
+          <h2 id="saved-h" className="text-xl font-semibold tracking-tight">
+            Saved jobs
+          </h2>
+          <JobList jobs={savedJobs} />
+        </section>
+      )}
 
       <section aria-labelledby="notes-h" className="space-y-3">
         <div className="flex items-center gap-3">

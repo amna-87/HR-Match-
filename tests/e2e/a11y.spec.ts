@@ -37,6 +37,11 @@ test("public pages", async ({ page }) => {
     "/takedown",
     "/terms",
     "/privacy",
+    "/about",
+    "/how-matching-works",
+    "/for-recruiters",
+    "/jobs/00000000-0000-4000-8000-00000000f003",
+    "/companies/northwind-traders",
   ]) {
     await audit(page, path);
   }

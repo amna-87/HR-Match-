@@ -12,8 +12,11 @@ const env = appEnv();
 
 export const metadata: Metadata = {
   ...(env !== "production" ? { robots: { index: false, follow: false } } : {}),
-  title: { default: appName, template: `%s · ${appName}` },
-  description: "Your resume gets matched to jobs automatically, and nothing happens without your permission.",
+  metadataBase: new URL((process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "")),
+  title: { default: `${appName}: jobs that fit you, hiring that respects people`, template: `%s · ${appName}` },
+  description:
+    "Browse every open job without an account, get matched to roles that fit your skills, and apply only when you choose. Recruiters: bulk-upload resumes and find the best people for each job.",
+  openGraph: { siteName: appName, type: "website" },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -57,8 +60,18 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                   </Link>
                 </li>
                 <li>
-                  <Link href="/signup?role=recruiter" className="hover:text-foreground">
-                    Hire with {appName}
+                  <Link href="/for-recruiters" className="hover:text-foreground">
+                    For recruiters
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/how-matching-works" className="hover:text-foreground">
+                    How matching works
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/about" className="hover:text-foreground">
+                    About {appName}
                   </Link>
                 </li>
               </ul>

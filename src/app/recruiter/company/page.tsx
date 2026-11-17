@@ -29,7 +29,7 @@ export default async function CompanyPage({ searchParams }: { searchParams: Prom
     source_cap: number;
     share_pool_anonymously: boolean;
   };
-  const [{ data: members }, { data: invites }] = await Promise.all([
+  const [{ data: members }, { data: invites }, { data: usageRows }] = await Promise.all([
     supabase.rpc("company_member_list", { p_company_id: c.id }),
     supabase
       .from("company_invitations")
@@ -37,7 +37,9 @@ export default async function CompanyPage({ searchParams }: { searchParams: Prom
       .eq("company_id", c.id)
       .eq("status", "pending")
       .order("created_at", { ascending: false }),
+    supabase.rpc("workspace_usage", { p_workspace_id: c.id }),
   ]);
+  const usage = (usageRows as Record<string, number>[] | null)?.[0];
   return (
     <div className="space-y-6">
       <Flash searchParams={await searchParams} />
@@ -104,25 +106,37 @@ export default async function CompanyPage({ searchParams }: { searchParams: Prom
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Plan and limits</CardTitle>
+          <CardTitle>Plan and usage</CardTitle>
           <CardDescription>You&apos;re on the {c.plan} plan. Paid plans with higher limits are coming.</CardDescription>
         </CardHeader>
         <CardContent>
-          <dl className="grid gap-4 text-sm sm:grid-cols-4">
+          <dl className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
             {(
               [
-                ["Talent pool size", c.pool_cap],
-                ["Files per upload", c.batch_file_cap],
-                ["Messages per day", c.daily_send_cap],
-                ["Connected job sources", c.source_cap],
+                ["Talent pool", usage?.pool_size ?? 0, c.pool_cap],
+                ["Messages today", usage?.messages_today ?? 0, c.daily_send_cap],
+                ["Connected job sources", usage?.sources ?? 0, c.source_cap],
+                ["Files per upload", null, c.batch_file_cap],
               ] as const
-            ).map(([label, value]) => (
-              <div key={label}>
+            ).map(([label, used, cap]) => (
+              <div key={label} className="space-y-1">
                 <dt className="text-muted-foreground">{label}</dt>
-                <dd className="text-lg font-semibold">{value}</dd>
+                <dd className="text-lg font-semibold">{used == null ? `up to ${cap}` : `${used} / ${cap}`}</dd>
+                {used != null && cap > 0 && (
+                  <div className="bg-muted h-1.5 overflow-hidden rounded-full" aria-hidden>
+                    <div
+                      className={used / cap > 0.9 ? "h-full bg-amber-500" : "bg-primary h-full"}
+                      style={{ width: `${Math.min(100, Math.round((used / cap) * 100))}%` }}
+                    />
+                  </div>
+                )}
               </div>
             ))}
           </dl>
+          <p className="text-muted-foreground mt-4 text-xs">
+            Last 30 days: {usage?.messages_30d ?? 0} messages prepared, {usage?.intros_30d ?? 0} introductions
+            requested, {usage?.open_jobs ?? 0} open jobs.
+          </p>
         </CardContent>
       </Card>
       <Card>

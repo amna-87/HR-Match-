@@ -82,11 +82,12 @@ test("each role lands on its own dashboard and can't open the others", async ({ 
 });
 
 test("sourced jobs are clearly labeled and link to the original listing", async ({ page }) => {
-  await page.goto("/jobs");
-  const seeded = page.locator('a[href="/jobs/00000000-0000-4000-8000-00000000f101"]');
+  await page.goto("/jobs?q=content+writer");
+  const seeded = page.getByRole("link", { name: "Content Writer", exact: true });
   await expect(page.locator("li", { has: seeded }).getByText("Sourced listing")).toBeVisible();
   await seeded.click();
-  await expect(page.getByText("Sourced from Northwind careers page. Apply via the original listing.")).toBeVisible();
+  await expect(page).toHaveURL(/\/jobs\/content-writer-\d+$/);
+  await expect(page.getByText("Sourced from Northwind careers page.")).toBeVisible();
   await expect(page.getByRole("link", { name: "Apply via the original listing" })).toHaveAttribute("href", /northwind/);
   await expect(page.getByRole("link", { name: "Request removal", exact: true })).toBeVisible();
 });

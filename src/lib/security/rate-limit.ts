@@ -20,8 +20,19 @@ export const RATE_LIMITS = {
 
 export type RateLimitName = keyof typeof RATE_LIMITS;
 
+/**
+ * Local/CI end-to-end runs log in many times from one IP. RATE_LIMIT_SCALE multiplies
+ * every limit, but never in production (VERCEL_ENV / APP_ENV = production).
+ */
+function scale(): number {
+  const prod = process.env.VERCEL_ENV === "production" || process.env.APP_ENV === "production";
+  const s = Number(process.env.RATE_LIMIT_SCALE);
+  return !prod && Number.isFinite(s) && s >= 1 ? Math.min(s, 100) : 1;
+}
+
 export async function checkRateLimit(db: Queryable, name: RateLimitName, subject: string): Promise<boolean> {
-  const { limit, windowSeconds } = RATE_LIMITS[name];
+  const { windowSeconds } = RATE_LIMITS[name];
+  const limit = RATE_LIMITS[name].limit * scale();
   try {
     const r = await db.query<{ ok: boolean }>("select public.check_rate_limit($1, $2, $3) as ok", [
       `${name}:${subject}`,
