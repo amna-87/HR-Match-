@@ -33,7 +33,7 @@ test("invite a recruiter, who signs up and accepts", async ({ browser }) => {
   await expect(invitee.getByText("You've been invited")).toBeVisible();
   await invitee.getByRole("button", { name: "Accept" }).click();
   await expect(invitee.getByText("You've joined the company.")).toBeVisible();
-  await expect(invitee.getByRole("heading", { name: /Acme Social · Jobs/ })).toBeVisible();
+  await expect(invitee.getByRole("heading", { level: 1, name: "Acme Social" })).toBeVisible();
 
   await admin.reload();
   await expect(admin.getByText(`${email} · recruiter`)).toBeVisible(); // now a member

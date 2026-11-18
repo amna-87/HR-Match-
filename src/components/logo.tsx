@@ -1,24 +1,24 @@
 import Link from "next/link";
-import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+/** The two-arches ("2 roots") mark. Outer arch uses the ink colour, inner arch the brand violet. */
+export const LOGO_OUTER =
+  "M12.5 57 C11 31 21 8.5 36.5 8.5 C48.5 8.5 56.5 24 58 45 C53.5 29 46 17.5 35.5 17.5 C26 17.5 20.5 32 21.5 57 Z";
+export const LOGO_INNER =
+  "M23.5 57 C23 39 29.5 26.5 38.5 26.5 C47.5 26.5 52 38 51.5 57 L44 57 C44.5 42 42 33.5 37.5 33.5 C32.5 33.5 30 43 30 57 Z";
 
 export function LogoMark({ className }: { className?: string }) {
   return (
-    <span
-      aria-hidden
-      className={cn(
-        "inline-flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-teal-500 text-white shadow-sm shadow-indigo-500/30",
-        className,
-      )}
-    >
-      <Check className="h-4.5 w-4.5" strokeWidth={3} />
-    </span>
+    <svg viewBox="0 0 64 64" aria-hidden className={cn("h-8 w-8 shrink-0", className)}>
+      <path d={LOGO_OUTER} fill="var(--logo-ink)" />
+      <path d={LOGO_INNER} fill="var(--logo-accent)" />
+    </svg>
   );
 }
 
 export function Logo({ name }: { name: string }) {
   return (
-    <Link href="/" className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+    <Link href="/" className="flex items-center gap-1.5 text-lg font-semibold tracking-tight">
       <LogoMark />
       {name}
     </Link>

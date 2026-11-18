@@ -11,7 +11,7 @@ const points = [
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="border-border bg-card grid overflow-hidden rounded-3xl border shadow-(--shadow-card) lg:grid-cols-2">
-      <div className="relative hidden flex-col justify-between gap-10 bg-gradient-to-br from-indigo-700 via-indigo-600 to-teal-600 p-10 text-white lg:flex">
+      <div className="relative hidden flex-col justify-between gap-10 bg-gradient-to-br from-violet-700 via-violet-700 to-fuchsia-700 p-10 text-white lg:flex">
         <div className="flex items-center gap-2 text-lg font-semibold">
           <LogoMark className="bg-white/15 bg-none shadow-none" />
           {process.env.APP_NAME ?? "Vouch"}
@@ -20,7 +20,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <p className="text-3xl leading-tight font-semibold tracking-tight text-balance">
             The job search where you stay in control.
           </p>
-          <ul className="space-y-3 text-indigo-50">
+          <ul className="space-y-3 text-violet-50">
             {points.map((p) => (
               <li key={p} className="flex items-start gap-3">
                 <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-teal-200" aria-hidden />
@@ -29,7 +29,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             ))}
           </ul>
         </div>
-        <p className="text-sm text-indigo-100">Free for job seekers. Always.</p>
+        <p className="text-sm text-violet-100">Free for job seekers. Always.</p>
       </div>
       <div className="flex items-center justify-center px-4 py-10 sm:px-10">
         <div className="w-full max-w-md [&>div]:border-0 [&>div]:shadow-none">{children}</div>

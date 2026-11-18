@@ -1,3 +1,4 @@
+import { LOGO_INNER, LOGO_OUTER } from "@/components/logo";
 import { ImageResponse } from "next/og";
 import { getPool } from "@/lib/db";
 import { parseJobParam } from "@/lib/slug";
@@ -37,26 +38,16 @@ export default async function Image({ params }: { params: Promise<{ id: string }
         flexDirection: "column",
         justifyContent: "space-between",
         padding: 72,
-        background: "linear-gradient(135deg, #312e81 0%, #4338ca 55%, #0d9488 100%)",
+        background: "linear-gradient(135deg, #14111f 0%, #2e1065 55%, #6d28d9 100%)",
         color: "white",
         fontFamily: "sans-serif",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 36, fontWeight: 700 }}>
-        <div
-          style={{
-            width: 56,
-            height: 56,
-            borderRadius: 14,
-            background: "white",
-            color: "#4338ca",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          V
-        </div>
+        <svg width="56" height="56" viewBox="0 0 64 64">
+          <path d={LOGO_OUTER} fill="#f2f1f8" />
+          <path d={LOGO_INNER} fill="#c4b5fd" />
+        </svg>
         Vouch
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>

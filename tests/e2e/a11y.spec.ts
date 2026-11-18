@@ -82,3 +82,13 @@ test("admin pages", async ({ page }) => {
     await audit(page, path);
   }
 });
+
+test("dark theme pages", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("theme", "dark"));
+  for (const path of ["/", "/jobs", "/jobs/00000000-0000-4000-8000-00000000f003", "/for-recruiters", "/login"])
+    await audit(page, path);
+  await login(page, "rita@acme.example.test");
+  for (const path of ["/recruiter", "/recruiter/talent", "/recruiter/jobs/00000000-0000-4000-8000-00000000f001"])
+    await audit(page, path);
+  expect(await page.evaluate(() => document.documentElement.dataset.theme)).toBe("dark");
+});

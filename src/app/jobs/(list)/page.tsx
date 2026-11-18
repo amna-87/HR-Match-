@@ -84,7 +84,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
     return s ? `/jobs?${s}` : "/jobs";
   };
   const selectCls =
-    "border-border bg-background h-11 rounded-xl border px-3 text-sm focus-visible:ring-4 focus-visible:ring-indigo-500/15";
+    "border-border bg-background h-11 rounded-xl border px-3 text-sm focus-visible:ring-4 focus-visible:ring-violet-500/15";
 
   return (
     <div className="space-y-8">
@@ -96,7 +96,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
         <form method="get" role="search" className="space-y-3">
           {mode && <input type="hidden" name="mode" value={mode} />}
           <div className="flex max-w-3xl flex-wrap gap-2">
-            <div className="border-border bg-background flex min-w-0 flex-[2] items-center gap-2 rounded-xl border px-3 shadow-sm focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-500/15">
+            <div className="border-border bg-background flex min-w-0 flex-[2] items-center gap-2 rounded-xl border px-3 shadow-sm focus-within:border-violet-400 focus-within:ring-4 focus-within:ring-violet-500/15">
               <Search className="text-muted-foreground h-5 w-5 shrink-0" aria-hidden />
               <label htmlFor="q" className="sr-only">
                 Search

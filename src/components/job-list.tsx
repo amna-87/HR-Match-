@@ -47,7 +47,7 @@ export function JobList({ jobs, empty = "No open roles yet." }: { jobs: PublicJo
         return (
           <li
             key={j.id}
-            className="group border-border bg-card relative flex flex-col gap-4 rounded-2xl border p-5 shadow-(--shadow-card) transition-all hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-(--shadow-lift) dark:hover:border-indigo-900"
+            className="group border-border bg-card relative flex flex-col gap-4 rounded-2xl border p-5 shadow-(--shadow-card) transition-all hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-(--shadow-lift) dark:hover:border-violet-900"
           >
             <div className="flex items-start gap-4">
               <CompanyAvatar name={company} />

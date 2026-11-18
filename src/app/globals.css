@@ -1,49 +1,84 @@
 @import "tailwindcss";
 
-/* Design tokens. Indigo brand on a soft slate background; every component reads these. */
+/* Design tokens. Violet brand (from the two-arches logo) on a soft lilac-grey background.
+   Light by default; dark via [data-theme="dark"] (set before paint by the theme script in
+   the root layout from the visitor's choice or their system setting). */
 :root {
-  --background: #f7f8fc;
-  --foreground: #0f172a;
+  color-scheme: light;
+  --background: #f7f6fb;
+  --foreground: #16121f;
   --card: #ffffff;
-  --card-foreground: #0f172a;
-  --muted: #eef1f7;
-  --muted-foreground: #556070;
-  --primary: #4338ca;
-  --primary-hover: #3730a3;
+  --card-foreground: #16121f;
+  --muted: #efedf5;
+  --muted-foreground: #5b5668;
+  --primary: #6d28d9;
+  --primary-hover: #5b21b6;
   --primary-foreground: #ffffff;
-  --primary-soft: #eef0ff;
-  --primary-soft-foreground: #3730a3;
-  --secondary: #e9ecf5;
-  --secondary-foreground: #1e293b;
+  --primary-soft: #f1ecfd;
+  --primary-soft-foreground: #5b21b6;
+  --secondary: #ebe8f2;
+  --secondary-foreground: #221d2e;
   --accent: #0d9488;
   --destructive: #c62828;
-  --border: #e3e7ef;
-  --ring: #6366f1;
-  --shadow-color: 222 47% 11%;
+  --border: #e4e1ec;
+  --ring: #8b5cf6;
+  --logo-ink: #1a1426;
+  --logo-accent: #7c4dff;
+  --shadow-color: 262 30% 12%;
 }
 
+/* Dark theme: chosen explicitly, or the system setting before the theme script runs (no JS). */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #0f0d17;
+  --foreground: #ece9f4;
+  --card: #17141f;
+  --card-foreground: #ece9f4;
+  --muted: #211d2b;
+  --muted-foreground: #a7a1b6;
+  --primary: #a78bfa;
+  --primary-hover: #c4b5fd;
+  --primary-foreground: #14111f;
+  --primary-soft: #261f3d;
+  --primary-soft-foreground: #ddd6fe;
+  --secondary: #241f30;
+  --secondary-foreground: #ece9f4;
+  --accent: #2dd4bf;
+  --destructive: #ef5350;
+  --border: #2c2739;
+  --ring: #a78bfa;
+  --logo-ink: #f2f1f8;
+  --logo-accent: #8b5cf6;
+  --shadow-color: 0 0% 0%;
+}
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0b0f1a;
-    --foreground: #e7eaf2;
-    --card: #121828;
-    --card-foreground: #e7eaf2;
-    --muted: #1a2133;
-    --muted-foreground: #9aa4b8;
-    --primary: #8b93ff;
-    --primary-hover: #a5abff;
-    --primary-foreground: #0b0f1a;
-    --primary-soft: #1d2142;
-    --primary-soft-foreground: #c7cbff;
-    --secondary: #1e2638;
-    --secondary-foreground: #e7eaf2;
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --background: #0f0d17;
+    --foreground: #ece9f4;
+    --card: #17141f;
+    --card-foreground: #ece9f4;
+    --muted: #211d2b;
+    --muted-foreground: #a7a1b6;
+    --primary: #a78bfa;
+    --primary-hover: #c4b5fd;
+    --primary-foreground: #14111f;
+    --primary-soft: #261f3d;
+    --primary-soft-foreground: #ddd6fe;
+    --secondary: #241f30;
+    --secondary-foreground: #ece9f4;
     --accent: #2dd4bf;
     --destructive: #ef5350;
-    --border: #252e43;
-    --ring: #8b93ff;
+    --border: #2c2739;
+    --ring: #a78bfa;
+    --logo-ink: #f2f1f8;
+    --logo-accent: #8b5cf6;
     --shadow-color: 0 0% 0%;
   }
 }
+
+/* Tailwind `dark:` utilities follow the chosen theme. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 @theme inline {
   --color-background: var(--background);

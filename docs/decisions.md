@@ -462,3 +462,15 @@ The admin account also gets the recruiter area: its own workspace, bulk resume u
 feeds), matching and outreach. Admin status gives no access to other workspaces' pools (RLS unchanged). On jobs from
 other sources, admins may tick "Put on the public job board" (the database ignores this for non-admins). The admin
 menu lists both admin and recruiting pages.
+
+## D-035 Brand, themes and recruiter home (2026-11-18)
+
+- Logo: the product owner's "two roots" mark (two nested arches): an ink outer arch and a violet inner arch, drawn as
+  SVG (`src/components/logo.tsx`, `src/app/icon.svg`, share images). The brand colour moved from indigo to the logo's
+  violet (`--primary` #6d28d9 light / #a78bfa dark).
+- Light, dark and system themes: a switch in the header (sun / moon / monitor). The choice is stored in this browser
+  (`localStorage`), applied before first paint by an inline script (`data-theme` on `<html>`), and follows the system
+  setting when set to "system". Without JavaScript the system setting applies. Tailwind `dark:` utilities follow
+  `data-theme`. Axe accessibility checks run in both themes.
+- Recruiter home: quick numbers (pool, open jobs, messages today, introduction requests), a getting-started checklist
+  that disappears once done, and shortcuts to upload resumes, import jobs and post a job.

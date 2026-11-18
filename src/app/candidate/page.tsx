@@ -134,7 +134,7 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
       </div>
 
       {introRequests.map((r) => (
-        <Card key={r.id} className="border-indigo-300">
+        <Card key={r.id} className="border-violet-300">
           <CardHeader>
             <CardTitle>{r.company} would like to talk to you</CardTitle>
             <CardDescription>

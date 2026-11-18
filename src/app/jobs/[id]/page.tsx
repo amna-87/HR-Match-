@@ -372,7 +372,7 @@ export default async function JobPage({
             </form>
           </div>
           {!profile && (
-            <div className="space-y-2 rounded-2xl border border-indigo-200 bg-indigo-50/60 p-5 dark:border-indigo-900 dark:bg-indigo-950/40">
+            <div className="space-y-2 rounded-2xl border border-violet-200 bg-violet-50/60 p-5 dark:border-violet-900 dark:bg-violet-950/40">
               <p className="font-semibold">Get matched to jobs like this</p>
               <p className="text-muted-foreground text-sm">
                 Upload your resume once. We&apos;ll tell you when a job fits, with the reason, and nothing is sent

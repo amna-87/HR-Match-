@@ -4,6 +4,7 @@ import "./globals.css";
 import { GeistSans } from "geist/font/sans";
 import { SiteHeader } from "@/components/site-header";
 import { Logo } from "@/components/logo";
+import { THEME_SCRIPT } from "@/lib/theme-script";
 import { appEnv } from "@/lib/app-env";
 
 const appName = process.env.APP_NAME ?? "Vouch";
@@ -21,7 +22,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={GeistSans.variable}>
+    <html lang="en" className={GeistSans.variable} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="flex min-h-screen flex-col antialiased">
         <a
           href="#main"

@@ -250,19 +250,19 @@ export default async function Home() {
         </ul>
       </section>
 
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-700 via-indigo-600 to-teal-600 px-6 py-10 text-white sm:px-12">
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-700 via-violet-700 to-fuchsia-700 px-6 py-10 text-white sm:px-12">
         <div className="flex flex-wrap items-center justify-between gap-6">
           <div className="max-w-xl space-y-2">
             <h2 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
               <Users className="h-6 w-6" aria-hidden /> Hiring? Post your job or upload your resumes.
             </h2>
-            <p className="text-indigo-100">
+            <p className="text-violet-100">
               Post a role in minutes, or add the resumes you already have. We rank the best candidates for you.
             </p>
           </div>
           <Link
             href="/signup?role=recruiter"
-            className={buttonClasses("outline", "lg", "border-white/0 bg-white text-indigo-700 hover:bg-indigo-50")}
+            className={buttonClasses("outline", "lg", "border-white/0 bg-white text-violet-700 hover:bg-violet-50")}
           >
             Post a job <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>

@@ -62,7 +62,7 @@ export function AccountMenu({
       >
         <span
           aria-hidden
-          className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-teal-500 text-sm font-semibold text-white"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-500 text-sm font-semibold text-white"
         >
           {initial}
         </span>
@@ -83,7 +83,7 @@ export function AccountMenu({
           <div className="border-border flex items-center gap-3 border-b p-4">
             <span
               aria-hidden
-              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-teal-500 text-base font-semibold text-white"
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-500 text-base font-semibold text-white"
             >
               {initial}
             </span>

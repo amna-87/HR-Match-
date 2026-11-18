@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
 import { Flash } from "@/components/flash";
 import { formatDate } from "@/lib/utils";
+import { RecruiterOverview } from "./overview";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Jobs" };
@@ -110,22 +111,36 @@ export default async function RecruiterHome({ searchParams }: { searchParams: Pr
     .select("id, title, status, published_at, expires_at, source_type, visibility, applications(count)")
     .eq("owner_workspace_id", company.id)
     .order("created_at", { ascending: false });
+  const [{ data: usageRows }, { data: introRows }, { count: processing }] = await Promise.all([
+    supabase.rpc("workspace_usage", { p_workspace_id: company.id }),
+    supabase.rpc("introductions_for_my_pool", { p_workspace_id: company.id }),
+    supabase
+      .from("pool_import_files")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", company.id)
+      .in("status", ["queued", "parsing"]),
+  ]);
+  const pendingIntros = ((introRows ?? []) as { status: string }[]).filter((i) => i.status === "waiting_owner").length;
   return (
     <div className="space-y-6">
       <Flash searchParams={sp} />
       {invitesCard}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{company.name} · Jobs</h1>
+      <RecruiterOverview
+        name={company.name}
+        usage={(usageRows as never[] | null)?.[0] ?? null}
+        pendingIntros={pendingIntros}
+        sharing={Boolean((company as { share_pool_anonymously?: boolean }).share_pool_anonymously)}
+        processing={processing ?? 0}
+      />
+      <div id="jobs" className="flex flex-wrap items-center justify-between gap-3 pt-2">
+        <h2 className="text-xl font-semibold tracking-tight">Your jobs ({jobs?.length ?? 0})</h2>
         <div className="flex flex-wrap gap-2">
           <Link href="/recruiter/jobs/add" className={buttonClasses("outline")}>
             Add a job from another source
           </Link>
-          <Link href="/recruiter/jobs/new" className={buttonClasses()}>
-            Post a job
-          </Link>
         </div>
       </div>
-      <ul className="divide-border border-border bg-card divide-y rounded-lg border">
+      <ul className="divide-border border-border bg-card divide-y rounded-2xl border">
         {(jobs ?? []).map((j) => (
           <li key={j.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
             <Link href={`/recruiter/jobs/${j.id}`} prefetch={false} className="font-medium hover:underline">
@@ -165,7 +180,11 @@ export default async function RecruiterHome({ searchParams }: { searchParams: Pr
             </span>
           </li>
         ))}
-        {!jobs?.length && <li className="text-muted-foreground px-4 py-6 text-sm">No jobs yet.</li>}
+        {!jobs?.length && (
+          <li className="text-muted-foreground px-4 py-8 text-center text-sm">
+            No jobs yet. Post your own, paste one from WhatsApp or email, or import a spreadsheet.
+          </li>
+        )}
       </ul>
     </div>
   );

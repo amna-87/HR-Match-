@@ -16,6 +16,7 @@ import { getSession } from "@/lib/auth/session";
 import { Logo } from "@/components/logo";
 import { NavLinks, type NavItem } from "@/components/nav-links";
 import { AccountMenu, type AccountLink } from "@/components/account-menu";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { buttonClasses } from "@/components/ui/button";
 
 type Role = "candidate" | "recruiter" | "admin";
@@ -85,14 +86,19 @@ export async function SiteHeader() {
           <NavLinks
             items={items}
             pinned={
-              <AccountMenu
-                name={user?.name ?? null}
-                email={profile.email}
-                roleLabel={role ? roleLabels[role] : "New account"}
-                links={
-                  role ? accountLinks[role] : [{ href: "/onboarding", label: "Finish setting up", icon: <UserRound /> }]
-                }
-              />
+              <div className="flex items-center gap-2">
+                <ThemeToggle />
+                <AccountMenu
+                  name={user?.name ?? null}
+                  email={profile.email}
+                  roleLabel={role ? roleLabels[role] : "New account"}
+                  links={
+                    role
+                      ? accountLinks[role]
+                      : [{ href: "/onboarding", label: "Finish setting up", icon: <UserRound /> }]
+                  }
+                />
+              </div>
             }
           />
         ) : (
@@ -100,6 +106,7 @@ export async function SiteHeader() {
             items={items}
             account={
               <>
+                <ThemeToggle />
                 <Link href="/login" className={buttonClasses("ghost", "sm")}>
                   Log in
                 </Link>
