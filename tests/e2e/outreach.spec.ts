@@ -45,10 +45,26 @@ test("send an opportunity to 5 people; opt-out blocks them afterwards", async ({
 
   await page.goto("/recruiter/jobs/00000000-0000-4000-8000-00000000f001");
   await expect(page.getByRole("heading", { name: "Top matches from your pool" })).toBeVisible();
-  const boxes = page.locator('input[name="pool_ids"]:not([disabled])');
-  expect(await boxes.count()).toBeGreaterThanOrEqual(5);
-  for (let i = 0; i < 5; i++) await boxes.nth(i).check();
-  await page.getByRole("button", { name: "Send this opportunity to selected" }).click();
+  // the job page lists the top matches with checkboxes to select people
+  await expect(page.locator('input[name="pool_ids"]').first()).toBeVisible();
+  // pick the 5 people this run uploaded (earlier runs' people may have opted out)
+  await page.goto(`/recruiter/talent?q=${tag}`);
+  const hrefs = await page
+    .locator('a[href^="/recruiter/talent/"]')
+    .evaluateAll(
+      (as, t) => [
+        ...new Set(
+          as
+            .filter((a) => (a.textContent ?? "").includes(`Marketer${t}`))
+            .map((a) => a.getAttribute("href")!.split("/").pop()!),
+        ),
+      ],
+      tag,
+    );
+  expect(hrefs).toHaveLength(5);
+  await page.goto(
+    `/recruiter/jobs/00000000-0000-4000-8000-00000000f001/outreach?${hrefs.map((h) => `pool_ids=${h}`).join("&")}`,
+  );
   await expect(page.getByRole("heading", { name: "Send this opportunity" })).toBeVisible();
 
   // lawful basis is required

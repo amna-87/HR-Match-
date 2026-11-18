@@ -138,3 +138,23 @@ describe("board names", () => {
     expect(FEED_CONNECTORS.lever.parseBoard("bad name!")).toBeNull();
   });
 });
+
+describe("admin feeds can publish publicly", () => {
+  it("only admins can switch a feed to the public board; admin feeds start public", async () => {
+    const f = (await db.root("select id from job_feeds limit 1")).rows[0].id;
+    await expect(db.as(IDS.rita)("update job_feeds set publish_public = true where id = $1", [f])).rejects.toThrow(
+      /only Vouch admins/,
+    );
+    await db.root("update companies set source_cap = 5 where id = $1", [IDS.acme]);
+    await db.root(
+      "insert into company_members(company_id, user_id, role) values ($1, $2, 'admin') on conflict do nothing",
+      [IDS.acme, IDS.admin],
+    );
+    const id = (
+      await db.as(IDS.admin)<{ id: string }>("select add_job_feed($1, 'lever', 'adminco', 'AdminCo') id", [IDS.acme])
+    ).rows[0].id;
+    expect((await db.root("select publish_public from job_feeds where id = $1", [id])).rows[0].publish_public).toBe(
+      true,
+    );
+  });
+});

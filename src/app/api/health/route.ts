@@ -75,7 +75,9 @@ const SCHEMA_CHECK = `
     ('000018_admin_recruiting', exists (select 1 from pg_proc where proname = 'create_workspace'
        and pg_get_functiondef(oid) like '%''recruiter'', ''admin''%')),
     ('000019_job_images', exists (select 1 from storage.buckets where id = 'job-images')),
-    ('000020_more_feeds_inbox', to_regclass('public.job_inboxes') is not null)
+    ('000020_more_feeds_inbox', to_regclass('public.job_inboxes') is not null),
+    ('000021_feed_public', exists (select 1 from information_schema.columns
+       where table_schema = 'public' and table_name = 'job_feeds' and column_name = 'publish_public'))
   ) as t(name, present)`;
 
 /** A short, non-secret category for setup troubleshooting (never the URL or password). */

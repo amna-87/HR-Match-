@@ -503,3 +503,11 @@ personal phone numbers or email addresses"; otherwise only signed-in users and t
   removing forwarding headers, reading it (AI when configured, else the offline reader), skipping duplicates and emails
   with no way to apply. Limited to 200 emails per workspace per day.
 - Not built: job-board partner APIs (Adzuna, Jooble, Careerjet) need the owner to sign up for keys first.
+
+## D-038 Admin feeds publish publicly; PDF reading on Vercel (2026-11-18)
+
+- Feeds connected by a Vouch admin publish their jobs on the public job board (`job_feeds.publish_public`, on by
+  default for admins, switchable per feed by admins only). Recruiters' feeds stay in their workspace as before.
+- Resume PDFs failed to read on Vercel ("could not read the file") although they worked locally. pdf-parse now loads
+  pdf.js's worker and canvas helpers explicitly (`pdf-parse/worker`), as its docs recommend for serverless, and
+  `@napi-rs/canvas` is kept external. `/api/health?deep=1` reads a sample PDF on the server to check this.

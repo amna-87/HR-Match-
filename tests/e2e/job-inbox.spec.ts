@@ -12,7 +12,9 @@ test("forward-by-email: email in, draft job out", async ({ page, request }) => {
   await page.getByRole("button", { name: /Create my inbox address|Reset address/ }).click();
   await expect(page.getByText("Your job inbox address is ready.")).toBeVisible();
   const url = (await page.locator("code").filter({ hasText: "/api/inbound/jobs/" }).textContent())!.trim();
-  const title = `Night Shift Supervisor ${Date.now()}`;
+  // random words: earlier runs' jobs must not look like duplicates of this one
+  const word = () => Array.from({ length: 9 }, () => String.fromCharCode(97 + Math.floor(Math.random() * 26))).join("");
+  const title = `${word()} ${word()}`;
   const res = await request.post(url.replace(/^https?:\/\/[^/]+/, ""), {
     data: {
       subject: `Fwd: ${title}`,

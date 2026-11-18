@@ -13,6 +13,7 @@ export interface FeedRow {
   provider: FeedConnector["provider"];
   board: string;
   company_name: string;
+  publish_public?: boolean;
 }
 
 export interface Summary {
@@ -102,7 +103,7 @@ export async function syncFeed(deps: SyncDeps, feed: FeedRow): Promise<SyncResul
         `insert into public.jobs(source_type, origin, owner_workspace_id, visibility, feed_id, external_id,
            source_name, source_url, source_company_name, title, description_summary, required_skills, min_exp,
            location, work_mode, employment_type, apply_method, apply_target, status, expires_at, last_confirmed_at)
-         values ('sourced', 'api_feed', $1, 'workspace', $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
+         values ('sourced', 'api_feed', $1, $15, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
            'link', $14, 'published', now() + interval '30 days', now())`,
         [
           feed.workspace_id,
@@ -119,6 +120,7 @@ export async function syncFeed(deps: SyncDeps, feed: FeedRow): Promise<SyncResul
           j.workMode,
           j.employmentType,
           j.applyUrl,
+          feed.publish_public ? "public" : "workspace",
         ],
       );
       res.added++;
@@ -149,7 +151,7 @@ export async function syncFeed(deps: SyncDeps, feed: FeedRow): Promise<SyncResul
 /** Daily run: every active feed not fetched in the last 20 hours (polite: once a day per board). */
 export async function syncDueFeeds(deps: SyncDeps, limit = 50) {
   const feeds = await deps.db.query<FeedRow>(
-    `select id, workspace_id, provider, board, company_name from public.job_feeds
+    `select id, workspace_id, provider, board, company_name, publish_public from public.job_feeds
      where active and (last_run_at is null or last_run_at < now() - interval '20 hours')
      order by last_run_at nulls first limit $1`,
     [limit],

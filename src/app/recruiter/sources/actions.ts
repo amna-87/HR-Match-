@@ -113,7 +113,7 @@ export async function importCsvJobs(
 }
 
 export async function addFeed(formData: FormData) {
-  const { supabase, company, user } = await requireRecruiter();
+  const { supabase, company, user, profile } = await requireRecruiter();
   if (!company) go("error", "Set up your workspace first.");
   const provider = String(formData.get("provider") ?? "") as keyof typeof FEED_CONNECTORS;
   const connector = FEED_CONNECTORS[provider];
@@ -142,6 +142,7 @@ export async function addFeed(formData: FormData) {
     provider,
     board: board!,
     company_name: name,
+    publish_public: profile.role === "admin",
   });
   revalidatePath("/recruiter");
   if (res.error) go("error", `Feed added, but the first fetch failed: ${res.error}`);
@@ -156,7 +157,7 @@ export async function runFeedNow(formData: FormData) {
   if (!(await checkRateLimit(getPool(), "feedRun", user.id))) go("error", "Too many feed fetches. Try again later.");
   const { data: feed } = await supabase
     .from("job_feeds")
-    .select("id, workspace_id, provider, board, company_name")
+    .select("id, workspace_id, provider, board, company_name, publish_public")
     .eq("id", String(formData.get("id") ?? ""))
     .maybeSingle();
   if (!feed) go("error", "Feed not found.");
@@ -202,4 +203,26 @@ export async function resetInbox() {
   const { error } = await supabase.rpc("reset_job_inbox", { p_workspace_id: company!.id });
   if (error) go("error", error.message);
   go("ok", "Your job inbox address is ready. Any old address has stopped working.");
+}
+
+/** Admins: show a feed's jobs on the public job board (or keep them in the workspace). */
+export async function setFeedPublic(formData: FormData) {
+  const { supabase, profile } = await requireRecruiter();
+  if (profile.role !== "admin") go("error", "Only Vouch admins can do this.");
+  const id = String(formData.get("id") ?? "");
+  const on = formData.get("public") === "true";
+  const { error } = await supabase.from("job_feeds").update({ publish_public: on }).eq("id", id);
+  if (error) go("error", error.message);
+  // admins may change job visibility (RLS + guard allow it)
+  const { error: e2 } = await supabase
+    .from("jobs")
+    .update({ visibility: on ? "public" : "workspace", public_requested_at: null })
+    .eq("feed_id", id)
+    .in("status", ["published", "paused", "draft", "closed", "expired"]);
+  if (e2) go("error", e2.message);
+  revalidatePath("/jobs");
+  go(
+    "ok",
+    on ? "This feed's jobs are now on the public job board." : "This feed's jobs are now private to your workspace.",
+  );
 }

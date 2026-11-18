@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ClipboardPaste, FileSpreadsheet, Rss } from "lucide-react";
 import { requireRecruiter } from "@/lib/auth/session";
-import { addFeed, deleteFeed, resetInbox, runFeedNow, toggleFeed } from "./actions";
+import { addFeed, deleteFeed, resetInbox, runFeedNow, setFeedPublic, toggleFeed } from "./actions";
 import { Mail } from "lucide-react";
 import { FEED_CONNECTORS } from "@/lib/connectors";
 import { CsvImport } from "@/components/csv-import";
@@ -24,7 +24,9 @@ export default async function SourcesPage({ searchParams }: { searchParams: Prom
   const ws = company as unknown as { id: string; source_cap: number };
   const { data: feeds } = await supabase
     .from("job_feeds")
-    .select("id, provider, board, company_name, active, last_run_at, last_status, last_error, job_count")
+    .select(
+      "id, provider, board, company_name, active, last_run_at, last_status, last_error, job_count, publish_public",
+    )
     .eq("workspace_id", ws.id)
     .order("created_at");
   const { data: inbox } = await supabase
@@ -98,6 +100,11 @@ export default async function SourcesPage({ searchParams }: { searchParams: Prom
                         {FEED_CONNECTORS[f.provider as keyof typeof FEED_CONNECTORS]?.label}: {f.board}
                       </Badge>{" "}
                       {!f.active && <Badge tone="muted">Paused</Badge>}
+                      {f.publish_public ? (
+                        <Badge tone="success">Public job board</Badge>
+                      ) : (
+                        <Badge>Workspace only</Badge>
+                      )}
                       {f.last_status === "error" && <Badge tone="danger">Last fetch failed</Badge>}
                     </p>
                     <p className="text-muted-foreground text-xs">
@@ -113,6 +120,15 @@ export default async function SourcesPage({ searchParams }: { searchParams: Prom
                         Fetch now
                       </SubmitButton>
                     </form>
+                    {profile.role === "admin" && (
+                      <form action={setFeedPublic}>
+                        <input type="hidden" name="id" value={f.id} />
+                        <input type="hidden" name="public" value={String(!f.publish_public)} />
+                        <Button size="sm" variant="ghost">
+                          {f.publish_public ? "Make private" : "Show on public board"}
+                        </Button>
+                      </form>
+                    )}
                     <form action={toggleFeed}>
                       <input type="hidden" name="id" value={f.id} />
                       <input type="hidden" name="active" value={String(!f.active)} />
