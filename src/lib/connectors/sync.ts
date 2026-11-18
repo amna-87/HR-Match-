@@ -65,6 +65,7 @@ export async function syncFeed(deps: SyncDeps, feed: FeedRow): Promise<SyncResul
   const res: SyncResult = { fetched: 0, added: 0, updated: 0, closed: 0, duplicates: 0 };
   const connector = FEED_CONNECTORS[feed.provider];
   const summarize = deps.summarize ?? templateSummary;
+  const isSearch = connector.kind === "search";
   try {
     const jobs = await connector.fetchJobs(feed.board, deps.fetch);
     res.fetched = jobs.length;
@@ -88,17 +89,18 @@ export async function syncFeed(deps: SyncDeps, feed: FeedRow): Promise<SyncResul
         res.updated++;
         continue;
       }
+      const company = (isSearch ? j.company : feed.company_name) ?? null;
       // Skip jobs already listed (public board or this workspace), unless they came from this feed.
       const dup = await deps.db.query<{ job_id: string }>(
         `select s.job_id from public.find_similar_jobs($1, $2, $3, '', $4) s
          join public.jobs x on x.id = s.job_id where x.feed_id is distinct from $5 limit 1`,
-        [j.title, feed.company_name, j.location, feed.workspace_id, feed.id],
+        [j.title, company, j.location, feed.workspace_id, feed.id],
       );
       if (dup.rows.length) {
         res.duplicates++;
         continue;
       }
-      const s = await summarize(j, feed.company_name);
+      const s = await summarize(j, company ?? "the employer");
       await deps.db.query(
         `insert into public.jobs(source_type, origin, owner_workspace_id, visibility, feed_id, external_id,
            source_name, source_url, source_company_name, title, description_summary, required_skills, min_exp,
@@ -109,9 +111,9 @@ export async function syncFeed(deps: SyncDeps, feed: FeedRow): Promise<SyncResul
           feed.workspace_id,
           feed.id,
           j.externalId,
-          `${feed.company_name} careers page`,
+          isSearch ? (connector.sourceName ?? connector.label) : `${feed.company_name} careers page`,
           j.postingUrl,
-          feed.company_name,
+          company,
           j.title.slice(0, 200),
           s.summary.slice(0, 1500),
           s.skills,
@@ -126,11 +128,14 @@ export async function syncFeed(deps: SyncDeps, feed: FeedRow): Promise<SyncResul
       res.added++;
     }
     // Jobs no longer on the company's board are closed (takedown removals stay removed).
-    const closed = await deps.db.query(
-      `update public.jobs set status = 'closed'
-       where feed_id = $1 and status in ('published', 'paused', 'draft') and not (external_id = any($2::text[]))`,
-      [feed.id, seen],
-    );
+    // Search feeds only return the latest matches, so their jobs expire after 30 days instead.
+    const closed = isSearch
+      ? { rowCount: 0 }
+      : await deps.db.query(
+          `update public.jobs set status = 'closed'
+           where feed_id = $1 and status in ('published', 'paused', 'draft') and not (external_id = any($2::text[]))`,
+          [feed.id, seen],
+        );
     res.closed = closed.rowCount ?? 0;
     await deps.db.query(
       `update public.job_feeds set last_run_at = now(), last_status = 'ok', last_error = null,

@@ -1,0 +1,80 @@
+{
+  "data": [
+    {
+      "slug": "arbeitgeberkoordinatorin-arbeitsvermittlerin-cologne-19931",
+      "company_name": "OHAWO GmbH",
+      "title": "Arbeitgeberkoordinator*in / Arbeitsvermittler*in (m/w/d)",
+      "description": "<h2>F\u00fcr ein Projekt eines Bildungstr\u00e4gers in K\u00f6ln suchen wir zwei Arbeitsvermittlerinnen oder Arbeitsvermittler (m/w/d) auf Honorarbasis, 35 Stunden pro Woche, Montag bis Freitag.</h2><h3>Ihre Aufgaben</h3><ul><li>Vermittlung von Teilnehmenden in Arbeit: passende Stellen finden, Arbeitgeber ansprech",
+      "remote": false,
+      "url": "https://www.arbeitnow.com/jobs/companies/ohawo-gmbh/arbeitgeberkoordinatorin-arbeitsvermittlerin-cologne-19931",
+      "tags": ["Recruitment and Selection"],
+      "job_types": ["Freiberufler / selbstst\u00e4ndiger", "freelance", "berufserfahren"],
+      "location": "Cologne",
+      "created_at": 1795039233
+    },
+    {
+      "slug": "senior-amazon-account-manager-broker-distribution-cologne-103268",
+      "company_name": "REVOIC GmbH",
+      "title": "Senior Amazon Account Manager, Broker & Distribution (m/w/d)",
+      "description": "<p>Wir suchen jemanden, der unser Broker- und Distributionsgesch\u00e4ft auf Amazon verantwortet. Wir verkaufen Marken wie SEVERIN, Ritter Sport und Crane Baby sowie eigene Produkte selbst auf Amazon. Du k\u00fcmmerst dich um Preise, Best\u00e4nde, Werbung und die Zusammenarbeit mit den Herstellern. Gearbeitet wir",
+      "remote": false,
+      "url": "https://www.arbeitnow.com/jobs/companies/revoic-gmbh/senior-amazon-account-manager-broker-distribution-cologne-103268",
+      "tags": ["Online Marketing"],
+      "job_types": ["Unbefristeter arbeitsvertrag", "teamleitung"],
+      "location": "Cologne",
+      "created_at": 1795039233
+    },
+    {
+      "slug": "partner-solutions-architect-msp-201928",
+      "company_name": "wizinc",
+      "title": "Partner Solutions Architect - MSP",
+      "description": "&lt;div class=&quot;content-intro&quot;&gt;&lt;p&gt;Come join the organization that is redefining security for the AI era. As one of the&lt;a href=&quot;https://www.wiz.io/blog/100m-arr-in-18-months-wiz-becomes-the-fastest-growing-software-company-ever&quot;&gt; fastest-growing startups ever,&lt;/a&",
+      "remote": false,
+      "url": "https://www.arbeitnow.com/jobs/companies/wizinc/partner-solutions-architect-msp-201928",
+      "tags": ["Channels"],
+      "job_types": [],
+      "location": "",
+      "created_at": 1795038916
+    },
+    {
+      "slug": "senior-accountant-reporting-consolidation-428460",
+      "company_name": "Shopfully",
+      "title": "Senior Accountant, Reporting & Consolidation",
+      "description": "&lt;div class=&quot;content-intro&quot;&gt;&lt;p&gt;&lt;strong&gt;We are the platform turning browsing into shopping&lt;/strong&gt;. We connect 200 million shoppers with deals they love while boosting local sales for hundreds of top retailers and brands.&lt;/p&gt;\n&lt;p&gt;We help consumers save tim",
+      "remote": false,
+      "url": "https://www.arbeitnow.com/jobs/companies/shopfully/senior-accountant-reporting-consolidation-428460",
+      "tags": ["Strategic Support"],
+      "job_types": [],
+      "location": "",
+      "created_at": 1795038915
+    },
+    {
+      "slug": "senior-accountant-all-genders-alzenau-bavaria-360656",
+      "company_name": "Cmbluenergyag",
+      "title": "Senior Accountant (all genders)",
+      "description": "&lt;div class=&quot;content-intro&quot;&gt;&lt;p&gt;&lt;span data-contrast=&quot;auto&quot;&gt;CMBlu Energy befindet sich auf der spannenden Reise hin zu einem globalen Cleantech-Unternehmen. Unsere Mission: Unbegrenzte Energiespeicherung nach dem Vorbild der Natur erm\u00f6glichen \u2013 und das f\u00fcr alle, we",
+      "remote": false,
+      "url": "https://www.arbeitnow.com/jobs/companies/cmbluenergyag/senior-accountant-all-genders-alzenau-bavaria-360656",
+      "tags": ["CFO-Office"],
+      "job_types": [],
+      "location": "Alzenau, Bavaria",
+      "created_at": 1795038914
+    }
+  ],
+  "links": {
+    "first": "https://www.arbeitnow.com/api/job-board-api?page=1",
+    "last": null,
+    "prev": null,
+    "next": null
+  },
+  "meta": {
+    "current_page": 1,
+    "current_page_url": "https://www.arbeitnow.com/api/job-board-api?page=1",
+    "from": 1,
+    "path": "https://www.arbeitnow.com/api/job-board-api",
+    "per_page": 300,
+    "to": 300,
+    "terms": "This is a free public API for jobs, please do not abuse. I would appreciate linking back to the site. By using the API, you agree to the terms of service present on Arbeitnow.com",
+    "info": "Jobs are updated every hour and order by the `created_at` timestamp. Use `?page=` to paginate. Read more information here: https://www.arbeitnow.com/blog/job-board-api"
+  }
+}

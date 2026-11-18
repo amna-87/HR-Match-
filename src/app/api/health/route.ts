@@ -77,7 +77,9 @@ const SCHEMA_CHECK = `
     ('000019_job_images', exists (select 1 from storage.buckets where id = 'job-images')),
     ('000020_more_feeds_inbox', to_regclass('public.job_inboxes') is not null),
     ('000021_feed_public', exists (select 1 from information_schema.columns
-       where table_schema = 'public' and table_name = 'job_feeds' and column_name = 'publish_public'))
+       where table_schema = 'public' and table_name = 'job_feeds' and column_name = 'publish_public')),
+    ('000022_search_feeds', exists (select 1 from pg_constraint
+       where conname = 'job_feeds_provider_check' and pg_get_constraintdef(oid) like '%remotive%'))
   ) as t(name, present)`;
 
 /** A short, non-secret category for setup troubleshooting (never the URL or password). */

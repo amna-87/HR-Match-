@@ -14,11 +14,13 @@ export interface NormalizedJob {
   postingUrl: string;
   /** Plain-text description: used only to build our own summary and skills, never stored verbatim. */
   text: string;
+  /** Search feeds: the hiring company (board feeds use the feed's company name). */
+  company?: string | null;
 }
 
 export type FetchLike = (
   url: string,
-  init?: { headers?: Record<string, string> },
+  init?: { headers?: Record<string, string>; method?: string; body?: string },
 ) => Promise<{
   ok: boolean;
   status: number;
@@ -26,7 +28,24 @@ export type FetchLike = (
 }>;
 
 export interface FeedConnector {
-  provider: "greenhouse" | "lever" | "ashby" | "workable" | "smartrecruiters" | "recruitee";
+  provider:
+    | "greenhouse"
+    | "lever"
+    | "ashby"
+    | "workable"
+    | "smartrecruiters"
+    | "recruitee"
+    | "remotive"
+    | "arbeitnow"
+    | "remoteok"
+    | "jooble"
+    | "careerjet";
+  /** board: one company's job board; search: an aggregator searched by keywords + location. */
+  kind?: "board" | "search";
+  /** Search feeds: the source name shown on jobs ("Sourced from Remotive"). */
+  sourceName?: string;
+  /** Server env var the connector needs (search feeds that require a partner key). */
+  requiresEnv?: string;
   label: string;
   /** How a recruiter finds the board name, shown in the UI. */
   boardHint: string;
@@ -68,4 +87,34 @@ export function guessWorkMode(s: string): NormalizedJob["workMode"] {
   if (/remote/.test(t)) return "remote";
   if (/hybrid/.test(t)) return "hybrid";
   return "onsite";
+}
+
+/** Search feeds store "keywords|location" in job_feeds.board. */
+export function parseSearch(board: string): { keywords: string; location: string } {
+  const [keywords = "", location = ""] = board.split("|");
+  return { keywords: keywords.trim(), location: location.trim() };
+}
+
+export function searchBoard(keywords: string, location: string): string | null {
+  const clean = (s: string) =>
+    s
+      .replace(/[|\n\r]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 80);
+  const k = clean(keywords);
+  const l = clean(location);
+  return k || l ? `${k}|${l}` : null;
+}
+
+/** Simple relevance filter for feeds without server-side search. */
+export function matchesSearch(text: string, location: string | null, q: { keywords: string; location: string }) {
+  const t = text.toLowerCase();
+  const words = q.keywords
+    .toLowerCase()
+    .split(/[\s,]+/)
+    .filter((w) => w.length > 1);
+  const kwOk = !words.length || words.some((w) => t.includes(w));
+  const locOk = !q.location || (location ?? "").toLowerCase().includes(q.location.toLowerCase());
+  return kwOk && locOk;
 }

@@ -511,3 +511,22 @@ personal phone numbers or email addresses"; otherwise only signed-in users and t
 - Resume PDFs failed to read on Vercel ("could not read the file") although they worked locally. pdf-parse now loads
   pdf.js's worker and canvas helpers explicitly (`pdf-parse/worker`), as its docs recommend for serverless, and
   `@napi-rs/canvas` is kept external. `/api/health?deep=1` reads a sample PDF on the server to check this.
+
+## D-039 Search feeds from free job APIs (2026-11-19)
+
+- A search feed fetches jobs daily by keywords and an optional place (`job_feeds.board` = `keywords|location`).
+  Jobs keep their real hiring company and are labeled "Sourced from <site>" with a link to the original listing.
+  Search feeds don't close jobs that drop out of a day's results (they only return the latest matches); those jobs
+  expire after 30 days.
+- No-key sources, with the terms from their API responses:
+  - Remotive (remote jobs): link back and name Remotive; fetch at most a few times a day; do NOT pass its jobs on to
+    Google Jobs; don't gate listings behind sign-up.
+  - Remote OK (remote jobs): link back with a followed link (no `nofollow`) and name Remote OK; don't use its logo.
+  - Arbeitnow (mostly Germany/Europe): free public API, don't abuse, linking back appreciated.
+  To respect these, jobs from aggregator search feeds carry no schema.org JobPosting data (not submitted to Google
+  Jobs), and Remote OK links are followed.
+- Partner-key sources (shown as "needs key" until set): Jooble (`JOOBLE_API_KEY`) and Careerjet (`CAREERJET_AFFID`),
+  both covering Pakistan. Their partner terms must be checked when the keys are issued; the Careerjet endpoint should
+  be confirmed against the docs that come with the affiliate account.
+- Not possible: LinkedIn, Indeed, Rozee, Glassdoor and JobLeads offer no public feed and forbid scraping. Their job
+  alert emails can be forwarded to the workspace inbox (D-037) for private matching.

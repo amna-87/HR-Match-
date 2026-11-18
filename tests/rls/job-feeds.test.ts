@@ -158,3 +158,50 @@ describe("admin feeds can publish publicly", () => {
     );
   });
 });
+
+describe("search feeds (D-039)", () => {
+  it("store a keyword search, label jobs with the source and never close jobs missing from a day's results", async () => {
+    await db.root("update companies set source_cap = 10 where id = $1", [IDS.acme]);
+    const id = (
+      await db.as(IDS.rita)<{ id: string }>("select add_job_feed($1, 'remotive', 'marketing|', 'Remotive') id", [
+        IDS.acme,
+      ])
+    ).rows[0].id;
+    await expect(
+      db.as(IDS.rita)("select add_job_feed($1, 'greenhouse', 'bad board|x', 'X')", [IDS.acme]),
+    ).rejects.toThrow(/job_feeds_board_check/);
+    const job = (n: number) => ({
+      id: n,
+      url: `https://remotive.com/remote-jobs/marketing/job-${n}`,
+      title: `Zyxw Marketing Role ${n}`,
+      company_name: `Company ${n}`,
+      job_type: "full_time",
+      candidate_required_location: "Worldwide",
+      description: "<p>SEO and Meta Ads.</p>",
+    });
+    let served = { jobs: [job(1), job(2)] };
+    const fetch: FetchLike = async () => ({ ok: true, status: 200, json: async () => served });
+    const feedRow = {
+      id,
+      workspace_id: IDS.acme,
+      provider: "remotive" as const,
+      board: "marketing|",
+      company_name: "Remotive",
+    };
+    expect(await syncFeed({ ...deps(), fetch }, feedRow)).toMatchObject({ added: 2 });
+    const rows = await db.root(
+      "select source_name, source_company_name, status from jobs where feed_id = $1 order by external_id",
+      [id],
+    );
+    expect(rows.rows[0]).toMatchObject({
+      source_name: "Remotive",
+      source_company_name: "Company 1",
+      status: "published",
+    });
+    served = { jobs: [job(2)] };
+    expect(await syncFeed({ ...deps(), fetch }, feedRow)).toMatchObject({ closed: 0 });
+    expect(
+      (await db.root("select count(*)::int n from jobs where feed_id = $1 and status = 'published'", [id])).rows[0].n,
+    ).toBe(2);
+  });
+});

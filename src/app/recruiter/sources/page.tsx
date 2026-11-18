@@ -2,7 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ClipboardPaste, FileSpreadsheet, Rss } from "lucide-react";
 import { requireRecruiter } from "@/lib/auth/session";
-import { addFeed, deleteFeed, resetInbox, runFeedNow, setFeedPublic, toggleFeed } from "./actions";
+import { addFeed, addSearchFeed, deleteFeed, resetInbox, runFeedNow, setFeedPublic, toggleFeed } from "./actions";
+import { Search } from "lucide-react";
+import { parseSearch } from "@/lib/connectors/types";
 import { Mail } from "lucide-react";
 import { FEED_CONNECTORS } from "@/lib/connectors";
 import { CsvImport } from "@/components/csv-import";
@@ -79,7 +81,49 @@ export default async function SourcesPage({ searchParams }: { searchParams: Prom
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Rss className="h-5 w-5" aria-hidden /> Company career feeds
+            <Search className="h-5 w-5" aria-hidden /> Job search feeds
+          </CardTitle>
+          <CardDescription>
+            Fetch new jobs every day from free job sites by keywords and place. Each job is labeled with where it came
+            from and links back to the original listing, as these sites ask. Your searches appear in the list below.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <form action={addSearchFeed} className="grid gap-3 sm:grid-cols-[220px_1fr_1fr_auto] sm:items-end">
+            <Field label="Job site" htmlFor="search_provider">
+              <Select id="search_provider" name="provider" defaultValue="remotive">
+                {Object.values(FEED_CONNECTORS)
+                  .filter((c) => c.kind === "search")
+                  .map((c) => {
+                    const off = !!c.requiresEnv && !process.env[c.requiresEnv];
+                    return (
+                      <option key={c.provider} value={c.provider} disabled={off}>
+                        {c.label}
+                        {off ? " (needs key)" : ""}
+                      </option>
+                    );
+                  })}
+              </Select>
+            </Field>
+            <Field label="Keywords" htmlFor="keywords" hint="e.g. marketing, accountant, react">
+              <Input id="keywords" name="keywords" maxLength={80} />
+            </Field>
+            <Field label="City or country (optional)" htmlFor="search_location" hint="e.g. Lahore, Pakistan, Germany">
+              <Input id="search_location" name="location" maxLength={80} />
+            </Field>
+            <SubmitButton>Add search</SubmitButton>
+          </form>
+          <p className="text-muted-foreground text-xs">
+            Remotive and Remote OK list remote jobs worldwide; Arbeitnow lists jobs mostly in Germany and Europe. Jooble
+            and Careerjet (including Pakistan) switch on once their free partner keys are added.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Rss className="h-5 w-5" aria-hidden /> Company career feeds and your searches
           </CardTitle>
           <CardDescription>
             Connect a company&apos;s official job board (Greenhouse, Lever, Ashby, Workable, SmartRecruiters or
@@ -97,7 +141,12 @@ export default async function SourcesPage({ searchParams }: { searchParams: Prom
                     <p className="font-medium">
                       {f.company_name}{" "}
                       <Badge>
-                        {FEED_CONNECTORS[f.provider as keyof typeof FEED_CONNECTORS]?.label}: {f.board}
+                        {(() => {
+                          const c = FEED_CONNECTORS[f.provider as keyof typeof FEED_CONNECTORS];
+                          if (c?.kind !== "search") return `${c?.label}: ${f.board}`;
+                          const q = parseSearch(f.board);
+                          return `${c.sourceName}: “${q.keywords || "any job"}”${q.location ? ` in ${q.location}` : ""}`;
+                        })()}
                       </Badge>{" "}
                       {!f.active && <Badge tone="muted">Paused</Badge>}
                       {f.publish_public ? (
@@ -151,11 +200,13 @@ export default async function SourcesPage({ searchParams }: { searchParams: Prom
             <form action={addFeed} className="grid gap-3 sm:grid-cols-[160px_1fr_1fr_auto] sm:items-end">
               <Field label="Job board" htmlFor="provider">
                 <Select id="provider" name="provider" defaultValue="greenhouse">
-                  {Object.values(FEED_CONNECTORS).map((c) => (
-                    <option key={c.provider} value={c.provider}>
-                      {c.label}
-                    </option>
-                  ))}
+                  {Object.values(FEED_CONNECTORS)
+                    .filter((c) => c.kind !== "search")
+                    .map((c) => (
+                      <option key={c.provider} value={c.provider}>
+                        {c.label}
+                      </option>
+                    ))}
                 </Select>
               </Field>
               <Field label="Board name or careers URL" htmlFor="board" hint="e.g. jobs.lever.co/acme or acme">

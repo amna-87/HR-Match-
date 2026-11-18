@@ -23,7 +23,15 @@ import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
 import { CompanyAvatar } from "@/components/company-avatar";
 import { JobDescription } from "@/components/job-description";
-import { JobSourceBadge, SourcedNotice, applyHref, employmentLabel, workModeLabel } from "@/components/job-source";
+import {
+  JobSourceBadge,
+  SourcedNotice,
+  allowsJobStructuredData,
+  applyHref,
+  employmentLabel,
+  outboundRel,
+  workModeLabel,
+} from "@/components/job-source";
 
 const JOB_PAGE_COLUMNS =
   "id, company_id, source_type, origin, visibility, source_name, source_url, source_company_name, title, description_summary, required_skills, nice_skills, required_certifications, domains, min_exp, max_exp, location, work_mode, employment_type, salary_min, salary_max, salary_currency, apply_method, status, expires_at, published_at, public_number, company:companies!jobs_company_id_fkey(name, website)";
@@ -179,18 +187,20 @@ export default async function JobPage({
 
   return (
     <article className="space-y-6">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: jsonLdString(
-            jobPostingJsonLd({
-              ...(job as unknown as Parameters<typeof jobPostingJsonLd>[0]),
-              company: companyName,
-              companyUrl: (job.company as { website?: string | null } | null)?.website ?? null,
-            }),
-          ),
-        }}
-      />
+      {allowsJobStructuredData(job as { origin?: string; source_name?: string }) && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: jsonLdString(
+              jobPostingJsonLd({
+                ...(job as unknown as Parameters<typeof jobPostingJsonLd>[0]),
+                company: companyName,
+                companyUrl: (job.company as { website?: string | null } | null)?.website ?? null,
+              }),
+            ),
+          }}
+        />
+      )}
       <Flash searchParams={sp} />
       <Link
         href="/jobs"
@@ -286,7 +296,7 @@ export default async function JobPage({
                   {href && (
                     <a
                       href={href}
-                      rel="noopener noreferrer nofollow"
+                      rel={outboundRel(job.source_name as string | null)}
                       target={job.apply_method === "link" || job.apply_method === "whatsapp" ? "_blank" : undefined}
                       className={buttonClasses("default", "lg", "w-full text-center whitespace-normal")}
                     >

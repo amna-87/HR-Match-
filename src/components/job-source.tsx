@@ -1,19 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 
-type JobLike = {
-  source_type: "verified" | "sourced";
-  source_name?: string | null;
-  source_url?: string | null;
-  source_company_name?: string | null;
-  origin?: string | null;
-};
-
-/** The on-screen source label (addendum 4): "From X careers page", "Sourced from X" or "Source: not specified". */
-export function sourceLabel(job: JobLike): string {
-  if (job.source_type !== "sourced") return "Posted by employer";
-  if (job.origin === "api_feed" && job.source_company_name) return `From ${job.source_company_name} careers page`;
-  return job.source_name ? `Sourced from ${job.source_name}` : "Source: not specified";
-}
+import { outboundRel, sourceLabel, type JobLike } from "@/lib/jobs/source-rules";
+export { allowsJobStructuredData, outboundRel, sourceLabel } from "@/lib/jobs/source-rules";
 
 /** Sourced jobs are ALWAYS labeled. We never present ourselves as the employer. */
 export function JobSourceBadge({ job }: { job: JobLike }) {
@@ -31,7 +19,7 @@ export function SourcedNotice({ job }: { job: JobLike }) {
       <strong>{sourceLabel(job)}.</strong>{" "}
       {job.source_url ? "Apply via the original listing." : "Apply directly to the employer using the details shown."}{" "}
       {job.source_url && (
-        <a href={job.source_url} rel="noopener noreferrer nofollow" target="_blank" className="underline">
+        <a href={job.source_url} rel={outboundRel(job.source_name)} target="_blank" className="underline">
           View original
         </a>
       )}

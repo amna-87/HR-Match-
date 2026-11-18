@@ -10,6 +10,7 @@ import { sanitizeLine } from "@/lib/security/sanitize";
 import { findSimilarJobs, insertSourcedJob, parseSourcedForm } from "@/lib/jobs/sourced";
 import { CSV_MAX_ROWS, type CsvField } from "@/lib/csv";
 import { FEED_CONNECTORS } from "@/lib/connectors";
+import { searchBoard } from "@/lib/connectors/types";
 import { syncFeed, type FeedRow } from "@/lib/connectors/sync";
 import { feedDeps } from "@/lib/connectors/server";
 import { audit } from "@/lib/server/context";
@@ -224,5 +225,44 @@ export async function setFeedPublic(formData: FormData) {
   go(
     "ok",
     on ? "This feed's jobs are now on the public job board." : "This feed's jobs are now private to your workspace.",
+  );
+}
+
+/** Add a search feed from a free job API (D-039): keywords + location, checked daily. */
+export async function addSearchFeed(formData: FormData) {
+  const { supabase, company, user, profile } = await requireRecruiter();
+  if (!company) go("error", "Set up your workspace first.");
+  const provider = String(formData.get("provider") ?? "") as keyof typeof FEED_CONNECTORS;
+  const connector = FEED_CONNECTORS[provider];
+  if (!connector || connector.kind !== "search") go("error", "Choose a job source.");
+  if (connector.requiresEnv && !process.env[connector.requiresEnv])
+    go("error", `${connector.label} isn't connected yet: it needs a partner key.`);
+  const board = searchBoard(String(formData.get("keywords") ?? ""), String(formData.get("location") ?? ""));
+  if (!board) go("error", "Enter keywords (and optionally a city or country).");
+  if (!(await checkRateLimit(getPool(), "feedRun", user.id))) go("error", "Too many feed fetches. Try again later.");
+  const { data: id, error } = await supabase.rpc("add_job_feed", {
+    p_workspace_id: company!.id,
+    p_provider: provider,
+    p_board: board,
+    p_company_name: connector.sourceName ?? connector.label,
+  });
+  if (error || !id)
+    go(
+      "error",
+      error?.message.includes("duplicate") ? "You already have this search." : (error?.message ?? "Could not add it."),
+    );
+  const res = await syncFeed(feedDeps(), {
+    id: id as string,
+    workspace_id: company!.id,
+    provider,
+    board: board!,
+    company_name: connector.sourceName ?? connector.label,
+    publish_public: profile.role === "admin",
+  });
+  revalidatePath("/recruiter");
+  if (res.error) go("error", `Search added, but the first fetch failed: ${res.error}`);
+  go(
+    "ok",
+    `Added. ${res.added} job${res.added === 1 ? "" : "s"} found${res.duplicates ? `, ${res.duplicates} already listed` : ""}. Vouch checks again every day.`,
   );
 }
