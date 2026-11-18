@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { requireRecruiter } from "@/lib/auth/session";
 import { extractJob, saveWorkspaceJob } from "../../actions";
 import { JobEditor } from "@/components/job-editor";
+import { uploadJobImage } from "../image-actions";
 import { emptyJob } from "@/lib/job-values";
 import { Flash } from "@/components/flash";
 
@@ -26,6 +27,7 @@ export default async function AddSourcedJobPage({ searchParams }: { searchParams
         extractAction={extractJob}
         saveAction={saveWorkspaceJob}
         allowPublicBoard={profile.role === "admin"}
+        imageAction={uploadJobImage}
       />
     </div>
   );

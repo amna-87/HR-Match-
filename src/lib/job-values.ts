@@ -22,6 +22,8 @@ export interface JobValues {
   apply_method?: string;
   apply_target?: string | null;
   apply_instructions?: string | null;
+  image_path?: string | null;
+  image_public?: boolean;
 }
 
 export const emptyJob: JobValues = {

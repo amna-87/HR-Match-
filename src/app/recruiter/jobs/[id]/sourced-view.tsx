@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CalendarClock, Globe, Lock } from "lucide-react";
 import { confirmJobOpen, extractJob, requestPublicBoard, saveWorkspaceJob, setJobStatus } from "../../actions";
 import { JobEditor } from "@/components/job-editor";
+import { uploadJobImage } from "../image-actions";
 import type { JobValues } from "@/lib/job-values";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -137,6 +138,8 @@ export function SourcedJobView({
           extractAction={extractJob}
           saveAction={saveWorkspaceJob}
           allowPublicBoard={isAdmin && job.visibility !== "public"}
+          imageAction={uploadJobImage}
+          imageUrl={job.image_path ? `/api/job-image/${job.id}` : null}
         />
       </section>
     </div>

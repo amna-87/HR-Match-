@@ -12,7 +12,7 @@ import { basicParseJob } from "@/lib/parsing/basic-job";
 import { AiUnavailableError } from "@/lib/parsing/claude";
 import type { ParsedJob } from "@/lib/parsing/schemas";
 import { JobFormSchema } from "@/lib/job-schema";
-import { findSimilarJobs, insertSourcedJob, parseSourcedForm, sourcedRow } from "@/lib/jobs/sourced";
+import { findSimilarJobs, imageFields, insertSourcedJob, parseSourcedForm, sourcedRow } from "@/lib/jobs/sourced";
 import { audit } from "@/lib/server/context";
 import type { SaveState } from "@/lib/job-values";
 import { safeHttpUrl, sanitizeLine, sanitizeList, sanitizeText } from "@/lib/security/sanitize";
@@ -194,6 +194,7 @@ export async function saveJob(_prev: SaveState, formData: FormData): Promise<Sav
     expires_at: j.expires_at,
     apply_method: "platform" as const,
     apply_instructions: j.apply_instructions,
+    ...imageFields(formData, company!.id),
     ...(publish ? { status: "published" as const } : {}),
   };
   const res = id
@@ -285,6 +286,7 @@ export async function saveWorkspaceJob(_prev: SaveState, formData: FormData): Pr
       .from("jobs")
       .update({
         ...sourcedRow(j),
+        ...imageFields(formData, company.id),
         ...(publish ? { status: "published" as const } : {}),
         ...(publicBoard ? { visibility: "public" as const, public_requested_at: null } : {}),
       })
@@ -296,6 +298,7 @@ export async function saveWorkspaceJob(_prev: SaveState, formData: FormData): Pr
       origin: "pasted",
       publish,
       publicBoard,
+      image: imageFields(formData, company.id),
     });
     if (r.error || !r.id) return { error: r.error ?? "Could not save." };
     jobId = r.id;

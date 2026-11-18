@@ -8,6 +8,7 @@ import { Alert } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 type ExtractState = { parsed?: ParsedJob; error?: string };
+import type { ImageState } from "@/app/recruiter/jobs/image-actions";
 
 const list = (fd: FormData, k: string) =>
   String(fd.get(k) ?? "")
@@ -77,11 +78,17 @@ export function JobEditor({
   extractAction,
   saveAction,
   allowPublicBoard = false,
+  imageAction,
+  imageUrl,
 }: {
   initial: JobValues;
   mode: "verified" | "sourced";
   /** Admins can put a job from another source straight on the public board (D-034). */
   allowPublicBoard?: boolean;
+  /** Upload a flyer / screenshot of the job (D-036). */
+  imageAction?: (s: ImageState, fd: FormData) => Promise<ImageState>;
+  /** Existing picture of this job (served through a signed URL). */
+  imageUrl?: string | null;
   extractAction: (s: ExtractState, fd: FormData) => Promise<ExtractState>;
   saveAction: (s: SaveState, fd: FormData) => Promise<SaveState>;
 }) {
@@ -95,6 +102,19 @@ export function JobEditor({
     if (saveState.error) setFormKey((k) => k + 1);
   }, [saveState]);
   const sourced = mode === "sourced";
+  const noImage = async (): Promise<ImageState> => ({});
+  const [imgState, uploadImage, uploadingImage] = useActionState(imageAction ?? noImage, {});
+  const [preview, setPreview] = useState<string | null>(imageUrl ?? null);
+
+  useEffect(() => {
+    if (imgState.imagePath) {
+      setValues((v) => {
+        const next = { ...v, image_path: imgState.imagePath };
+        return imgState.parsed ? fromParsed(imgState.parsed, next, sourced) : next;
+      });
+      setFormKey((k) => k + 1);
+    }
+  }, [imgState, sourced]);
 
   useEffect(() => {
     if (state.parsed) {
@@ -127,6 +147,29 @@ export function JobEditor({
             {state.error && <Alert tone="warning">{state.error}</Alert>}
             {state.parsed && <Alert tone="success">Fields extracted — please review them below.</Alert>}
           </form>
+          {imageAction && (
+            <form action={uploadImage} className="border-border mt-4 space-y-3 border-t pt-4">
+              <label htmlFor="job-image" className="block text-sm font-medium">
+                Or upload a picture of the job post (flyer or screenshot)
+              </label>
+              <input
+                id="job-image"
+                name="image"
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="text-sm"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) setPreview(URL.createObjectURL(f));
+                }}
+              />
+              <Button type="submit" variant="secondary" disabled={uploadingImage}>
+                {uploadingImage ? "Reading the picture…" : "Upload picture"}
+              </Button>
+              {imgState.error && <Alert tone="warning">{imgState.error}</Alert>}
+              {imgState.note && <Alert tone={imgState.parsed ? "success" : "info"}>{imgState.note}</Alert>}
+            </form>
+          )}
         </CardContent>
       </Card>
 
@@ -149,6 +192,35 @@ export function JobEditor({
         className="space-y-6"
       >
         {v.id && <input type="hidden" name="id" value={v.id} />}
+        {v.image_path && <input type="hidden" name="image_path" value={v.image_path} />}
+        {v.image_path && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Job picture</CardTitle>
+              <CardDescription>
+                Shown on the job page. Many flyers show a phone number or personal email: then it is shown only to
+                signed-in users, unless you confirm below.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {preview && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={preview}
+                  alt="Job picture"
+                  className="border-border max-h-72 rounded-xl border object-contain"
+                />
+              )}
+              <label className="flex items-start gap-2 text-sm">
+                <input type="checkbox" name="image_public" defaultChecked={v.image_public} className="mt-1" />
+                This picture shows no personal phone numbers or email addresses, so anyone can see it
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" name="remove_image" /> Remove the picture
+              </label>
+            </CardContent>
+          </Card>
+        )}
         <Card>
           <CardHeader>
             <CardTitle>Job details</CardTitle>

@@ -135,11 +135,13 @@ export default async function JobPage({
   // The apply contact and notes, read by the server for this visible job; private
   // contacts are masked for anonymous visitors and revealed after a check.
   const priv = (
-    await getPool().query<{ apply_target: string | null; apply_instructions: string | null }>(
-      "select apply_target, apply_instructions from public.jobs where id = $1",
-      [job.id],
-    )
-  ).rows[0] ?? { apply_target: null, apply_instructions: null };
+    await getPool().query<{
+      apply_target: string | null;
+      apply_instructions: string | null;
+      image_path: string | null;
+      image_public: boolean;
+    }>("select apply_target, apply_instructions, image_path, image_public from public.jobs where id = $1", [job.id])
+  ).rows[0] ?? { apply_target: null, apply_instructions: null, image_path: null, image_public: false };
   const signedIn = !!profile;
   const privateContact = isPrivateContact(job.apply_method, priv.apply_target);
   const showContact = signedIn || !privateContact;
@@ -230,6 +232,18 @@ export default async function JobPage({
             <h2 className="mb-4 text-lg font-semibold tracking-tight">About the role</h2>
             <JobDescription text={job.description_summary} />
           </section>
+          {priv.image_path && (priv.image_public || signedIn) && (
+            <section className="border-border bg-card rounded-2xl border p-4 shadow-(--shadow-card) sm:p-6">
+              <h2 className="sr-only">Job post picture</h2>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/api/job-image/${job.id}`}
+                alt={`Job post picture: ${job.title}`}
+                loading="lazy"
+                className="mx-auto max-h-[36rem] w-auto rounded-xl object-contain"
+              />
+            </section>
+          )}
           {(job.required_skills.length > 0 || job.nice_skills.length > 0) && (
             <section className="border-border bg-card space-y-4 rounded-2xl border p-6 shadow-(--shadow-card) sm:p-8">
               <h2 className="text-lg font-semibold tracking-tight">Skills</h2>

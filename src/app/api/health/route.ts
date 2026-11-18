@@ -59,7 +59,8 @@ const SCHEMA_CHECK = `
     ('000016_public_pages', to_regclass('public.saved_jobs') is not null),
     ('000017_export_v1_launch', exists (select 1 from pg_proc where proname = 'export_my_data_base')),
     ('000018_admin_recruiting', exists (select 1 from pg_proc where proname = 'create_workspace'
-       and pg_get_functiondef(oid) like '%''recruiter'', ''admin''%'))
+       and pg_get_functiondef(oid) like '%''recruiter'', ''admin''%')),
+    ('000019_job_images', exists (select 1 from storage.buckets where id = 'job-images'))
   ) as t(name, present)`;
 
 /** A short, non-secret category for setup troubleshooting (never the URL or password). */

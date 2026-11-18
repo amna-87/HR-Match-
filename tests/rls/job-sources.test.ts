@@ -102,3 +102,23 @@ describe("jobs from other sources in a workspace", () => {
     expect(r.rows[0]).toMatchObject({ owner_workspace_id: IDS.acme, visibility: "public" });
   });
 });
+
+describe("job pictures (D-036)", () => {
+  it("a job's picture must live in its own workspace's folder", async () => {
+    const ok = `${IDS.acme}/00000000-0000-4000-8000-0000000000aa.png`;
+    await db.as(IDS.rita)("update jobs set image_path = $2, image_public = true where id = $1", [IDS.jobSocial, ok]);
+    await expect(
+      db.as(IDS.rita)("update jobs set image_path = $2 where id = $1", [
+        IDS.jobSocial,
+        `${IDS.globex}/00000000-0000-4000-8000-0000000000aa.png`,
+      ]),
+    ).rejects.toThrow(/workspace/);
+    await expect(
+      db.as(IDS.rita)("update jobs set image_path = '../x.png' where id = $1", [IDS.jobSocial]),
+    ).rejects.toThrow(/image_path|check|workspace/);
+    // anonymous visitors can't read the path column itself
+    await expect(db.anon("select image_path from jobs where id = $1", [IDS.jobSocial])).rejects.toThrow(
+      /permission denied/,
+    );
+  });
+});

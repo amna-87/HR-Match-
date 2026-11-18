@@ -105,6 +105,7 @@ export async function insertSourcedJob(
     publish: boolean;
     /** Admins only (the database ignores it for everyone else): put it straight on the public board. */
     publicBoard?: boolean;
+    image?: { image_path?: string | null; image_public?: boolean };
   },
 ): Promise<{ id?: string; error?: string }> {
   const { data, error } = await supabase
@@ -114,10 +115,20 @@ export async function insertSourcedJob(
       owner_workspace_id: opts.ownerWorkspaceId,
       visibility: opts.ownerWorkspaceId && !opts.publicBoard ? "workspace" : "public",
       origin: opts.origin,
+      ...(opts.image ?? {}),
       status: opts.publish ? "published" : "draft",
     })
     .select("id")
     .single();
   if (error || !data) return { error: error?.message ?? "Could not save." };
   return { id: data.id as string };
+}
+
+/** Picture fields from the job form (D-036): only paths in this workspace's folder. */
+export function imageFields(formData: FormData, workspaceId: string) {
+  if (formData.get("remove_image") === "on") return { image_path: null, image_public: false };
+  const path = String(formData.get("image_path") ?? "");
+  if (!path) return {};
+  if (!path.startsWith(`${workspaceId}/`) || !/^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(png|jpe?g|webp)$/.test(path)) return {};
+  return { image_path: path, image_public: formData.get("image_public") === "on" };
 }

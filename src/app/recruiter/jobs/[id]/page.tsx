@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requireRecruiter } from "@/lib/auth/session";
 import { extractJob, saveJob, setJobStatus, changeStage } from "../../actions";
 import { JobEditor } from "@/components/job-editor";
+import { uploadJobImage } from "../image-actions";
 import type { JobValues } from "@/lib/job-values";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -241,7 +242,14 @@ export default async function RecruiterJobPage({
         <h2 id="edit-h" className="text-xl font-semibold tracking-tight">
           Edit job
         </h2>
-        <JobEditor initial={values} mode="verified" extractAction={extractJob} saveAction={saveJob} />
+        <JobEditor
+          initial={values}
+          mode="verified"
+          extractAction={extractJob}
+          saveAction={saveJob}
+          imageAction={uploadJobImage}
+          imageUrl={job.image_path ? `/api/job-image/${job.id}` : null}
+        />
       </section>
     </div>
   );

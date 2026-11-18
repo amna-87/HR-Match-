@@ -474,3 +474,12 @@ menu lists both admin and recruiting pages.
   `data-theme`. Axe accessibility checks run in both themes.
 - Recruiter home: quick numbers (pool, open jobs, messages today, introduction requests), a getting-started checklist
   that disappears once done, and shortcuts to upload resumes, import jobs and post a job.
+
+## D-036 Job pictures (2026-11-18)
+
+A recruiter or admin can upload a picture of a job post (PNG, JPG or WebP, max 5 MB) while posting or editing a job.
+With AI configured (`ANTHROPIC_API_KEY`), Claude reads the picture and fills in the form for review; without it the
+picture is kept and the recruiter fills in the fields. Pictures live in a private `job-images` bucket under the
+workspace's folder (checked by a trigger) and are served through short-lived signed URLs (`/api/job-image/<job>`).
+Flyers often show phone numbers, so a picture is shown to everyone only when the uploader ticks "this picture shows no
+personal phone numbers or email addresses"; otherwise only signed-in users and the job's workspace see it (7c).

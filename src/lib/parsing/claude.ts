@@ -29,6 +29,8 @@ export async function extractStructured<S extends z.ZodType>(opts: {
   system: string;
   documentLabel: string;
   text: string;
+  /** Optional picture (e.g. a job flyer): sent as an image block before the text. */
+  image?: { mediaType: "image/png" | "image/jpeg" | "image/webp" | "image/gif"; base64: string };
 }): Promise<z.infer<S>> {
   const anthropic = getClient();
   const response = await anthropic.beta.messages.parse({
@@ -43,7 +45,12 @@ export async function extractStructured<S extends z.ZodType>(opts: {
     messages: [
       {
         role: "user",
-        content: `<${opts.documentLabel}>\n${opts.text}\n</${opts.documentLabel}>`,
+        content: opts.image
+          ? [
+              { type: "image", source: { type: "base64", media_type: opts.image.mediaType, data: opts.image.base64 } },
+              { type: "text", text: `<${opts.documentLabel}>\n${opts.text}\n</${opts.documentLabel}>` },
+            ]
+          : `<${opts.documentLabel}>\n${opts.text}\n</${opts.documentLabel}>`,
       },
     ],
   });
