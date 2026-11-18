@@ -26,7 +26,7 @@ export type FetchLike = (
 }>;
 
 export interface FeedConnector {
-  provider: "greenhouse" | "lever";
+  provider: "greenhouse" | "lever" | "ashby" | "workable" | "smartrecruiters" | "recruitee";
   label: string;
   /** How a recruiter finds the board name, shown in the UI. */
   boardHint: string;

@@ -2,7 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ClipboardPaste, FileSpreadsheet, Rss } from "lucide-react";
 import { requireRecruiter } from "@/lib/auth/session";
-import { addFeed, deleteFeed, runFeedNow, toggleFeed } from "./actions";
+import { addFeed, deleteFeed, resetInbox, runFeedNow, toggleFeed } from "./actions";
+import { Mail } from "lucide-react";
 import { FEED_CONNECTORS } from "@/lib/connectors";
 import { CsvImport } from "@/components/csv-import";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +27,12 @@ export default async function SourcesPage({ searchParams }: { searchParams: Prom
     .select("id, provider, board, company_name, active, last_run_at, last_status, last_error, job_count")
     .eq("workspace_id", ws.id)
     .order("created_at");
+  const { data: inbox } = await supabase
+    .from("job_inboxes")
+    .select("token, received_count, last_received_at")
+    .eq("workspace_id", ws.id)
+    .maybeSingle();
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
   return (
     <div className="space-y-6">
@@ -73,10 +80,10 @@ export default async function SourcesPage({ searchParams }: { searchParams: Prom
             <Rss className="h-5 w-5" aria-hidden /> Company career feeds
           </CardTitle>
           <CardDescription>
-            Connect a company&apos;s official job board (Greenhouse or Lever). Vouch checks it once a day, adds new
-            jobs, keeps listed ones open and closes jobs that disappear. Jobs are labeled &ldquo;From [company] careers
-            page&rdquo;, the summary is written by us and Apply goes to the company&apos;s own page.{" "}
-            {feeds?.length ?? 0} of {ws.source_cap} feeds used on your plan.
+            Connect a company&apos;s official job board (Greenhouse, Lever, Ashby, Workable, SmartRecruiters or
+            Recruitee). Vouch checks it once a day, adds new jobs, keeps listed ones open and closes jobs that
+            disappear. Jobs are labeled &ldquo;From [company] careers page&rdquo;, the summary is written by us and
+            Apply goes to the company&apos;s own page. {feeds?.length ?? 0} of {ws.source_cap} feeds used on your plan.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -146,6 +153,53 @@ export default async function SourcesPage({ searchParams }: { searchParams: Prom
           ) : (
             <p className="text-muted-foreground text-sm">You&apos;ve connected all the feeds your plan allows.</p>
           )}
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Mail className="h-5 w-5" aria-hidden /> Forward job emails
+          </CardTitle>
+          <CardDescription>
+            Get job alerts or job posts by email? Forward them to your private inbox address and each one becomes a
+            draft job here for you to check and open.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm">
+          {inbox ? (
+            <>
+              <p className="font-medium">Your inbox address (keep it private):</p>
+              <code className="bg-muted block rounded-lg p-3 text-xs break-all">
+                {appUrl}/api/inbound/jobs/{inbox.token}
+              </code>
+              <p className="text-muted-foreground">
+                {inbox.received_count} email{inbox.received_count === 1 ? "" : "s"} received
+                {inbox.last_received_at ? `, last on ${formatDate(inbox.last_received_at)}` : ""}.
+              </p>
+              <details className="text-muted-foreground">
+                <summary className="text-foreground cursor-pointer font-medium">
+                  How to connect an email address
+                </summary>
+                <ol className="mt-2 list-decimal space-y-1 pl-5">
+                  <li>
+                    Pick an email address on your domain for jobs, for example <em>jobs@yourcompany.com</em>.
+                  </li>
+                  <li>
+                    In your email provider&apos;s inbound settings (Cloudflare Email Routing, Mailgun routes or SendGrid
+                    Inbound Parse), send that address&apos;s emails to the inbox address above.
+                  </li>
+                  <li>Forward a job email to it. It appears in your jobs list as a draft within a minute.</li>
+                </ol>
+              </details>
+            </>
+          ) : (
+            <p className="text-muted-foreground">No inbox yet.</p>
+          )}
+          <form action={resetInbox}>
+            <SubmitButton size="sm" variant="outline">
+              {inbox ? "Reset address" : "Create my inbox address"}
+            </SubmitButton>
+          </form>
         </CardContent>
       </Card>
     </div>

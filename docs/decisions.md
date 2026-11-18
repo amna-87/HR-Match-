@@ -483,3 +483,23 @@ picture is kept and the recruiter fills in the fields. Pictures live in a privat
 workspace's folder (checked by a trigger) and are served through short-lived signed URLs (`/api/job-image/<job>`).
 Flyers often show phone numbers, so a picture is shown to everyone only when the uploader ticks "this picture shows no
 personal phone numbers or email addresses"; otherwise only signed-in users and the job's workspace see it (7c).
+
+## D-037 More career feeds and forward-by-email jobs (2026-11-18)
+
+- New connectors (same rules as D-029: official public job-board endpoints only, once a day, summary in our own words,
+  apply on the company's own page):
+  - Ashby: `api.ashbyhq.com/posting-api/job-board/<name>`, documented by Ashby as a public, no-key job postings API.
+  - Recruitee: `<company>.recruitee.com/api/offers/`; Recruitee's docs say it "does not require authorization".
+  - Workable: `apply.workable.com/api/v1/widget/accounts/<account>`, the public widget endpoint career pages use.
+    Workable's own docs for it were not found; it is rate limited (429 is reported as "try again tomorrow").
+  - SmartRecruiters: `api.smartrecruiters.com/v1/companies/<CompanyId>/postings` (paged). SmartRecruiters' docs are
+    inconsistent about keys and some plans don't publish the feed; 401/403 shows "this company doesn't publish a public
+    job feed". The list has no description, so the summary is built from its labelled facts.
+  Tested against real Ashby and SmartRecruiters responses (trimmed fixtures in `tests/fixtures/feeds`). The owner
+  should re-read each provider's terms before scaling.
+- Forward-by-email: each workspace can create a private inbox URL (`/api/inbound/jobs/<secret>`, `job_inboxes`, reset
+  by workspace admins). An email-forwarding service (Cloudflare Email Routing, Mailgun routes, SendGrid Inbound Parse)
+  posts emails there as JSON or form data; each becomes a DRAFT job in the workspace (`origin = email_forwarded`) after
+  removing forwarding headers, reading it (AI when configured, else the offline reader), skipping duplicates and emails
+  with no way to apply. Limited to 200 emails per workspace per day.
+- Not built: job-board partner APIs (Adzuna, Jooble, Careerjet) need the owner to sign up for keys first.

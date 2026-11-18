@@ -194,3 +194,12 @@ export async function deleteFeed(formData: FormData) {
   revalidatePath("/recruiter");
   go("ok", "Feed removed and its jobs closed.");
 }
+
+/** Create or reset the workspace's forward-by-email inbox (D-037). */
+export async function resetInbox() {
+  const { supabase, company } = await requireRecruiter();
+  if (!company) go("error", "Set up your workspace first.");
+  const { error } = await supabase.rpc("reset_job_inbox", { p_workspace_id: company!.id });
+  if (error) go("error", error.message);
+  go("ok", "Your job inbox address is ready. Any old address has stopped working.");
+}

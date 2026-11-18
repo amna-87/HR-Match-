@@ -5,12 +5,12 @@
 import type { Queryable } from "@/lib/db";
 import { basicParseJob } from "@/lib/parsing/basic-job";
 import { FEED_CONNECTORS } from "./index";
-import type { FetchLike, NormalizedJob } from "./types";
+import type { FeedConnector, FetchLike, NormalizedJob } from "./types";
 
 export interface FeedRow {
   id: string;
   workspace_id: string;
-  provider: "greenhouse" | "lever";
+  provider: FeedConnector["provider"];
   board: string;
   company_name: string;
 }

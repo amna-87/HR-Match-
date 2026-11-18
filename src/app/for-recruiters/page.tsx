@@ -32,7 +32,8 @@ export default function ForRecruiters() {
           body: (
             <p>
               Paste a post from WhatsApp or email, import a spreadsheet, or connect a company&apos;s official careers
-              feed (Greenhouse, Lever). Only a title and one way to apply are needed.
+              feed (Greenhouse, Lever, Ashby, Workable, SmartRecruiters, Recruitee), forward job emails to your private
+              inbox, or upload a picture of a job flyer. Only a title and one way to apply are needed.
             </p>
           ),
         },
@@ -62,8 +63,9 @@ export default function ForRecruiters() {
           body: (
             <p>
               When a recruiter connects a company&apos;s careers feed, VouchJobsBot reads that company&apos;s public job
-              board API (Greenhouse or Lever) about once a day. It never scrapes job portals and never applies for
-              anyone. Jobs link back to the company&apos;s own apply page. Companies can ask for removal at /takedown.
+              board API (Greenhouse, Lever, Ashby, Workable, SmartRecruiters or Recruitee) about once a day. It never
+              scrapes job portals and never applies for anyone. Jobs link back to the company&apos;s own apply page.
+              Companies can ask for removal at /takedown.
             </p>
           ),
         },

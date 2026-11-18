@@ -1,0 +1,296 @@
+{
+  "offset": 0,
+  "limit": 5,
+  "totalFound": 2,
+  "content": [
+    {
+      "id": "744000162280249",
+      "name": "Praktikum im Bereich Arbeits- und Umweltschutz / Environment, Health and Safety (EHS)",
+      "uuid": "87141288-590a-4459-9303-e53e5782f61e",
+      "jobAdId": "23ab2e3d-d856-4cfe-807e-03c794def608",
+      "defaultJobAd": true,
+      "refNumber": "REF253621B",
+      "company": {
+        "identifier": "BoschGroup",
+        "name": "Bosch Group"
+      },
+      "releasedDate": "2026-11-18T11:58:11.927Z",
+      "location": {
+        "city": "Immenstadt im Allg\u00e4u",
+        "region": "BY",
+        "country": "de",
+        "address": "Robert-Bosch-Stra\u00dfe 1",
+        "postalCode": "87509",
+        "remote": false,
+        "hybrid": false,
+        "latitude": "47.5910848",
+        "longitude": "10.2539221",
+        "fullLocation": "Immenstadt im Allg\u00e4u, BY, Germany"
+      },
+      "industry": {
+        "id": "automotive",
+        "label": "Automotive"
+      },
+      "department": {},
+      "function": {
+        "id": "other",
+        "label": "Other"
+      },
+      "typeOfEmployment": {
+        "id": "permanent",
+        "label": "Full-time"
+      },
+      "experienceLevel": {
+        "id": "internship",
+        "label": "Internship"
+      },
+      "customField": [
+        {
+          "fieldId": "5abe2a4ab60a5e486a2d9b1d",
+          "fieldLabel": "Contract type",
+          "valueId": "98487475-2a49-44f5-a615-408b525b3821",
+          "valueLabel": "Limited"
+        },
+        {
+          "fieldId": "5abe28e96d8bc56863dd9746",
+          "fieldLabel": "Tariff Area",
+          "valueId": "45a4fe7c-ec96-4eda-907f-4aa0356a7704",
+          "valueLabel": "Not tariff-bound / non-tariff / SLx"
+        },
+        {
+          "fieldId": "5aca30e46d8bc56863dd98d8",
+          "fieldLabel": "Tags",
+          "valueId": "f8aadd7e-9952-41c5-af48-02debb3e9010",
+          "valueLabel": "Please enter Career Site Tags"
+        },
+        {
+          "fieldId": "586a997ee4b05fd937b86098",
+          "fieldLabel": "Legal Entity(acronym)",
+          "valueId": "de1f1b31-787f-43b1-88fd-4eb5428a9db8",
+          "valueLabel": "RB"
+        },
+        {
+          "fieldId": "6463ee88f4ba4e3063baf201",
+          "fieldLabel": "Do you want to publish on StepStone?",
+          "valueId": "5449f11a-cf85-46db-80b7-8540bb088d65",
+          "valueLabel": "No"
+        },
+        {
+          "fieldId": "586a99b5e4b0daa006ae1079",
+          "fieldLabel": "Working Location",
+          "valueId": "e4218620-099c-4be6-b72b-22bb48c63556",
+          "valueLabel": "Blaichach"
+        },
+        {
+          "fieldId": "5abe295a6d8bc56863dd9747",
+          "fieldLabel": "Global Salary Level",
+          "valueId": "4319a4d2-6690-4a34-ac0f-9d8c126f1af2",
+          "valueLabel": "Junior/ Lower Tariff"
+        },
+        {
+          "fieldId": "5abe29f9b60a5e486a2d9b1c",
+          "fieldLabel": "Working hours",
+          "valueId": "60756b3e-dbab-4353-ac3a-0064d2bb27d8",
+          "valueLabel": "Full-time"
+        },
+        {
+          "fieldId": "586a9995e4b0daa006ae1078",
+          "fieldLabel": "Legal Entity",
+          "valueId": "09a12231-6c9c-4061-a114-3ac523872781",
+          "valueLabel": "Robert Bosch GmbH"
+        },
+        {
+          "fieldId": "5abe27936d8bc56863dd9745",
+          "fieldLabel": "Position type",
+          "valueId": "f524b939-fe55-407b-a0b0-e8f4eec28997",
+          "valueLabel": "Intern"
+        },
+        {
+          "fieldId": "COUNTRY",
+          "fieldLabel": "Country/Region",
+          "valueId": "de",
+          "valueLabel": "Germany"
+        },
+        {
+          "fieldId": "586a971ee4b0daa006ae1077",
+          "fieldLabel": "Brands",
+          "valueId": "default",
+          "valueLabel": "Bosch Group"
+        },
+        {
+          "fieldId": "586a996ce4b05fd937b86097",
+          "fieldLabel": "Working Country",
+          "valueId": "34525254-83b2-42bc-9932-cf9f16db5281",
+          "valueLabel": "Germany"
+        },
+        {
+          "fieldId": "586a9b22e4b05fd937b8609a",
+          "fieldLabel": "Local Grade",
+          "valueId": "e5020ce1-e5ec-4c79-916c-be50fd063e79",
+          "valueLabel": "Analog lower tariff"
+        },
+        {
+          "fieldId": "586a99a5e4b05fd937b86099",
+          "fieldLabel": "Division",
+          "valueId": "CC",
+          "valueLabel": "VM"
+        },
+        {
+          "fieldId": "5aca31126d8bc56863dd98d9",
+          "fieldLabel": "Career Site Tags",
+          "valueLabel": "Arbeitsschutz,Sicherheit,Umwelttechnik,technisch,BWL,Sozialwissenschaft"
+        }
+      ],
+      "visibility": "PUBLIC",
+      "ref": "https://api.smartrecruiters.com/v1/companies/BoschGroup/postings/744000162280249",
+      "language": {
+        "code": "de",
+        "label": "German",
+        "labelNative": "Deutsch"
+      }
+    },
+    {
+      "id": "744000162279199",
+      "name": "\u6e20\u9053\u9500\u552e\u4ee3\u8868\uff08\u6b66\u6c49\uff09_PT",
+      "uuid": "5a6dd415-e60a-45b8-b8bf-f96b626220fe",
+      "jobAdId": "991c6502-f469-45f5-8b17-deca2d67f0ec",
+      "defaultJobAd": true,
+      "refNumber": "REF301260Q",
+      "company": {
+        "identifier": "BoschGroup",
+        "name": "Bosch Group"
+      },
+      "releasedDate": "2026-11-18T11:51:14.884Z",
+      "location": {
+        "city": "Wuhan",
+        "region": "Hubei",
+        "country": "cn",
+        "postalCode": "430000",
+        "remote": false,
+        "hybrid": false,
+        "latitude": "30.5931",
+        "longitude": "114.3054",
+        "fullLocation": "Wuhan, Hubei, China"
+      },
+      "industry": {
+        "id": "consumer_goods",
+        "label": "Consumer Goods"
+      },
+      "department": {},
+      "function": {
+        "id": "sales",
+        "label": "Sales"
+      },
+      "typeOfEmployment": {
+        "id": "permanent",
+        "label": "Full-time"
+      },
+      "experienceLevel": {
+        "id": "associate",
+        "label": "Associate"
+      },
+      "customField": [
+        {
+          "fieldId": "5abe2a4ab60a5e486a2d9b1d",
+          "fieldLabel": "Contract type",
+          "valueId": "98487475-2a49-44f5-a615-408b525b3821",
+          "valueLabel": "Limited"
+        },
+        {
+          "fieldId": "5abe28e96d8bc56863dd9746",
+          "fieldLabel": "Tariff Area",
+          "valueId": "33fa4f4b-08d7-4ea6-b5fe-d0ce453f899d",
+          "valueLabel": "China Local Grades"
+        },
+        {
+          "fieldId": "586a997ee4b05fd937b86098",
+          "fieldLabel": "Legal Entity(acronym)",
+          "valueId": "PTCN",
+          "valueLabel": "PTCN"
+        },
+        {
+          "fieldId": "586a99b5e4b0daa006ae1079",
+          "fieldLabel": "Working Location",
+          "valueId": "Wuhan",
+          "valueLabel": "Wuhan"
+        },
+        {
+          "fieldId": "5abe295a6d8bc56863dd9747",
+          "fieldLabel": "Global Salary Level",
+          "valueId": "427b1359-5057-4375-a2ae-6c649782296d",
+          "valueLabel": "Experienced/ Middle Tariff"
+        },
+        {
+          "fieldId": "69ca83a2489188782a1e9f87",
+          "fieldLabel": "Direct Or Indirect",
+          "valueId": "1aefbf4c-c10a-422e-a975-a504a7117792",
+          "valueLabel": "Indirect"
+        },
+        {
+          "fieldId": "5abe29f9b60a5e486a2d9b1c",
+          "fieldLabel": "Working hours",
+          "valueId": "60756b3e-dbab-4353-ac3a-0064d2bb27d8",
+          "valueLabel": "Full-time"
+        },
+        {
+          "fieldId": "586a9995e4b0daa006ae1078",
+          "fieldLabel": "Legal Entity",
+          "valueId": "Bosch Power Tools (China) Ltd.",
+          "valueLabel": "Bosch Power Tools (China) Ltd."
+        },
+        {
+          "fieldId": "691cf1c93001c782b9560ab7",
+          "fieldLabel": "Division full name",
+          "valueId": "d46bc602-375e-4c5b-8773-170f49339203",
+          "valueLabel": "Power Tools"
+        },
+        {
+          "fieldId": "5abe27936d8bc56863dd9745",
+          "fieldLabel": "Position type",
+          "valueId": "c7b4da31-6f38-405a-b2e8-08a76e3c3f2c",
+          "valueLabel": "Professional"
+        },
+        {
+          "fieldId": "COUNTRY",
+          "fieldLabel": "Country/Region",
+          "valueId": "cn",
+          "valueLabel": "China"
+        },
+        {
+          "fieldId": "586a971ee4b0daa006ae1077",
+          "fieldLabel": "Brands",
+          "valueId": "default",
+          "valueLabel": "Bosch Group"
+        },
+        {
+          "fieldId": "586a996ce4b05fd937b86097",
+          "fieldLabel": "Working Country",
+          "valueId": "CN",
+          "valueLabel": "China"
+        },
+        {
+          "fieldId": "586a9b22e4b05fd937b8609a",
+          "fieldLabel": "Local Grade",
+          "valueId": "CN_7",
+          "valueLabel": "CN_7"
+        },
+        {
+          "fieldId": "586a99a5e4b05fd937b86099",
+          "fieldLabel": "Division",
+          "valueId": "PT",
+          "valueLabel": "PT"
+        }
+      ],
+      "visibility": "PUBLIC",
+      "ref": "https://api.smartrecruiters.com/v1/companies/BoschGroup/postings/744000162279199",
+      "creator": {
+        "name": "Moman Liao (GS/HRS-PAC-CN)"
+      },
+      "language": {
+        "code": "zh-CN",
+        "label": "Chinese (Simplified)",
+        "labelNative": "\u4e2d\u6587 (\u7b80\u4f53)"
+      }
+    }
+  ]
+}

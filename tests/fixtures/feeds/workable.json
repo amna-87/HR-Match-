@@ -1,0 +1,34 @@
+{
+  "name": "Example Co",
+  "jobs": [
+    {
+      "title": "Customer Success Manager",
+      "shortcode": "A1B2C3D4E5",
+      "code": "",
+      "employment_type": "Full-time",
+      "telecommuting": false,
+      "department": "Customer Success",
+      "url": "https://apply.workable.com/j/A1B2C3D4E5",
+      "shortlink": "https://apply.workable.com/j/A1B2C3D4E5",
+      "application_url": "https://apply.workable.com/j/A1B2C3D4E5/apply",
+      "city": "Lahore",
+      "state": "Punjab",
+      "country": "Pakistan",
+      "locations": [
+        { "country": "Pakistan", "countryCode": "PK", "city": "Lahore", "region": "Punjab", "hidden": false }
+      ],
+      "description": "<p>Own onboarding and renewals for SMB customers. 3+ years in customer success, CRM and account management.</p>"
+    },
+    {
+      "title": "Backend Engineer",
+      "shortcode": "Z9Y8X7W6V5",
+      "employment_type": "Contract",
+      "telecommuting": true,
+      "department": "Engineering",
+      "url": "https://apply.workable.com/j/Z9Y8X7W6V5",
+      "application_url": "https://apply.workable.com/j/Z9Y8X7W6V5/apply",
+      "locations": [{ "country": "Pakistan", "city": "Karachi", "hidden": false }],
+      "description": "<p>Python, PostgreSQL and AWS.</p>"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "offers": [
+    {
+      "id": 1201,
+      "slug": "sales-executive",
+      "title": "Sales Executive",
+      "status": "published",
+      "location": "Islamabad, Pakistan",
+      "city": "Islamabad",
+      "country": "Pakistan",
+      "remote": false,
+      "hybrid": true,
+      "employment_type_code": "fulltime_permanent",
+      "department": "Sales",
+      "careers_url": "https://example.recruitee.com/o/sales-executive",
+      "careers_apply_url": "https://example.recruitee.com/o/sales-executive/c/new",
+      "description": "<p>Win new B2B accounts.</p>",
+      "requirements": "<ul><li>Lead generation, negotiation, CRM</li></ul>"
+    },
+    { "id": 1202, "title": "Old role", "status": "closed", "careers_url": "https://example.recruitee.com/o/old" }
+  ]
+}
