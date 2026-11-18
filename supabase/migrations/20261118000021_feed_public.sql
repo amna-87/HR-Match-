@@ -11,7 +11,8 @@ begin
        or new.last_status is distinct from old.last_status or new.job_count is distinct from old.job_count) then
     raise exception 'not allowed to change protected feed fields' using errcode = '42501';
   end if;
-  if new.publish_public is distinct from old.publish_public and not public.is_platform_admin() then
+  if new.publish_public is distinct from old.publish_public and not public.is_platform_admin()
+     and not public.is_trusted_backend() then
     raise exception 'only Vouch admins can publish a feed on the public board' using errcode = '42501';
   end if;
   return new;
