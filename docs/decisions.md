@@ -455,3 +455,10 @@ Still needed from the owner before or at launch (not code):
 After launch (v1.1, per 7d): direct email outreach at scale, paid plans and billing, recruiter-to-recruiter job
 sharing, agency roles beyond the current admin/recruiter seats, job-alert emails, more connectors (Ashby,
 SmartRecruiters, Workable, schema.org career pages with robots.txt checks).
+
+## D-034 Admins can do everything recruiters can (product owner, 2026-11-18)
+
+The admin account also gets the recruiter area: its own workspace, bulk resume upload, bulk job import (CSV, paste,
+feeds), matching and outreach. Admin status gives no access to other workspaces' pools (RLS unchanged). On jobs from
+other sources, admins may tick "Put on the public job board" (the database ignores this for non-admins). The admin
+menu lists both admin and recruiting pages.

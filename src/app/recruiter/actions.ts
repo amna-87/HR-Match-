@@ -267,7 +267,8 @@ export async function submitFeedback(formData: FormData) {
 // Jobs from other sources, kept in the recruiter's own workspace (addendum 4, D-028)
 // ---------------------------------------------------------------------------
 export async function saveWorkspaceJob(_prev: SaveState, formData: FormData): Promise<SaveState> {
-  const { supabase, company, user } = await requireRecruiter();
+  const { supabase, company, user, profile } = await requireRecruiter();
+  const publicBoard = profile.role === "admin" && formData.get("public_board") === "on";
   if (!company) return { error: "Set up your workspace first." };
   const p = parseSourcedForm(formData);
   if (!p.ok) return p.state;
@@ -282,17 +283,35 @@ export async function saveWorkspaceJob(_prev: SaveState, formData: FormData): Pr
   if (id) {
     const { error } = await supabase
       .from("jobs")
-      .update({ ...sourcedRow(j), ...(publish ? { status: "published" as const } : {}) })
+      .update({
+        ...sourcedRow(j),
+        ...(publish ? { status: "published" as const } : {}),
+        ...(publicBoard ? { visibility: "public" as const, public_requested_at: null } : {}),
+      })
       .eq("id", id);
     if (error) return { error: error.message };
   } else {
-    const r = await insertSourcedJob(supabase, j, { ownerWorkspaceId: company.id, origin: "pasted", publish });
+    const r = await insertSourcedJob(supabase, j, {
+      ownerWorkspaceId: company.id,
+      origin: "pasted",
+      publish,
+      publicBoard,
+    });
     if (r.error || !r.id) return { error: r.error ?? "Could not save." };
     jobId = r.id;
     await audit(user.id, "recruiter", "workspace.sourced_job_created", "jobs", jobId, { source_name: j.source_name });
   }
+  if (publish && publicBoard) scheduleJobMatching(jobId);
   revalidatePath("/recruiter");
-  return go(`/recruiter/jobs/${jobId}`, "ok", publish ? "Job saved and open in your workspace." : "Draft saved.");
+  return go(
+    `/recruiter/jobs/${jobId}`,
+    "ok",
+    publish
+      ? publicBoard
+        ? "Job published on the public board."
+        : "Job saved and open in your workspace."
+      : "Draft saved.",
+  );
 }
 
 /** "Still open?" — extends the job by 30 days (re-opens it if it expired). */

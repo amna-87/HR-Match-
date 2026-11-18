@@ -13,6 +13,7 @@ import { FEED_CONNECTORS } from "@/lib/connectors";
 import { syncFeed, type FeedRow } from "@/lib/connectors/sync";
 import { feedDeps } from "@/lib/connectors/server";
 import { audit } from "@/lib/server/context";
+import { scheduleJobMatching } from "@/lib/server/background";
 
 const go = (key: "ok" | "error", msg: string): never =>
   redirect(`/recruiter/sources?${key}=${encodeURIComponent(msg)}`);
@@ -41,8 +42,10 @@ export async function importCsvJobs(
   rows: Partial<Record<CsvField, string>>[],
   publish: boolean,
   allowDuplicates: boolean,
+  publicBoard = false,
 ): Promise<CsvImportResult> {
-  const { supabase, company, user } = await requireRecruiter();
+  const { supabase, company, user, profile } = await requireRecruiter();
+  const toPublic = publicBoard && profile.role === "admin";
   if (!company) return { error: "Set up your workspace first." };
   if (!Array.isArray(rows) || !rows.length) return { error: "The file has no rows." };
   if (rows.length > CSV_MAX_ROWS) return { error: `Import at most ${CSV_MAX_ROWS} rows at a time.` };

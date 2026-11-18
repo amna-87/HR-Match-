@@ -18,7 +18,7 @@ export const metadata = { title: "Job sources" };
 
 export default async function SourcesPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const sp = await searchParams;
-  const { supabase, company } = await requireRecruiter();
+  const { supabase, company, profile } = await requireRecruiter();
   if (!company) redirect("/recruiter");
   const ws = company as unknown as { id: string; source_cap: number };
   const { data: feeds } = await supabase
@@ -63,7 +63,7 @@ export default async function SourcesPage({ searchParams }: { searchParams: Prom
           <CardDescription>Many jobs at once from Excel or Google Sheets (save as CSV).</CardDescription>
         </CardHeader>
         <CardContent>
-          <CsvImport />
+          <CsvImport allowPublicBoard={profile.role === "admin"} />
         </CardContent>
       </Card>
 

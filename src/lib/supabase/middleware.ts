@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { requiredRoleFor, homeFor, type AppRole } from "@/lib/auth/routes";
+import { requiredRoleFor, homeFor, roleAllowed, type AppRole } from "@/lib/auth/routes";
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -43,7 +43,7 @@ export async function updateSession(request: NextRequest) {
   if (required === "onboarding") {
     return profile.onboarded ? NextResponse.redirect(new URL(homeFor(profile.role as AppRole), request.url)) : response;
   }
-  if (required !== "any" && profile.role !== required) {
+  if (required !== "any" && !roleAllowed(required, profile.role as AppRole)) {
     return NextResponse.redirect(new URL(homeFor(profile.role as AppRole), request.url));
   }
   return response;

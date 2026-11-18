@@ -14,3 +14,8 @@ export function requiredRoleFor(pathname: string): RouteRequirement {
 export function homeFor(role: AppRole): string {
   return role === "admin" ? "/admin" : role === "recruiter" ? "/recruiter" : "/candidate";
 }
+
+/** Admins can use everything recruiters can (product-owner decision D-034). */
+export function roleAllowed(required: AppRole, role: AppRole): boolean {
+  return role === required || (required === "recruiter" && role === "admin");
+}

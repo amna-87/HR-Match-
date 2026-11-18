@@ -57,7 +57,9 @@ const SCHEMA_CHECK = `
     ('000014_matching_intros', to_regclass('public.intro_requests') is not null),
     ('000015_outreach', to_regclass('public.suppression_list') is not null),
     ('000016_public_pages', to_regclass('public.saved_jobs') is not null),
-    ('000017_export_v1_launch', exists (select 1 from pg_proc where proname = 'export_my_data_base'))
+    ('000017_export_v1_launch', exists (select 1 from pg_proc where proname = 'export_my_data_base')),
+    ('000018_admin_recruiting', exists (select 1 from pg_proc where proname = 'create_workspace'
+       and pg_get_functiondef(oid) like '%''recruiter'', ''admin''%'))
   ) as t(name, present)`;
 
 /** A short, non-secret category for setup troubleshooting (never the URL or password). */

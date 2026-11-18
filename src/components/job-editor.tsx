@@ -76,9 +76,12 @@ export function JobEditor({
   mode,
   extractAction,
   saveAction,
+  allowPublicBoard = false,
 }: {
   initial: JobValues;
   mode: "verified" | "sourced";
+  /** Admins can put a job from another source straight on the public board (D-034). */
+  allowPublicBoard?: boolean;
   extractAction: (s: ExtractState, fd: FormData) => Promise<ExtractState>;
   saveAction: (s: SaveState, fd: FormData) => Promise<SaveState>;
 }) {
@@ -307,6 +310,11 @@ export function JobEditor({
                   defaultValue={v.apply_instructions ?? ""}
                 />
               </Field>
+              {allowPublicBoard && (
+                <label className="flex items-center gap-2 text-sm sm:col-span-2">
+                  <input type="checkbox" name="public_board" /> Put this job on the public job board (admin)
+                </label>
+              )}
               {duplicates && duplicates.length > 0 && (
                 <label className="flex items-center gap-2 text-sm sm:col-span-2">
                   <input type="checkbox" name="allow_duplicate" /> Publish anyway (not a duplicate)

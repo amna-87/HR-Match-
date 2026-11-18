@@ -2,7 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { homeFor, type AppRole } from "./routes";
+import { homeFor, roleAllowed, type AppRole } from "./routes";
 
 export interface SessionProfile {
   id: string;
@@ -51,7 +51,7 @@ export async function requireRole(role: AppRole) {
   if (!s.supabase || !s.user || !s.profile) redirect("/login");
   if (s.profile.status !== "active") redirect("/login?error=account_unavailable");
   if (!s.profile.onboarded) redirect("/onboarding");
-  if (s.profile.role !== role) redirect(homeFor(s.profile.role));
+  if (!roleAllowed(role, s.profile.role)) redirect(homeFor(s.profile.role));
   return { supabase: s.supabase, user: s.user, profile: s.profile };
 }
 
@@ -63,7 +63,7 @@ export async function requireCandidate() {
 }
 
 export async function requireRecruiter() {
-  const s = await requireRole("recruiter");
+  const s = await requireRole("recruiter"); // admins too (D-034)
   const { data: memberships } = await s.supabase
     .from("company_members")
     .select("role, company:companies(*)")

@@ -62,3 +62,15 @@ describe("workspaces", () => {
     expect(a.rows[0].n).toBe(1);
   });
 });
+
+describe("admins can recruit too (D-034)", () => {
+  it("an admin can open their own workspace, but sees no other workspace's pool", async () => {
+    const ws = (await db.as(IDS.admin)<{ id: string }>("select create_workspace('personal', 'Admin hiring') id"))
+      .rows[0].id;
+    expect(ws).toBeTruthy();
+    expect((await db.as(IDS.admin)("select start_pool_import($1, 1, true) id", [ws])).rows[0].id).toBeTruthy();
+    expect(
+      (await db.as(IDS.admin)("select count(*)::int n from pool_candidates where workspace_id <> $1", [ws])).rows[0].n,
+    ).toBe(0);
+  });
+});

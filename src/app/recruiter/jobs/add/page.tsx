@@ -8,7 +8,7 @@ import { Flash } from "@/components/flash";
 export const metadata = { title: "Add a job from another source" };
 
 export default async function AddSourcedJobPage({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
-  const { company } = await requireRecruiter();
+  const { company, profile } = await requireRecruiter();
   if (!company) redirect("/recruiter");
   return (
     <div className="space-y-4">
@@ -25,6 +25,7 @@ export default async function AddSourcedJobPage({ searchParams }: { searchParams
         mode="sourced"
         extractAction={extractJob}
         saveAction={saveWorkspaceJob}
+        allowPublicBoard={profile.role === "admin"}
       />
     </div>
   );

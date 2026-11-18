@@ -9,13 +9,14 @@ import { importCsvJobs, type CsvRowResult } from "@/app/recruiter/sources/action
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export function CsvImport() {
+export function CsvImport({ allowPublicBoard = false }: { allowPublicBoard?: boolean }) {
   const router = useRouter();
   const [headers, setHeaders] = useState<string[]>([]);
   const [rows, setRows] = useState<string[][]>([]);
   const [map, setMap] = useState<Partial<Record<CsvField, number>>>({});
   const [publish, setPublish] = useState(true);
   const [allowDup, setAllowDup] = useState(false);
+  const [publicBoard, setPublicBoard] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<CsvRowResult[] | null>(null);
   const [pending, start] = useTransition();
@@ -52,7 +53,7 @@ export function CsvImport() {
     start(async () => {
       setError(null);
       if (map.title == null) return setError("Choose which column holds the job title.");
-      const res = await importCsvJobs(mapped, publish, allowDup);
+      const res = await importCsvJobs(mapped, publish, allowDup, publicBoard);
       if (res.error) setError(res.error);
       else {
         setResults(res.results ?? []);
@@ -142,6 +143,12 @@ export function CsvImport() {
               <input type="checkbox" checked={allowDup} onChange={(e) => setAllowDup(e.target.checked)} />
               Import jobs that look like duplicates
             </label>
+            {allowPublicBoard && (
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={publicBoard} onChange={(e) => setPublicBoard(e.target.checked)} />
+                Put them on the public job board now (admin)
+              </label>
+            )}
           </div>
           <Button onClick={run} disabled={pending}>
             {pending ? "Importing…" : `Import ${mapped.length} job${mapped.length === 1 ? "" : "s"}`}

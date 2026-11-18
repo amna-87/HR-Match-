@@ -17,3 +17,12 @@ describe("route protection map", () => {
     expect(homeFor("admin")).toBe("/admin");
   });
 });
+
+import { roleAllowed } from "@/lib/auth/routes";
+describe("admins can use the recruiter area", () => {
+  it("allows admin on recruiter routes only", () => {
+    expect(roleAllowed("recruiter", "admin")).toBe(true);
+    expect(roleAllowed("candidate", "admin")).toBe(false);
+    expect(roleAllowed("admin", "recruiter")).toBe(false);
+  });
+});

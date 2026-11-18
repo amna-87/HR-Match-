@@ -99,14 +99,20 @@ export function sourcedRow(j: JobForm) {
 export async function insertSourcedJob(
   supabase: SupabaseClient,
   j: JobForm,
-  opts: { ownerWorkspaceId: string | null; origin: "manual" | "pasted" | "csv_import"; publish: boolean },
+  opts: {
+    ownerWorkspaceId: string | null;
+    origin: "manual" | "pasted" | "csv_import" | "email_forwarded";
+    publish: boolean;
+    /** Admins only (the database ignores it for everyone else): put it straight on the public board. */
+    publicBoard?: boolean;
+  },
 ): Promise<{ id?: string; error?: string }> {
   const { data, error } = await supabase
     .from("jobs")
     .insert({
       ...sourcedRow(j),
       owner_workspace_id: opts.ownerWorkspaceId,
-      visibility: opts.ownerWorkspaceId ? "workspace" : "public",
+      visibility: opts.ownerWorkspaceId && !opts.publicBoard ? "workspace" : "public",
       origin: opts.origin,
       status: opts.publish ? "published" : "draft",
     })

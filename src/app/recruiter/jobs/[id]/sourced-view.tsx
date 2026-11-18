@@ -25,10 +25,12 @@ export function SourcedJobView({
   job,
   sp,
   children,
+  isAdmin = false,
 }: {
   job: Job;
   sp: Record<string, string>;
   children?: React.ReactNode;
+  isAdmin?: boolean;
 }) {
   const values: JobValues = { ...job, location: job.location ?? "", salary_currency: job.salary_currency ?? "" };
   const daysLeft = job.expires_at ? Math.ceil((new Date(job.expires_at).getTime() - Date.now()) / 86400_000) : null;
@@ -129,7 +131,13 @@ export function SourcedJobView({
         <h2 id="edit-h" className="text-xl font-semibold tracking-tight">
           Edit job
         </h2>
-        <JobEditor initial={values} mode="sourced" extractAction={extractJob} saveAction={saveWorkspaceJob} />
+        <JobEditor
+          initial={values}
+          mode="sourced"
+          extractAction={extractJob}
+          saveAction={saveWorkspaceJob}
+          allowPublicBoard={isAdmin && job.visibility !== "public"}
+        />
       </section>
     </div>
   );

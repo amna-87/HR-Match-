@@ -46,12 +46,12 @@ export default async function RecruiterJobPage({
 }) {
   const { id } = await params;
   const sp = await searchParams;
-  const { supabase } = await requireRecruiter();
+  const { supabase, profile } = await requireRecruiter();
   const { data: job } = await supabase.from("jobs").select("*").eq("id", id).maybeSingle();
   if (!job) notFound();
   if (job.source_type === "sourced")
     return (
-      <SourcedJobView job={job} sp={sp}>
+      <SourcedJobView job={job} sp={sp} isAdmin={profile.role === "admin"}>
         <PoolMatches supabase={supabase} jobId={id} />
       </SourcedJobView>
     );

@@ -33,11 +33,11 @@ const links: Record<Role, NavItem[]> = {
     ["/recruiter/sources", "Job sources"],
   ],
   admin: [
-    ["/admin", "Overview"],
-    ["/admin/jobs", "Jobs"],
-    ["/admin/sourced/new", "Add job"],
-    ["/admin/users", "Users"],
-    ["/admin/takedowns", "Takedowns"],
+    ["/admin", "Admin"],
+    ["/admin/jobs", "Moderation"],
+    ["/recruiter", "My jobs"],
+    ["/recruiter/talent", "Talent pool"],
+    ["/recruiter/sources", "Job sources"],
   ],
 };
 
@@ -59,7 +59,14 @@ const accountLinks: Record<Role, AccountLink[]> = {
   admin: [
     { href: "/admin", label: "Admin overview", icon: <LayoutDashboard /> },
     { href: "/admin/jobs", label: "Job moderation", icon: <FileCheck2 /> },
+    { href: "/admin/users", label: "Users", icon: <Users /> },
+    { href: "/admin/takedowns", label: "Takedown requests", icon: <Shield /> },
     { href: "/admin/audit", label: "Audit log", icon: <ScrollText /> },
+    { href: "/recruiter", label: "Recruiting: my jobs", icon: <Briefcase /> },
+    { href: "/recruiter/talent", label: "Recruiting: talent pool", icon: <UserRound /> },
+    { href: "/recruiter/sources", label: "Recruiting: job sources", icon: <Rss /> },
+    { href: "/recruiter/introductions", label: "Recruiting: introductions", icon: <Handshake /> },
+    { href: "/recruiter/company", label: "Recruiting: workspace", icon: <Building2 /> },
   ],
 };
 

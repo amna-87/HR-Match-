@@ -13,7 +13,7 @@ export const maxDuration = 60;
  */
 export async function POST() {
   const { supabase, user, profile } = await getSession();
-  if (!supabase || !user || profile?.role !== "recruiter")
+  if (!supabase || !user || (profile?.role !== "recruiter" && profile?.role !== "admin"))
     return NextResponse.json({ error: "not signed in" }, { status: 401 });
   const { data: m } = await supabase.from("company_members").select("company_id").eq("user_id", user.id).maybeSingle();
   if (!m) return NextResponse.json({ error: "no workspace" }, { status: 403 });
