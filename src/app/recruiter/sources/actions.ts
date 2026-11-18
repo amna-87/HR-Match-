@@ -97,7 +97,9 @@ export async function importCsvJobs(
       ownerWorkspaceId: company.id,
       origin: "csv_import",
       publish,
+      publicBoard: toPublic,
     });
+    if (ins.id && publish && toPublic) scheduleJobMatching(ins.id);
     results.push(
       ins.error ? { row: i + 2, title, status: "error", message: ins.error } : { row: i + 2, title, status: "added" },
     );
