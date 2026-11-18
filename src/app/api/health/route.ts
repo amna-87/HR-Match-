@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
+import { extractResumeText } from "@/lib/parsing/extract-text";
+import { minimalPdf } from "@/lib/parsing/sample-pdf";
 import { getPool } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: Request) {
   let database: "ok" | "unconfigured" | "error" = "unconfigured";
   let reason: string | undefined;
   let schema: "ok" | "missing" | undefined;
@@ -21,6 +23,17 @@ export async function GET() {
       console.error("[health] database check failed", e);
     }
   }
+  // ?deep=1: also check that resume PDFs can be read on this server.
+  let pdf: string | undefined;
+  if (new URL(req.url).searchParams.get("deep") === "1") {
+    try {
+      const text = await extractResumeText("pdf", minimalPdf(["Vouch health check"]));
+      pdf = text.includes("Vouch health check") ? "ok" : "unreadable";
+    } catch (e) {
+      pdf = `error: ${String((e as Error)?.message ?? e).slice(0, 160)}`;
+      console.error("[health] pdf check failed", e);
+    }
+  }
   const status = database === "error" ? 503 : 200;
   return NextResponse.json(
     {
@@ -29,6 +42,7 @@ export async function GET() {
       ...(schema ? { schema } : {}),
       ...(missing?.length ? { missing_migrations: missing } : {}),
       ...(reason ? { reason } : {}),
+      ...(pdf ? { pdf } : {}),
       time: new Date().toISOString(),
     },
     { status },

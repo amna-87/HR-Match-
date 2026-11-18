@@ -115,7 +115,8 @@ async function prepare(deps: PoolProcessDeps, f: FileRow): Promise<Prepared> {
   let text: string;
   try {
     text = await deps.extract(v.kind, bytes);
-  } catch {
+  } catch (e) {
+    console.error("[pool] text extraction failed", f.original_filename, e);
     throw new PermanentFileError("could not read the file");
   }
   if (text.trim().length < 50) throw new PermanentFileError("no readable text (scanned image?)");

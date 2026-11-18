@@ -10,7 +10,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   // pdf.js loads its worker from disk; keep these as real node_modules instead of bundling.
-  serverExternalPackages: ["pdf-parse", "pdfjs-dist", "mammoth"],
+  serverExternalPackages: ["pdf-parse", "pdfjs-dist", "mammoth", "@napi-rs/canvas"],
   experimental: { serverActions: { bodySizeLimit: "6mb" } }, // 5 MB resumes + form overhead
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

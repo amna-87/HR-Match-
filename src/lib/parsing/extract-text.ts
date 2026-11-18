@@ -40,9 +40,23 @@ export async function extractResumeText(kind: ResumeKind, bytes: Uint8Array): Pr
   return text.replace(/\u0000/g, "").slice(0, MAX_TEXT_CHARS);
 }
 
+let workerReady = false;
+
 async function extractPdf(bytes: Uint8Array): Promise<string> {
+  // Serverless (Vercel): load pdf.js's worker and canvas helpers explicitly, as
+  // pdf-parse documents, so nothing depends on files the bundler didn't copy.
+  const worker = await import("pdf-parse/worker");
   const { PDFParse } = await import("pdf-parse");
-  const parser = new PDFParse({ data: new Uint8Array(bytes), isEvalSupported: false, disableFontFace: true });
+  if (!workerReady) {
+    PDFParse.setWorker(worker.getData());
+    workerReady = true;
+  }
+  const parser = new PDFParse({
+    data: new Uint8Array(bytes),
+    isEvalSupported: false,
+    disableFontFace: true,
+    CanvasFactory: worker.CanvasFactory,
+  });
   try {
     const result = await parser.getText({ first: 20 }); // first 20 pages is plenty for a resume
     return result.text;
