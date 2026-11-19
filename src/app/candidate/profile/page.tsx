@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import { requireCandidate } from "@/lib/auth/session";
 import { uploadResume, saveProfile } from "../actions";
 import { ProfileForm } from "@/components/profile-form";
@@ -10,6 +11,7 @@ import { Flash } from "@/components/flash";
 import { SubmitButton } from "@/components/submit-button";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
+import { FileInput } from "@/components/ui/file-input";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Profile" };
@@ -49,6 +51,10 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
   return (
     <div className="space-y-6">
       <Flash searchParams={sp} />
+      <PageHeader
+        title="Your profile"
+        description="Your resume and the details we match on. Employers only see them after you approve a match."
+      />
       <Card>
         <CardHeader>
           <CardTitle>Resume</CardTitle>
@@ -57,17 +63,15 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <form action={uploadResume} className="flex flex-wrap items-center gap-3">
-            <label htmlFor="resume" className="sr-only">
-              Resume file
-            </label>
-            <input
+          <form action={uploadResume} className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <FileInput
               id="resume"
               name="resume"
-              type="file"
+              aria-label="Resume file"
+              label="Choose your resume"
               required
               accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-              className="text-sm"
+              className="sm:flex-1"
             />
             <SubmitButton pendingText="Uploading and reading…">Upload</SubmitButton>
           </form>

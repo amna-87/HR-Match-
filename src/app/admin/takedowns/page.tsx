@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import Link from "next/link";
 import { requireRole } from "@/lib/auth/session";
 import { resolveTakedown } from "../actions";
@@ -18,9 +19,13 @@ export default async function AdminTakedowns({ searchParams }: { searchParams: P
     .order("status")
     .order("created_at", { ascending: false });
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <Flash searchParams={await searchParams} />
-      <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Takedown requests</h1>
+      <PageHeader
+        eyebrow="Admin"
+        title="Takedown requests"
+        description="Requests from employers and the public to remove a listing."
+      />
       {(reqs ?? []).map((r) => {
         const job = r.job as { id: string; title: string; status: string; source_name: string | null } | null;
         return (

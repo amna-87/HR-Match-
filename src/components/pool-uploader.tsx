@@ -212,7 +212,7 @@ export function PoolUploader({ batchCap, room, pending }: { batchCap: number; ro
           void add(e.dataTransfer.files);
         }}
         className={cn(
-          "border-border bg-muted/40 flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed px-6 py-10 text-center transition-colors",
+          "border-border bg-muted/40 focus-within:ring-primary/20 flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed px-4 py-10 text-center transition-colors focus-within:ring-4 sm:px-6",
           over && "border-primary bg-primary-soft",
         )}
       >
@@ -223,8 +223,11 @@ export function PoolUploader({ batchCap, room, pending }: { batchCap: number; ro
             PDF or DOCX, or one ZIP of them. Up to {batchCap} files, 5 MB each. Room in your pool: {room}.
           </p>
         </div>
-        <label htmlFor="resumes" className="text-primary cursor-pointer text-sm font-medium underline">
-          Resume files
+        <label
+          htmlFor="resumes"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg px-4 text-sm font-semibold shadow-sm transition-colors"
+        >
+          Choose resume files
         </label>
         <input
           ref={inputRef}
@@ -232,7 +235,7 @@ export function PoolUploader({ batchCap, room, pending }: { batchCap: number; ro
           type="file"
           multiple
           accept=".pdf,.docx,.zip,application/pdf,application/zip,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-          className="text-sm"
+          className="sr-only"
           onChange={(e) => {
             void add(e.target.files);
             e.target.value = "";

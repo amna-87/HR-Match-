@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import { requireRole } from "@/lib/auth/session";
 import { readFeedback } from "../actions";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -15,7 +16,11 @@ export default async function AdminAudit({ searchParams }: { searchParams: Promi
   const { data: rows } = await q;
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Audit log</h1>
+      <PageHeader
+        eyebrow="Admin"
+        title="Audit log"
+        description="Consent, access and moderation events, newest first."
+      />
       <form method="get" className="flex flex-wrap items-end gap-2">
         <Field label="Action starts with" htmlFor="action">
           <Input id="action" name="action" defaultValue={sp.action ?? ""} placeholder="match." />
@@ -27,15 +32,15 @@ export default async function AdminAudit({ searchParams }: { searchParams: Promi
           Filter
         </Button>
       </form>
-      <div className="overflow-x-auto">
+      <div className="border-border bg-card overflow-x-auto rounded-2xl border px-4 shadow-(--shadow-card)">
         <table className="w-full text-xs">
-          <thead className="text-muted-foreground text-left">
+          <thead className="text-muted-foreground border-border border-b text-left text-xs tracking-wide uppercase">
             <tr>
-              <th className="py-2">Time</th>
-              <th>Actor</th>
-              <th>Action</th>
-              <th>Entity</th>
-              <th>Metadata</th>
+              <th className="py-3 pr-3 font-medium">Time</th>
+              <th className="pr-3 font-medium">Actor</th>
+              <th className="pr-3 font-medium">Action</th>
+              <th className="pr-3 font-medium">Entity</th>
+              <th className="pr-3 font-medium">Metadata</th>
             </tr>
           </thead>
           <tbody className="divide-border divide-y font-mono">
@@ -68,8 +73,8 @@ export default async function AdminAudit({ searchParams }: { searchParams: Promi
             <Field label="Feedback id" htmlFor="feedback_id">
               <Input id="feedback_id" name="feedback_id" required />
             </Field>
-            <Field label="Reason (min 10 characters)" htmlFor="reason">
-              <Input id="reason" name="reason" required minLength={10} className="w-80" />
+            <Field label="Reason (min 10 characters)" htmlFor="reason" className="w-full sm:w-auto">
+              <Input id="reason" name="reason" required minLength={10} className="w-full sm:w-80" />
             </Field>
             <Button type="submit" variant="outline">
               Read

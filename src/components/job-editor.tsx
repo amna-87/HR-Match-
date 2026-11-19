@@ -4,6 +4,7 @@ import type { ParsedJob } from "@/lib/parsing/schemas";
 import type { JobValues, SaveState } from "@/lib/job-values";
 import { Field, Input, Select, Textarea } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
+import { FileInput } from "@/components/ui/file-input";
 import { Alert } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -149,15 +150,14 @@ export function JobEditor({
           </form>
           {imageAction && (
             <form action={uploadImage} className="border-border mt-4 space-y-3 border-t pt-4">
-              <label htmlFor="job-image" className="block text-sm font-medium">
-                Or upload a picture of the job post (flyer or screenshot)
-              </label>
-              <input
+              <p className="text-sm font-medium">Or upload a picture of the job post (flyer or screenshot)</p>
+              <FileInput
                 id="job-image"
                 name="image"
-                type="file"
+                aria-label="Or upload a picture of the job post (flyer or screenshot)"
+                label="Choose a picture"
+                hint="PNG, JPG or WebP"
                 accept="image/png,image/jpeg,image/webp"
-                className="text-sm"
                 onChange={(e) => {
                   const f = e.target.files?.[0];
                   if (f) setPreview(URL.createObjectURL(f));

@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ClipboardPaste, FileSpreadsheet, Rss } from "lucide-react";
@@ -41,14 +42,10 @@ export default async function SourcesPage({ searchParams }: { searchParams: Prom
   return (
     <div className="space-y-6">
       <Flash searchParams={sp} />
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Job sources</h1>
-        <p className="text-muted-foreground max-w-3xl text-sm">
-          Bring jobs into your workspace so you can match them against your talent pool. Company and source are
-          optional; each job needs a title and one way to apply. No scraping: only jobs shared with you, files you own
-          and official public job-board feeds.
-        </p>
-      </div>
+      <PageHeader
+        title="Job sources"
+        description="Bring jobs into your workspace so you can match them against your talent pool. Each job needs a title and one way to apply. No scraping: only jobs shared with you, files you own and official public job-board feeds."
+      />
 
       <Card>
         <CardHeader>
@@ -89,7 +86,7 @@ export default async function SourcesPage({ searchParams }: { searchParams: Prom
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <form action={addSearchFeed} className="grid gap-3 sm:grid-cols-[220px_1fr_1fr_auto] sm:items-end">
+          <form action={addSearchFeed} className="grid gap-3 md:grid-cols-[240px_1fr_1fr_auto] md:items-end">
             <Field label="Job site" htmlFor="search_provider">
               <Select id="search_provider" name="provider" defaultValue="remotive">
                 {Object.values(FEED_CONNECTORS)
@@ -105,11 +102,11 @@ export default async function SourcesPage({ searchParams }: { searchParams: Prom
                   })}
               </Select>
             </Field>
-            <Field label="Keywords" htmlFor="keywords" hint="e.g. marketing, accountant, react">
-              <Input id="keywords" name="keywords" maxLength={80} />
+            <Field label="Keywords" htmlFor="keywords">
+              <Input id="keywords" name="keywords" maxLength={80} placeholder="e.g. marketing, accountant" />
             </Field>
-            <Field label="City or country (optional)" htmlFor="search_location" hint="e.g. Lahore, Pakistan, Germany">
-              <Input id="search_location" name="location" maxLength={80} />
+            <Field label="City or country (optional)" htmlFor="search_location">
+              <Input id="search_location" name="location" maxLength={80} placeholder="e.g. Lahore, Germany" />
             </Field>
             <SubmitButton>Add search</SubmitButton>
           </form>
@@ -136,10 +133,10 @@ export default async function SourcesPage({ searchParams }: { searchParams: Prom
           {(feeds ?? []).length > 0 && (
             <ul className="divide-border border-border divide-y rounded-xl border text-sm">
               {feeds!.map((f) => (
-                <li key={f.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-                  <div className="space-y-0.5">
-                    <p className="font-medium">
-                      {f.company_name}{" "}
+                <li key={f.id} className="flex flex-col gap-3 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="min-w-0 space-y-1">
+                    <p className="flex flex-wrap items-center gap-1.5 font-medium">
+                      <span className="mr-1">{f.company_name}</span>
                       <Badge>
                         {(() => {
                           const c = FEED_CONNECTORS[f.provider as keyof typeof FEED_CONNECTORS];
@@ -197,7 +194,7 @@ export default async function SourcesPage({ searchParams }: { searchParams: Prom
             </ul>
           )}
           {(feeds?.length ?? 0) < ws.source_cap ? (
-            <form action={addFeed} className="grid gap-3 sm:grid-cols-[160px_1fr_1fr_auto] sm:items-end">
+            <form action={addFeed} className="grid gap-3 md:grid-cols-[180px_1fr_1fr_auto] md:items-end">
               <Field label="Job board" htmlFor="provider">
                 <Select id="provider" name="provider" defaultValue="greenhouse">
                   {Object.values(FEED_CONNECTORS)
@@ -209,8 +206,8 @@ export default async function SourcesPage({ searchParams }: { searchParams: Prom
                     ))}
                 </Select>
               </Field>
-              <Field label="Board name or careers URL" htmlFor="board" hint="e.g. jobs.lever.co/acme or acme">
-                <Input id="board" name="board" required maxLength={300} />
+              <Field label="Board name or careers URL" htmlFor="board">
+                <Input id="board" name="board" required maxLength={300} placeholder="e.g. jobs.lever.co/acme" />
               </Field>
               <Field label="Company name" htmlFor="feed_company">
                 <Input id="feed_company" name="company_name" required maxLength={200} />

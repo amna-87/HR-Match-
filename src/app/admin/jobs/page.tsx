@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import Link from "next/link";
 import { requireRole } from "@/lib/auth/session";
 import { approvePublicJob, moderateJob } from "../actions";
@@ -30,14 +31,18 @@ export default async function AdminJobs({ searchParams }: { searchParams: Promis
     .not("public_requested_at", "is", null)
     .order("public_requested_at");
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <Flash searchParams={sp} />
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Job moderation</h1>
-        <Link href="/admin/sourced/new" className={buttonClasses()}>
-          Add sourced job
-        </Link>
-      </div>
+      <PageHeader
+        eyebrow="Admin"
+        title="Job moderation"
+        description="Publish, pause or remove any job on Vouch, and answer requests to show workspace jobs on the public board."
+        actions={
+          <Link href="/admin/sourced/new" className={buttonClasses()}>
+            Add sourced job
+          </Link>
+        }
+      />
       {(requests ?? []).length > 0 && (
         <section aria-labelledby="req-h" className="space-y-2">
           <h2 id="req-h" className="text-lg font-semibold">
@@ -45,8 +50,8 @@ export default async function AdminJobs({ searchParams }: { searchParams: Promis
           </h2>
           <ul className="divide-border divide-y rounded-lg border border-amber-400 bg-amber-50/50 dark:bg-amber-950/30">
             {requests!.map((j) => (
-              <li key={j.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-                <div>
+              <li key={j.id} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
                   <p className="font-medium">{j.title}</p>
                   <p className="text-muted-foreground text-xs">
                     {j.source_company_name ?? "Hiring directly"} · {sourceLabel(j)} · apply by {j.apply_method} · from
@@ -74,8 +79,8 @@ export default async function AdminJobs({ searchParams }: { searchParams: Promis
       )}
       <ul className="divide-border border-border bg-card divide-y rounded-lg border">
         {(jobs ?? []).map((j) => (
-          <li key={j.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-            <div>
+          <li key={j.id} className="flex flex-col gap-3 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="min-w-0">
               <Link href={`/jobs/${j.id}`} className="font-medium hover:underline">
                 {j.title}
               </Link>{" "}
@@ -87,7 +92,7 @@ export default async function AdminJobs({ searchParams }: { searchParams: Promis
                 {formatDate(j.expires_at)}
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2 sm:flex-nowrap">
               {(j.status === "draft" || j.status === "paused") && (
                 <form action={moderateJob}>
                   <input type="hidden" name="id" value={j.id} />
@@ -96,7 +101,7 @@ export default async function AdminJobs({ searchParams }: { searchParams: Promis
                 </form>
               )}
               {j.status !== "removed" ? (
-                <form action={moderateJob} className="flex gap-2">
+                <form action={moderateJob} className="flex min-w-0 flex-1 gap-2 lg:flex-none">
                   <input type="hidden" name="id" value={j.id} />
                   <input type="hidden" name="status" value="removed" />
                   <label htmlFor={`reason-${j.id}`} className="sr-only">
@@ -106,7 +111,7 @@ export default async function AdminJobs({ searchParams }: { searchParams: Promis
                     id={`reason-${j.id}`}
                     name="reason"
                     placeholder="Reason"
-                    className="border-border bg-background h-8 rounded-md border px-2 text-sm"
+                    className="border-border bg-background h-8 w-full min-w-0 rounded-md border px-2 text-sm lg:w-44"
                   />
                   <Button size="sm" variant="destructive">
                     Remove

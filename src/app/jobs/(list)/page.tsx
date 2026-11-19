@@ -88,15 +88,15 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
 
   return (
     <div className="space-y-8">
-      <section className="hero-glow border-border bg-card space-y-5 rounded-3xl border px-6 py-8 shadow-(--shadow-card) sm:px-10">
+      <section className="hero-glow border-border bg-card space-y-5 rounded-3xl border px-5 py-7 shadow-(--shadow-card) sm:px-10">
         <div className="space-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight">Open roles</h1>
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Open roles</h1>
           <p className="text-muted-foreground">Browse freely — no account needed.</p>
         </div>
         <form method="get" role="search" className="space-y-3">
           {mode && <input type="hidden" name="mode" value={mode} />}
-          <div className="flex max-w-3xl flex-wrap gap-2">
-            <div className="border-border bg-background flex min-w-0 flex-[2] items-center gap-2 rounded-xl border px-3 shadow-sm focus-within:border-violet-400 focus-within:ring-4 focus-within:ring-violet-500/15">
+          <div className="grid max-w-3xl gap-2 sm:flex">
+            <div className="border-border bg-background flex min-w-0 items-center gap-2 rounded-xl border px-3 shadow-sm focus-within:border-violet-400 focus-within:ring-4 focus-within:ring-violet-500/15 sm:flex-[2]">
               <Search className="text-muted-foreground h-5 w-5 shrink-0" aria-hidden />
               <label htmlFor="q" className="sr-only">
                 Search
@@ -106,7 +106,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                 name="q"
                 defaultValue={q}
                 placeholder="Title, skill or company"
-                className="placeholder:text-muted-foreground h-11 min-w-0 flex-1 bg-transparent outline-none focus-visible:outline-none"
+                className="placeholder:text-muted-foreground h-12 min-w-0 flex-1 bg-transparent outline-none focus-visible:outline-none"
               />
             </div>
             <label htmlFor="location" className="sr-only">
@@ -117,11 +117,11 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
               name="location"
               defaultValue={loc}
               placeholder="City or country"
-              className="border-border bg-background placeholder:text-muted-foreground h-12 min-w-0 flex-1 rounded-xl border px-3 shadow-sm"
+              className="border-border bg-background placeholder:text-muted-foreground h-12 min-w-0 rounded-xl border px-3 shadow-sm focus-visible:border-violet-400 focus-visible:ring-4 focus-visible:ring-violet-500/15 focus-visible:outline-none sm:flex-1"
             />
             <button className={buttonClasses("default", "default", "h-12 rounded-xl px-6")}>Search</button>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
             <label htmlFor="type" className="sr-only">
               Job type
             </label>

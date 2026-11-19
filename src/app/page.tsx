@@ -15,6 +15,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { buttonClasses } from "@/components/ui/button";
+import { LogoMark } from "@/components/logo";
 import { getSession } from "@/lib/auth/session";
 import { JobList, PUBLIC_JOB_COLUMNS, type PublicJob } from "@/components/job-list";
 
@@ -126,12 +127,14 @@ export default async function Home() {
 
   return (
     <div className="space-y-16 sm:space-y-20">
-      <section className="hero-glow border-border bg-card relative space-y-10 overflow-hidden rounded-3xl border px-6 py-12 shadow-(--shadow-card) sm:px-12 sm:py-16">
+      <section className="hero-glow border-border bg-card relative isolate space-y-10 overflow-hidden rounded-3xl border px-5 py-10 shadow-(--shadow-card) sm:px-12 sm:py-16">
+        <LogoMark className="pointer-events-none absolute -top-12 -right-20 -z-10 hidden h-80 w-80 opacity-[0.07] md:block" />
+        <LogoMark className="pointer-events-none absolute top-40 -left-24 -z-10 hidden h-64 w-64 -scale-x-100 opacity-[0.05] lg:block" />
         <div className="mx-auto max-w-3xl space-y-6 text-center">
           <span className="bg-primary-soft text-primary-soft-foreground inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium">
             <ShieldCheck className="h-4 w-4" aria-hidden /> Consent-first hiring
           </span>
-          <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
+          <h1 className="text-[2.1rem] leading-tight font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
             The right job for you. <span className="text-primary">The right people for your team.</span>
           </h1>
           <p className="text-muted-foreground mx-auto max-w-2xl text-lg text-pretty">

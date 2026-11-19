@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import { requireCandidate } from "@/lib/auth/session";
 import { savePreferences, blockCompany, unblockCompany } from "../actions";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -19,6 +20,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
   return (
     <div className="space-y-6">
       <Flash searchParams={await searchParams} />
+      <PageHeader title="Preferences" description="What you want next, who can see you and how often we email you." />
       <form action={savePreferences} className="space-y-6">
         <Card>
           <CardHeader>

@@ -3,10 +3,10 @@
 // its columns to job fields, preview, then import. Each row is checked on its own.
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { FileSpreadsheet } from "lucide-react";
 import { CSV_FIELDS, CSV_MAX_ROWS, guessMapping, parseCsv, type CsvField } from "@/lib/csv";
 import { importCsvJobs, type CsvRowResult } from "@/app/recruiter/sources/actions";
 import { Button } from "@/components/ui/button";
+import { FileInput } from "@/components/ui/file-input";
 import { cn } from "@/lib/utils";
 
 export function CsvImport({ allowPublicBoard = false }: { allowPublicBoard?: boolean }) {
@@ -64,18 +64,12 @@ export function CsvImport({ allowPublicBoard = false }: { allowPublicBoard?: boo
   const added = results?.filter((r) => r.status === "added").length ?? 0;
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <FileSpreadsheet className="text-primary h-5 w-5" aria-hidden />
-        <label htmlFor="csv-file" className="text-sm font-medium">
-          CSV file
-        </label>
-        <input
-          id="csv-file"
-          type="file"
-          accept=".csv,.tsv,.txt,text/csv"
-          onChange={(e) => onFile(e.target.files?.[0])}
-        />
-      </div>
+      <FileInput
+        id="csv-file"
+        label="Choose a CSV file"
+        accept=".csv,.tsv,.txt,text/csv"
+        onChange={(e) => onFile(e.target.files?.[0])}
+      />
       <p className="text-muted-foreground text-xs">
         One job per row. Only a title and one way to apply (email, WhatsApp, phone or link) are needed. Up to{" "}
         {CSV_MAX_ROWS} rows.

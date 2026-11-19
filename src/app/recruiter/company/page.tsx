@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import { redirect } from "next/navigation";
 import { requireRecruiter } from "@/lib/auth/session";
 import { updateCompany, inviteRecruiter, revokeInvitation, removeMember } from "../actions";
@@ -43,6 +44,7 @@ export default async function CompanyPage({ searchParams }: { searchParams: Prom
   return (
     <div className="space-y-6">
       <Flash searchParams={await searchParams} />
+      <PageHeader title="Workspace settings" description="Your company details, network sharing, plan and team." />
       <Card>
         <CardHeader>
           <CardTitle>Workspace</CardTitle>

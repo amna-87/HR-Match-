@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Search, Sparkles } from "lucide-react";
@@ -158,21 +159,24 @@ export default async function TalentPoolPage({ searchParams }: { searchParams: P
   return (
     <div className="space-y-6">
       <Flash searchParams={sp} />
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Talent pool</h1>
-          <p className="text-muted-foreground max-w-3xl text-sm">
+      <PageHeader
+        title="Talent pool"
+        description={
+          <>
             Resumes you add are private to your workspace. Nobody else sees them unless you turn on anonymous sharing in{" "}
-            <Link href="/recruiter/company" className="underline">
+            <Link href="/recruiter/company" className="text-primary underline">
               workspace settings
             </Link>
             , and even then only a card without the name, contact details or file. We never email these people.
+          </>
+        }
+        actions={
+          <p className="border-border bg-card text-muted-foreground rounded-xl border px-4 py-2 text-sm shadow-(--shadow-card)">
+            <span className="text-foreground text-2xl font-semibold tabular-nums">{poolCount ?? 0}</span> /{" "}
+            {ws.pool_cap} profiles
           </p>
-        </div>
-        <p className="text-muted-foreground text-sm">
-          <span className="text-foreground text-2xl font-semibold">{poolCount ?? 0}</span> / {ws.pool_cap} profiles
-        </p>
-      </div>
+        }
+      />
 
       {intros.length > 0 && (
         <Card className="border-sky-300">

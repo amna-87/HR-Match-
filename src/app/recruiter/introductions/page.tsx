@@ -1,9 +1,12 @@
+import { EmptyState } from "@/components/empty-state";
+import { Network } from "lucide-react";
+import { PageHeader } from "@/components/page-header";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireRecruiter } from "@/lib/auth/session";
 import { withdrawIntroduction } from "./actions";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonClasses } from "@/components/ui/button";
 import { Flash } from "@/components/flash";
 import { formatDate } from "@/lib/utils";
 
@@ -38,18 +41,20 @@ export default async function IntroductionsPage({ searchParams }: { searchParams
   return (
     <div className="space-y-6">
       <Flash searchParams={await searchParams} />
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Introductions</h1>
-        <p className="text-muted-foreground text-sm">
-          People from the Vouch network you asked to meet. Their details appear once they agree. If they decline, you
-          see &ldquo;Not available&rdquo; and never who it was.
-        </p>
-      </div>
+      <PageHeader
+        title="Introductions"
+        description={
+          <>
+            People from the Vouch network you asked to meet. Their details appear once they agree. If they decline, you
+            see &ldquo;Not available&rdquo; and never who it was.
+          </>
+        }
+      />
       {rows.length ? (
         <ul className="divide-border border-border bg-card divide-y rounded-2xl border">
           {rows.map((r) => (
             <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-              <div className="space-y-0.5">
+              <div className="min-w-0 space-y-0.5">
                 <p className="font-medium">
                   {r.status === "accepted" ? (
                     <Link href={`/recruiter/introductions/${r.id}`} className="hover:underline">
@@ -80,9 +85,17 @@ export default async function IntroductionsPage({ searchParams }: { searchParams
           ))}
         </ul>
       ) : (
-        <p className="text-muted-foreground text-sm">
-          No introductions yet. Open one of your jobs to see matching people from the Vouch network.
-        </p>
+        <EmptyState
+          icon={Network}
+          title="No introductions yet"
+          action={
+            <Link href="/recruiter" className={buttonClasses("outline", "sm")}>
+              Go to my jobs
+            </Link>
+          }
+        >
+          Open one of your jobs to see matching people from the Vouch network, then ask for an introduction.
+        </EmptyState>
       )}
     </div>
   );

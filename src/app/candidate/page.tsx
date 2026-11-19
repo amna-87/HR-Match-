@@ -16,6 +16,8 @@ import { Alert } from "@/components/ui/alert";
 import { Flash } from "@/components/flash";
 import { SourcedNotice, applyHref } from "@/components/job-source";
 import { formatDate } from "@/lib/utils";
+import { Award, Bell, Send, Sparkles } from "lucide-react";
+import { EmptyState } from "@/components/empty-state";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Dashboard" };
@@ -210,7 +212,17 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
           Matches waiting for you
         </h2>
         {!matches?.length && (
-          <p className="text-muted-foreground text-sm">No matches waiting. We&apos;ll email you when a job fits.</p>
+          <EmptyState
+            icon={Sparkles}
+            title="No matches waiting"
+            action={
+              <Link href="/jobs" className={buttonClasses("outline", "sm")}>
+                Browse open roles
+              </Link>
+            }
+          >
+            We check new jobs against your profile every day and email you when one fits.
+          </EmptyState>
         )}
         <div className="grid gap-4 md:grid-cols-2">
           {(matches ?? []).map((m) => {
@@ -286,9 +298,9 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
           Recruiter recommendations
         </h2>
         {!offers?.length && (
-          <p className="text-muted-foreground text-sm">
-            When a recruiter recommends you for other roles, you&apos;ll decide here.
-          </p>
+          <EmptyState icon={Award} title="No recommendations yet">
+            When a recruiter recommends you for other roles, you&apos;ll decide here whether to be visible.
+          </EmptyState>
         )}
         {(offers ?? []).map((o) => (
           <Card key={o.id}>
@@ -302,7 +314,7 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
                 If you opt in, recruiters hiring in this area can see an &ldquo;Interview-vetted&rdquo; card with these
                 strengths (not your name or contact details) and you may get more matches. You can withdraw at any time.
               </p>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Badge tone={o.status === "opted_in" ? "success" : o.status === "pending" ? "warning" : "muted"}>
                   {o.status.replace("_", " ")}
                 </Badge>
@@ -341,8 +353,16 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
         <h2 id="apps-h" className="text-xl font-semibold tracking-tight">
           Your applications
         </h2>
-        {!applications?.length && <p className="text-muted-foreground text-sm">No applications yet.</p>}
-        <ul className="divide-border border-border bg-card divide-y rounded-lg border">
+        {!applications?.length && (
+          <EmptyState icon={Send} title="No applications yet">
+            When you approve a match or apply with your Vouch profile, you can follow its progress here.
+          </EmptyState>
+        )}
+        <ul
+          className={
+            applications?.length ? "divide-border border-border bg-card divide-y rounded-2xl border" : "hidden"
+          }
+        >
           {(applications ?? []).map((a) => {
             const job = a.job as unknown as {
               id: string;
@@ -352,7 +372,7 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
             };
             return (
               <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
-                <span>
+                <span className="min-w-0">
                   {job.title} · <span className="text-muted-foreground">{job.company?.name}</span>
                   {job.apply_instructions && (
                     <span className="text-muted-foreground block text-xs whitespace-pre-line">
@@ -380,7 +400,7 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
       )}
 
       <section aria-labelledby="notes-h" className="space-y-3">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <h2 id="notes-h" className="text-xl font-semibold tracking-tight">
             Notifications
           </h2>
@@ -392,18 +412,31 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
             </form>
           )}
         </div>
-        <ul className="space-y-1 text-sm">
-          {(notes ?? []).map((n) => (
-            <li key={n.id} className={n.read_at ? "text-muted-foreground" : ""}>
-              {formatDate(n.created_at)} —{" "}
-              {n.type === "match"
-                ? `New match: ${(n.payload as { job_title?: string }).job_title ?? "a job"}`
-                : n.type === "redistribution_offer"
-                  ? "A recruiter recommended you for other roles"
-                  : n.type}
-            </li>
-          ))}
-        </ul>
+        {!notes?.length ? (
+          <EmptyState icon={Bell} title="You're all caught up">
+            New matches and messages about your profile appear here.
+          </EmptyState>
+        ) : (
+          <ul className="divide-border border-border bg-card divide-y rounded-2xl border text-sm">
+            {notes.map((n) => (
+              <li key={n.id} className="flex items-start gap-3 px-4 py-3">
+                <span
+                  className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${n.read_at ? "bg-border" : "bg-primary"}`}
+                  aria-hidden
+                />
+                <span className={`min-w-0 flex-1 ${n.read_at ? "text-muted-foreground" : ""}`}>
+                  {n.type === "match"
+                    ? `New match: ${(n.payload as { job_title?: string }).job_title ?? "a job"}`
+                    : n.type === "redistribution_offer"
+                      ? "A recruiter recommended you for other roles"
+                      : n.type.replace(/_/g, " ")}
+                  {!n.read_at && <span className="sr-only"> (unread)</span>}
+                </span>
+                <span className="text-muted-foreground shrink-0 text-xs">{formatDate(n.created_at)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </div>
   );

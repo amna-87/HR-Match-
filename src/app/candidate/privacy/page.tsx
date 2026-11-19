@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import { requireCandidate } from "@/lib/auth/session";
 import { deleteAccount } from "../actions";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +14,10 @@ export default async function PrivacyToolsPage({ searchParams }: { searchParams:
   return (
     <div className="space-y-6">
       <Flash searchParams={await searchParams} />
+      <PageHeader
+        title="Privacy and data"
+        description="Download everything we hold about you, or delete your account."
+      />
       <Card>
         <CardHeader>
           <CardTitle>Download your data</CardTitle>

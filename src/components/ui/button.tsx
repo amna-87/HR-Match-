@@ -13,7 +13,7 @@ const variants: Record<Variant, string> = {
   link: "text-primary underline-offset-4 hover:underline px-0",
 };
 const sizes: Record<Size, string> = {
-  default: "h-10 px-4 py-2",
+  default: "h-11 px-4 py-2",
   sm: "h-8 px-3 text-sm",
   lg: "h-12 px-6 text-base",
 };
