@@ -57,7 +57,7 @@ export async function PoolMatches({ supabase, jobId }: { supabase: SupabaseClien
             Anonymous profiles other recruiters chose to share. Ask for an introduction: we ask the person first, and
             you see their name, contact details and resume only if they agree.
           </p>
-          <ul className="grid gap-3 md:grid-cols-2">
+          <ul className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {network.map((m) => (
               <li key={m.candidateId} className="border-border bg-card space-y-2 rounded-2xl border p-4">
                 <div className="flex items-start justify-between gap-2">

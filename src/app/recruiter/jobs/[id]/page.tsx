@@ -211,7 +211,7 @@ export default async function RecruiterJobPage({
             These candidates were recommended by another recruiter and opted in to being visible for this domain. Names
             and contact details stay hidden; they&apos;ll be asked about your job and appear above if they approve.
           </p>
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {vetted.map((r) => (
               <Card key={r.match_id}>
                 <CardHeader>

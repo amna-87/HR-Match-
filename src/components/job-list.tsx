@@ -41,18 +41,18 @@ export function JobList({ jobs, empty = "No open roles yet." }: { jobs: PublicJo
       </div>
     );
   return (
-    <ul className="grid gap-4 md:grid-cols-2">
+    <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
       {jobs.map((j) => {
         const company = companyName(j);
         return (
           <li
             key={j.id}
-            className="group border-border bg-card relative flex flex-col gap-4 rounded-2xl border p-5 shadow-(--shadow-card) transition-all hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-(--shadow-lift) dark:hover:border-violet-900"
+            className="group border-border bg-card relative flex min-w-0 flex-col gap-4 rounded-2xl border p-5 shadow-(--shadow-card) transition-all hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-(--shadow-lift) dark:hover:border-violet-900"
           >
             <div className="flex items-start gap-4">
               <CompanyAvatar name={company} />
               <div className="min-w-0 flex-1">
-                <h3 className="leading-snug font-semibold tracking-tight">
+                <h3 className="leading-snug font-semibold tracking-tight [overflow-wrap:anywhere]">
                   <Link
                     href={jobPath(j)}
                     className="group-hover:text-primary after:absolute after:inset-0 after:rounded-2xl after:content-['']"
@@ -68,7 +68,9 @@ export function JobList({ jobs, empty = "No open roles yet." }: { jobs: PublicJo
                 <Badge tone="success">Employer</Badge>
               )}
             </div>
-            <p className="text-muted-foreground line-clamp-2 text-sm">{firstParagraph(j.description_summary)}</p>
+            <p className="text-muted-foreground line-clamp-2 text-sm [overflow-wrap:anywhere]">
+              {firstParagraph(j.description_summary)}
+            </p>
             <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
               <span className="bg-muted inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-medium">
                 <Briefcase className="h-3.5 w-3.5" aria-hidden />
@@ -76,7 +78,7 @@ export function JobList({ jobs, empty = "No open roles yet." }: { jobs: PublicJo
                 {j.employment_type ? ` · ${employmentLabel(j.employment_type)}` : ""}
               </span>
               {j.location && (
-                <span className="text-muted-foreground inline-flex min-w-0 items-center gap-1">
+                <span className="text-muted-foreground inline-flex max-w-full min-w-0 items-center gap-1">
                   <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />
                   <span className="truncate">{j.location}</span>
                 </span>

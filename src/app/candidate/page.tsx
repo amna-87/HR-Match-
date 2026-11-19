@@ -224,7 +224,7 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
             We check new jobs against your profile every day and email you when one fits.
           </EmptyState>
         )}
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {(matches ?? []).map((m) => {
             const job = m.job as unknown as JobRef;
             const company = job.company?.name ?? job.source_company_name ?? "Hiring directly";

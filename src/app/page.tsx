@@ -168,7 +168,7 @@ export default async function Home() {
             </p>
           </div>
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {audiences.map(({ id, icon: Icon, tag, title, points, cta, alt, tone }) => (
             <article
               key={id}
