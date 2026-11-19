@@ -102,7 +102,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             </nav>
           </div>
           <div className="border-border text-muted-foreground border-t py-4 text-center text-xs">
-            © {new Date().getFullYear()} {appName}
+            © {new Date().getFullYear()} {appName} · A production by{" "}
+            <span className="text-foreground font-medium">Brivonic</span>
           </div>
         </footer>
       </body>
