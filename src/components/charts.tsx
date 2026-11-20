@@ -267,7 +267,7 @@ export function ActivityChart({ series }: { series: Series[] }) {
         </div>
         <div className="ml-8">
           <div
-            className="relative h-56"
+            className="relative h-56 lg:h-80"
             onMouseLeave={() => setHover(null)}
             onMouseMove={(e) => {
               const r = e.currentTarget.getBoundingClientRect();
