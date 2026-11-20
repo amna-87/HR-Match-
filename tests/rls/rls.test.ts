@@ -265,6 +265,17 @@ describe("internal tables", () => {
     expect(r.rows[0].c.users).toBeGreaterThan(0);
   });
 
+  it("admin_dashboard is admin-only, aggregate-only and counts logins by role", async () => {
+    await expect(db.as(IDS.rita)("select admin_dashboard()")).rejects.toThrow(/not allowed/);
+    await expect(db.anon("select admin_dashboard()")).rejects.toThrow(/permission denied/);
+    await db.root("update auth.users set last_sign_in_at = now() where id = $1", [IDS.rita]);
+    const d = (await db.as(IDS.admin)("select admin_dashboard() d")).rows[0].d;
+    expect(d.recruiters.logged_in_7d).toBeGreaterThanOrEqual(1);
+    expect(d.jobs.total).toBe(d.jobs.published + d.jobs.draft + d.jobs.paused + d.jobs.closed + d.jobs.removed);
+    expect(d.daily).toHaveLength(30);
+    expect(JSON.stringify(d)).not.toMatch(/@/); // no emails or other personal data
+  });
+
   it("users can only see their own in-app notifications", async () => {
     await db.root(
       "insert into notifications(user_id, type, channel, payload) values ($1, 't', 'in_app', '{}'), ($1, 't', 'email', '{}')",

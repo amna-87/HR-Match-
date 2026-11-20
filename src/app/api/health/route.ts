@@ -79,7 +79,8 @@ const SCHEMA_CHECK = `
     ('000021_feed_public', exists (select 1 from information_schema.columns
        where table_schema = 'public' and table_name = 'job_feeds' and column_name = 'publish_public')),
     ('000022_search_feeds', exists (select 1 from pg_constraint
-       where conname = 'job_feeds_provider_check' and pg_get_constraintdef(oid) like '%remotive%'))
+       where conname = 'job_feeds_provider_check' and pg_get_constraintdef(oid) like '%remotive%')),
+    ('000023_admin_dashboard', exists (select 1 from pg_proc where proname = 'admin_dashboard'))
   ) as t(name, present)`;
 
 /** A short, non-secret category for setup troubleshooting (never the URL or password). */

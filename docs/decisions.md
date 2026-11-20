@@ -530,3 +530,12 @@ personal phone numbers or email addresses"; otherwise only signed-in users and t
   be confirmed against the docs that come with the affiliate account.
 - Not possible: LinkedIn, Indeed, Rozee, Glassdoor and JobLeads offer no public feed and forbid scraping. Their job
   alert emails can be forwarded to the workspace inbox (D-037) for private matching.
+
+## D-040 Admin dashboard stats (2026-11-20)
+
+The admin home (`/admin`) is a dashboard built from one RPC, `admin_dashboard()` (migration 000023). It returns
+aggregates only, no names, emails or resume content, so reading it is not written to the audit log. "Logged in" means
+the account has signed in at least once (`auth.users.last_sign_in_at`), also shown for the last 7 and 30 days; Supabase
+keeps only the last sign-in time, so we show these windows rather than a full login history. "Jobs posted" = published;
+"not posted" = draft + paused. "Candidates matched" = candidate accounts with at least one match. Admins who open `/`
+are sent to `/admin`; `/?site=1` (linked from the account menu) shows the public home page.

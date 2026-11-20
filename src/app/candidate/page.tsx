@@ -18,6 +18,7 @@ import { SourcedNotice, applyHref } from "@/components/job-source";
 import { formatDate } from "@/lib/utils";
 import { Award, Bell, Send, Sparkles } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
+import { LogoMark } from "@/components/logo";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Dashboard" };
@@ -90,6 +91,17 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
     claimed: boolean;
   }[];
   const unread = (notes ?? []).filter((n) => !n.read_at).length;
+  // Profile strength: the parts of a profile that matching uses (no protected characteristics).
+  const checks: [boolean, string][] = [
+    [!!candidate.headline, "add a headline"],
+    [(candidate.summary ?? "").length > 40, "write a short summary"],
+    [!!candidate.location, "add your location"],
+    [(candidate.desired_roles ?? []).length > 0, "choose the roles you want"],
+    [candidate.experience_years != null && Number(candidate.experience_years) > 0, "add your experience"],
+    [!!candidate.contact_email || !!candidate.contact_phone, "add contact details"],
+  ];
+  const strength = Math.round((checks.filter(([ok]) => ok).length / checks.length) * 100);
+  const nextStep = checks.find(([ok]) => !ok)?.[1] ?? "";
   type JobRef = {
     id: string;
     title: string;
@@ -107,33 +119,88 @@ export default async function CandidateDashboard({ searchParams }: { searchParam
   return (
     <div className="space-y-8">
       <Flash searchParams={await searchParams} />
-      <div className="hero-glow border-border bg-card flex flex-wrap items-center justify-between gap-4 rounded-3xl border p-6 shadow-(--shadow-card) sm:p-8">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            Hi{candidate.full_name ? `, ${candidate.full_name.split(" ")[0]}` : ""} 👋
-          </h1>
-          <p className="text-muted-foreground">
-            Nothing is sent to an employer unless you approve it here or from an email.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link href="/candidate/profile" className={buttonClasses("outline")}>
-            Edit profile
+      <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-violet-700 via-violet-700 to-fuchsia-700 p-6 text-white shadow-(--shadow-lift) sm:p-8">
+        <LogoMark className="pointer-events-none absolute -right-10 -bottom-16 -z-10 h-60 w-60 opacity-15 [--logo-accent:#f0abfc] [--logo-ink:#fff] sm:h-72 sm:w-72" />
+        <div className="pointer-events-none absolute -top-24 -left-20 -z-10 h-60 w-60 rounded-full bg-fuchsia-400/30 blur-3xl" />
+        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+              Hi{candidate.full_name ? `, ${candidate.full_name.split(" ")[0]}` : ""} 👋
+            </h1>
+            <p className="max-w-lg text-violet-100">
+              Nothing is sent to an employer unless you approve it here or from an email.
+            </p>
+            <div className="flex flex-wrap gap-2 pt-4">
+              <Link
+                href="/jobs"
+                className={buttonClasses(
+                  "outline",
+                  "default",
+                  "border-transparent bg-white text-violet-700 hover:bg-violet-50",
+                )}
+              >
+                Browse jobs
+              </Link>
+              <Link
+                href="/candidate/profile"
+                className={buttonClasses(
+                  "outline",
+                  "default",
+                  "border-white/30 bg-white/10 text-white hover:bg-white/20",
+                )}
+              >
+                Edit profile
+              </Link>
+            </div>
+          </div>
+          <Link
+            href="/candidate/profile"
+            className="flex items-center gap-4 rounded-2xl bg-white/10 p-4 backdrop-blur transition-colors hover:bg-white/15 md:w-72"
+          >
+            <svg viewBox="0 0 72 72" className="h-16 w-16 shrink-0 -rotate-90" aria-hidden>
+              <circle cx="36" cy="36" r="30" fill="none" stroke="rgb(255 255 255 / 0.2)" strokeWidth="7" />
+              <circle
+                cx="36"
+                cy="36"
+                r="30"
+                fill="none"
+                stroke="#fff"
+                strokeWidth="7"
+                strokeLinecap="round"
+                strokeDasharray={`${(strength / 100) * 188.5} 188.5`}
+              />
+            </svg>
+            <span>
+              <span className="block text-2xl font-semibold tabular-nums">{strength}%</span>
+              <span className="block text-sm font-medium">Profile strength</span>
+              <span className="block text-xs text-violet-100">
+                {strength < 100 ? `Next: ${nextStep}` : "Complete. Great work!"}
+              </span>
+            </span>
           </Link>
-          <Link href="/jobs" className={buttonClasses("default")}>
-            Browse jobs
-          </Link>
         </div>
-        {(!candidate.open_to_work || candidate.visibility_paused) && (
-          <Alert tone="warning">
-            Your profile is {candidate.visibility_paused ? "paused" : "not open to opportunities"} — you won&apos;t get
-            new matches.{" "}
-            <Link href="/candidate/settings" className="underline">
-              Change
-            </Link>
-          </Alert>
-        )}
-      </div>
+        <dl className="mt-6 grid grid-cols-3 gap-2 border-t border-white/15 pt-5 text-center sm:max-w-md sm:text-left">
+          {[
+            ["Matches waiting", matches?.length ?? 0],
+            ["Applications", applications?.length ?? 0],
+            ["Saved jobs", savedJobs.length],
+          ].map(([k, v]) => (
+            <div key={k as string}>
+              <dd className="text-2xl font-semibold tabular-nums">{v}</dd>
+              <dt className="text-xs text-violet-100">{k}</dt>
+            </div>
+          ))}
+        </dl>
+      </section>
+      {(!candidate.open_to_work || candidate.visibility_paused) && (
+        <Alert tone="warning">
+          Your profile is {candidate.visibility_paused ? "paused" : "not open to opportunities"} — you won&apos;t get
+          new matches.{" "}
+          <Link href="/candidate/settings" className="underline">
+            Change
+          </Link>
+        </Alert>
+      )}
 
       {introRequests.map((r) => (
         <Card key={r.id} className="border-violet-300">

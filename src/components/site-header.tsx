@@ -11,6 +11,7 @@ import {
   Users,
   Rss,
   Handshake,
+  Home,
 } from "lucide-react";
 import { getSession } from "@/lib/auth/session";
 import { Logo } from "@/components/logo";
@@ -34,7 +35,7 @@ const links: Record<Role, NavItem[]> = {
     ["/recruiter/sources", "Job sources"],
   ],
   admin: [
-    ["/admin", "Admin"],
+    ["/admin", "Dashboard"],
     ["/admin/jobs", "Moderation"],
     ["/recruiter", "My jobs"],
     ["/recruiter/talent", "Talent pool"],
@@ -58,7 +59,8 @@ const accountLinks: Record<Role, AccountLink[]> = {
     { href: "/recruiter/introductions", label: "Introductions", icon: <Handshake /> },
   ],
   admin: [
-    { href: "/admin", label: "Admin overview", icon: <LayoutDashboard /> },
+    { href: "/admin", label: "Admin dashboard", icon: <LayoutDashboard /> },
+    { href: "/?site=1", label: "View the public home page", icon: <Home /> },
     { href: "/admin/jobs", label: "Job moderation", icon: <FileCheck2 /> },
     { href: "/admin/users", label: "Users", icon: <Users /> },
     { href: "/admin/takedowns", label: "Takedown requests", icon: <Shield /> },

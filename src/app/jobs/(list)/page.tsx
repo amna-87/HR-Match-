@@ -88,7 +88,8 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
 
   return (
     <div className="space-y-8">
-      <section className="hero-glow border-border bg-card space-y-5 rounded-3xl border px-5 py-7 shadow-(--shadow-card) sm:px-10">
+      <section className="hero-glow border-border bg-card relative isolate space-y-5 overflow-hidden rounded-3xl border px-5 py-7 shadow-(--shadow-card) sm:px-10">
+        <div className="bg-arches pointer-events-none absolute inset-0 -z-10 [mask-image:radial-gradient(60%_80%_at_90%_10%,black,transparent)]" />
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Open roles</h1>
           <p className="text-muted-foreground">Browse freely — no account needed.</p>
