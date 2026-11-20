@@ -213,3 +213,228 @@ export function Funnel({ steps }: { steps: { label: string; value: number }[] })
     </ol>
   );
 }
+
+type Series = { key: string; label: string; data: { day: string; value: number }[] };
+
+/** One large area chart with a series switcher, crosshair tooltip and a screen-reader table. */
+export function ActivityChart({ series }: { series: Series[] }) {
+  const [active, setActive] = useState(0);
+  const [hover, setHover] = useState<number | null>(null);
+  const s = series[active];
+  const data = s.data;
+  const W = 640;
+  const H = 220;
+  const max = Math.max(4, ...data.map((d) => d.value));
+  const nice = Math.ceil(max / 4) * 4;
+  const x = (i: number) => (data.length > 1 ? (i / (data.length - 1)) * W : W / 2);
+  const y = (v: number) => H - (v / nice) * (H - 12);
+  const line = data.map((d, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(d.value).toFixed(1)}`).join(" ");
+  const total = data.reduce((t, d) => t + d.value, 0);
+  const week = data.slice(-7).reduce((t, d) => t + d.value, 0);
+  const h = hover != null ? data[hover] : null;
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-3xl font-semibold tracking-tight tabular-nums">{total}</p>
+          <p className="text-muted-foreground text-sm">
+            {s.label.toLowerCase()} in the last 30 days · <span className="text-foreground font-medium">{week}</span>{" "}
+            this week
+          </p>
+        </div>
+        <div role="group" aria-label="Choose a measure" className="bg-muted flex flex-wrap gap-1 rounded-xl p-1">
+          {series.map((item, i) => (
+            <button
+              key={item.key}
+              type="button"
+              aria-pressed={i === active}
+              onClick={() => setActive(i)}
+              className={cn(
+                "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors sm:text-sm",
+                i === active ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="relative">
+        <div className="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex flex-col justify-between pb-6 text-[11px] tabular-nums">
+          {[nice, (nice * 3) / 4, nice / 2, nice / 4, 0].map((v) => (
+            <span key={v}>{v}</span>
+          ))}
+        </div>
+        <div className="ml-8">
+          <div
+            className="relative h-56"
+            onMouseLeave={() => setHover(null)}
+            onMouseMove={(e) => {
+              const r = e.currentTarget.getBoundingClientRect();
+              const i = Math.round(((e.clientX - r.left) / r.width) * (data.length - 1));
+              setHover(Math.max(0, Math.min(data.length - 1, i)));
+            }}
+          >
+            <svg
+              viewBox={`0 0 ${W} ${H}`}
+              preserveAspectRatio="none"
+              className="h-full w-full overflow-visible"
+              aria-hidden
+            >
+              <defs>
+                <linearGradient id="activity-fill" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0" stopColor="var(--primary)" stopOpacity="0.25" />
+                  <stop offset="1" stopColor="var(--primary)" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              {[0, 0.25, 0.5, 0.75, 1].map((f) => (
+                <line
+                  key={f}
+                  x1="0"
+                  x2={W}
+                  y1={y(nice * f)}
+                  y2={y(nice * f)}
+                  stroke="var(--border)"
+                  strokeDasharray={f ? "3 4" : undefined}
+                  vectorEffect="non-scaling-stroke"
+                />
+              ))}
+              <path d={`${line} L${W},${H} L0,${H} Z`} fill="url(#activity-fill)" />
+              <path
+                d={line}
+                fill="none"
+                stroke="var(--primary)"
+                strokeWidth="2.5"
+                strokeLinejoin="round"
+                strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
+              />
+              {hover != null && (
+                <line
+                  x1={x(hover)}
+                  x2={x(hover)}
+                  y1="0"
+                  y2={H}
+                  stroke="var(--muted-foreground)"
+                  strokeOpacity="0.5"
+                  vectorEffect="non-scaling-stroke"
+                />
+              )}
+            </svg>
+            {h && (
+              <>
+                <span
+                  className="border-card bg-primary pointer-events-none absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2"
+                  style={{ left: `${(x(hover!) / W) * 100}%`, top: `${(y(h.value) / H) * 100}%` }}
+                />
+                <div
+                  className="border-border bg-card pointer-events-none absolute top-0 z-10 rounded-lg border px-3 py-2 text-xs whitespace-nowrap shadow-(--shadow-lift)"
+                  style={{
+                    left: `${(x(hover!) / W) * 100}%`,
+                    transform: `translateX(${hover! > data.length / 2 ? "calc(-100% - 10px)" : "10px"})`,
+                  }}
+                >
+                  <p className="text-muted-foreground">{fmtDay(h.day)}</p>
+                  <p className="font-semibold tabular-nums">
+                    {h.value} {s.label.toLowerCase()}
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
+          <div className="text-muted-foreground mt-2 flex justify-between text-[11px]">
+            {[0, 7, 14, 21, data.length - 1].map((i) => (
+              <span key={i}>{data[i] ? (i === data.length - 1 ? "Today" : fmtDay(data[i].day)) : ""}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="sr-only">
+        <table>
+          <caption>{s.label} per day, last 30 days</caption>
+          <tbody>
+            {data.map((d) => (
+              <tr key={d.day}>
+                <th scope="row">{d.day}</th>
+                <td>{d.value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/** Donut of parts (validated categorical colours, 2px gaps), total in the centre, legend with values. */
+export function Donut({ parts, label }: { parts: { label: string; value: number }[]; label: string }) {
+  const [hover, setHover] = useState<number | null>(null);
+  const total = parts.reduce((t, p) => t + p.value, 0);
+  const r = 52;
+  const c = 2 * Math.PI * r;
+  const gap = parts.filter((p) => p.value).length > 1 ? 3 : 0;
+  let offset = 0;
+  const shown = hover != null ? parts[hover] : null;
+  return (
+    <div className="flex flex-col items-center gap-6 sm:flex-row lg:flex-col">
+      <div className="relative h-40 w-40 shrink-0">
+        <svg
+          viewBox="0 0 128 128"
+          className="h-full w-full -rotate-90"
+          role="img"
+          aria-label={`${label}: ${parts.map((p) => `${p.label} ${p.value}`).join(", ")}`}
+        >
+          <circle cx="64" cy="64" r={r} fill="none" stroke="var(--muted)" strokeWidth="14" />
+          {total > 0 &&
+            parts.map((p, i) => {
+              if (!p.value) return null;
+              const len = (p.value / total) * c;
+              const seg = (
+                <circle
+                  key={p.label}
+                  cx="64"
+                  cy="64"
+                  r={r}
+                  fill="none"
+                  stroke={`var(--series-${i + 1})`}
+                  strokeWidth={hover === i ? 17 : 14}
+                  strokeDasharray={`${Math.max(0.5, len - gap)} ${c}`}
+                  strokeDashoffset={-offset}
+                  className="cursor-default transition-all"
+                  onMouseEnter={() => setHover(i)}
+                  onMouseLeave={() => setHover(null)}
+                />
+              );
+              offset += len;
+              return seg;
+            })}
+        </svg>
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+          <span className="text-3xl font-semibold tabular-nums">{shown ? shown.value : total}</span>
+          <span className="text-muted-foreground text-xs">{shown ? shown.label : label}</span>
+        </div>
+      </div>
+      <ul className="w-full space-y-2 text-sm">
+        {parts.map((p, i) => (
+          <li
+            key={p.label}
+            className={cn("flex items-center gap-2 rounded-lg px-2 py-1 transition-colors", hover === i && "bg-muted")}
+            onMouseEnter={() => setHover(i)}
+            onMouseLeave={() => setHover(null)}
+          >
+            <span
+              className="h-2.5 w-2.5 shrink-0 rounded-full"
+              style={{ background: `var(--series-${i + 1})` }}
+              aria-hidden
+            />
+            <span className="text-muted-foreground flex-1">{p.label}</span>
+            <span className="font-semibold tabular-nums">{p.value}</span>
+            <span className="text-muted-foreground w-10 text-right text-xs tabular-nums">
+              {total ? Math.round((p.value / total) * 100) : 0}%
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}

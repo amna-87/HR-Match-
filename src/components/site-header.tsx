@@ -29,7 +29,7 @@ const links: Record<Role, NavItem[]> = {
     ["/candidate/settings", "Preferences"],
   ],
   recruiter: [
-    ["/recruiter", "Jobs"],
+    ["/recruiter", "Dashboard"],
     ["/recruiter/jobs/new", "Post a job"],
     ["/recruiter/talent", "Talent pool"],
     ["/recruiter/sources", "Job sources"],
@@ -50,17 +50,18 @@ const accountLinks: Record<Role, AccountLink[]> = {
     { href: "/candidate/profile", label: "My profile & resume", icon: <UserRound /> },
     { href: "/candidate/settings", label: "Job preferences & emails", icon: <Settings /> },
     { href: "/candidate/privacy", label: "Privacy & my data", icon: <Shield /> },
+    { href: "/?site=1", label: "Vouch home page", icon: <Home /> },
   ],
   recruiter: [
-    { href: "/recruiter", label: "My jobs", icon: <Briefcase /> },
+    { href: "/recruiter", label: "My dashboard", icon: <LayoutDashboard /> },
     { href: "/recruiter/company", label: "Workspace & team", icon: <Building2 /> },
     { href: "/recruiter/talent", label: "Talent pool", icon: <Users /> },
     { href: "/recruiter/sources", label: "Job sources & feeds", icon: <Rss /> },
     { href: "/recruiter/introductions", label: "Introductions", icon: <Handshake /> },
+    { href: "/?site=1", label: "Vouch home page", icon: <Home /> },
   ],
   admin: [
     { href: "/admin", label: "Admin dashboard", icon: <LayoutDashboard /> },
-    { href: "/?site=1", label: "View the public home page", icon: <Home /> },
     { href: "/admin/jobs", label: "Job moderation", icon: <FileCheck2 /> },
     { href: "/admin/users", label: "Users", icon: <Users /> },
     { href: "/admin/takedowns", label: "Takedown requests", icon: <Shield /> },
@@ -70,6 +71,7 @@ const accountLinks: Record<Role, AccountLink[]> = {
     { href: "/recruiter/sources", label: "Recruiting: job sources", icon: <Rss /> },
     { href: "/recruiter/introductions", label: "Recruiting: introductions", icon: <Handshake /> },
     { href: "/recruiter/company", label: "Recruiting: workspace", icon: <Building2 /> },
+    { href: "/?site=1", label: "Vouch home page", icon: <Home /> },
   ],
 };
 
@@ -79,9 +81,10 @@ export async function SiteHeader() {
   const { profile, user } = await getSession();
   const appName = process.env.APP_NAME ?? "Vouch";
   const role = profile?.onboarded ? (profile.role as Role) : null;
-  const items: NavItem[] = [["/jobs", "Browse jobs"], ...(role ? links[role] : [])];
+  // Signed-in people see their dashboard first; "Browse jobs" follows their own links.
+  const items: NavItem[] = role ? [...links[role], ["/jobs", "Browse jobs"]] : [["/jobs", "Browse jobs"]];
   return (
-    <header className="border-border/70 bg-background/80 supports-[backdrop-filter]:bg-background/70 sticky top-0 z-40 border-b backdrop-blur-lg">
+    <header className="border-border/70 bg-card/80 supports-[backdrop-filter]:bg-card/65 sticky top-0 z-40 border-b backdrop-blur-lg">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
         <Logo name={appName} />
         {profile ? (

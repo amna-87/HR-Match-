@@ -2,6 +2,9 @@ import Link from "next/link";
 import {
   AlertTriangle,
   ArrowUpRight,
+  CalendarDays,
+  Plus,
+  TrendingUp,
   Briefcase,
   ClipboardList,
   FileClock,
@@ -17,7 +20,9 @@ import {
 import { requireRole } from "@/lib/auth/session";
 import { buttonClasses } from "@/components/ui/button";
 import { LogoMark } from "@/components/logo";
-import { DailyBars, Funnel, Ring, Sparkline, StackedBar } from "@/components/charts";
+import { ActivityChart, Donut, Funnel, Ring, Sparkline } from "@/components/charts";
+import { Badge } from "@/components/ui/badge";
+import { formatDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -74,46 +79,65 @@ const TOOLS: { href: string; label: string; text: string; icon: LucideIcon }[] =
   { href: "/recruiter", label: "Recruiter tools", text: "Post jobs, upload resumes, feeds.", icon: Briefcase },
 ];
 
+const ACCENTS = {
+  violet: "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300",
+  sky: "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300",
+  teal: "bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300",
+  amber: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
+  pink: "bg-pink-100 text-pink-700 dark:bg-pink-950 dark:text-pink-300",
+} as const;
+
 function Kpi({
   href,
   icon: Icon,
   label,
   value,
   note,
+  delta,
   trend,
+  accent,
   className,
 }: {
-  className?: string;
   href: string;
   icon: LucideIcon;
   label: string;
   value: number;
   note: React.ReactNode;
+  delta?: number;
   trend?: number[];
+  accent: keyof typeof ACCENTS;
+  className?: string;
 }) {
   return (
     <Link
       href={href}
       className={cn(
-        "group border-border bg-card hover:border-primary/40 relative flex min-w-0 flex-col gap-3 overflow-hidden rounded-2xl border p-4 shadow-(--shadow-card) transition-all hover:-translate-y-0.5 hover:shadow-(--shadow-lift) sm:p-5",
+        "group border-border bg-card hover:border-primary/40 relative flex min-w-0 flex-col gap-4 overflow-hidden rounded-2xl border p-4 shadow-(--shadow-card) transition-all hover:-translate-y-0.5 hover:shadow-(--shadow-lift) sm:p-5",
         className,
       )}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="bg-primary/10 text-primary flex h-9 w-9 items-center justify-center rounded-xl">
-          <Icon className="h-[18px] w-[18px]" aria-hidden />
+        <span className={cn("flex h-10 w-10 items-center justify-center rounded-xl", ACCENTS[accent])}>
+          <Icon className="h-5 w-5" aria-hidden />
         </span>
-        <ArrowUpRight
-          className="text-muted-foreground group-hover:text-primary h-4 w-4 transition-colors"
-          aria-hidden
-        />
+        {delta != null && delta > 0 ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+            <TrendingUp className="h-3 w-3" aria-hidden />+{delta}
+            <span className="sr-only"> this week</span>
+          </span>
+        ) : (
+          <ArrowUpRight
+            className="text-muted-foreground group-hover:text-primary h-4 w-4 transition-colors"
+            aria-hidden
+          />
+        )}
       </div>
-      <div>
-        <p className="text-3xl font-semibold tracking-tight tabular-nums">{value.toLocaleString("en-GB")}</p>
-        <p className="text-sm font-medium">{label}</p>
-        <p className="text-muted-foreground mt-0.5 text-xs">{note}</p>
+      <div className="min-w-0">
+        <p className="text-muted-foreground text-sm font-medium">{label}</p>
+        <p className="mt-1 text-3xl font-semibold tracking-tight tabular-nums">{value.toLocaleString("en-GB")}</p>
+        <p className="text-muted-foreground mt-1 truncate text-xs">{note}</p>
       </div>
-      {trend && <Sparkline values={trend} className="-mx-1 mt-auto" />}
+      {trend && <Sparkline values={trend} className="-mx-1 mt-auto -mb-1" />}
     </Link>
   );
 }
@@ -137,7 +161,7 @@ function Panel({
     >
       <div className="mb-5 flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+          <h2 className="font-semibold tracking-tight">{title}</h2>
           {description && <p className="text-muted-foreground text-sm">{description}</p>}
         </div>
         {action}
@@ -147,9 +171,27 @@ function Panel({
   );
 }
 
+const STATUS_TONE = {
+  published: "success",
+  draft: "muted",
+  paused: "warning",
+  closed: "muted",
+  expired: "muted",
+  removed: "danger",
+} as const;
+
 export default async function AdminHome() {
-  const { supabase } = await requireRole("admin");
-  const { data, error } = await supabase.rpc("admin_dashboard");
+  const { supabase, user } = await requireRole("admin");
+  const [{ data, error }, { data: recent }] = await Promise.all([
+    supabase.rpc("admin_dashboard"),
+    supabase
+      .from("jobs")
+      .select(
+        "id, title, status, source_type, source_company_name, created_at, company:companies!jobs_company_id_fkey(name)",
+      )
+      .order("created_at", { ascending: false })
+      .limit(6),
+  ]);
   if (error || !data) {
     return (
       <p role="alert" className="text-sm text-red-700 dark:text-red-300">
@@ -161,47 +203,99 @@ export default async function AdminHome() {
   const notPosted = d.jobs.draft + d.jobs.paused;
   const daily = (k: "jobs" | "candidates" | "recruiters" | "matches") =>
     d.daily.map((x) => ({ day: x.day, value: x[k] }));
+  const week = (k: "jobs" | "candidates" | "recruiters" | "matches") => d.daily.slice(-7).reduce((t, x) => t + x[k], 0);
+  const today = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
   const alerts = [
     d.open_takedowns > 0 && {
       href: "/admin/takedowns",
-      text: `${d.open_takedowns} open takedown request${d.open_takedowns === 1 ? "" : "s"}`,
+      text: plural(d.open_takedowns, "open takedown request"),
     },
     d.jobs.awaiting_public_review > 0 && {
       href: "/admin/jobs",
-      text: `${d.jobs.awaiting_public_review} job${d.jobs.awaiting_public_review === 1 ? "" : "s"} waiting for public board review`,
+      text: `${plural(d.jobs.awaiting_public_review, "job")} waiting for public board review`,
     },
-    notPosted > 0 && { href: "/admin/jobs", text: `${notPosted} job${notPosted === 1 ? "" : "s"} not posted yet` },
+    notPosted > 0 && { href: "/admin/jobs", text: `${plural(notPosted, "job")} not posted yet` },
   ].filter(Boolean) as { href: string; text: string }[];
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="space-y-6">
       {/* Hero */}
       <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-violet-700 via-violet-700 to-fuchsia-700 p-6 text-white shadow-(--shadow-lift) sm:p-8">
         <LogoMark className="pointer-events-none absolute -right-10 -bottom-16 -z-10 h-64 w-64 opacity-15 [--logo-accent:#f0abfc] [--logo-ink:#fff] sm:h-80 sm:w-80" />
         <div className="pointer-events-none absolute -top-24 -left-24 -z-10 h-64 w-64 rounded-full bg-fuchsia-400/30 blur-3xl" />
-        <p className="text-sm font-medium text-violet-100">Admin dashboard</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">Welcome back 👋</h1>
-        <p className="mt-1 max-w-xl text-violet-100">
-          {d.jobs.published} jobs live, {d.candidates.accounts} candidates and {d.recruiters.accounts} HR accounts on
-          Vouch. {d.jobs.new_7d} new jobs and {d.candidates.new_7d + d.recruiters.new_7d} new sign-ups this week.
-        </p>
-        <div className="mt-5 flex flex-wrap gap-2">
-          {alerts.length ? (
-            alerts.map((a) => (
-              <Link
-                key={a.text}
-                href={a.href}
-                className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-sm font-medium backdrop-blur transition-colors hover:bg-white/25"
-              >
-                <AlertTriangle className="h-4 w-4 text-amber-200" aria-hidden /> {a.text}
-              </Link>
-            ))
-          ) : (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-sm font-medium">
-              <Sparkles className="h-4 w-4" aria-hidden /> Nothing needs your attention
-            </span>
-          )}
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="flex items-center gap-1.5 text-sm font-medium text-violet-100">
+              <CalendarDays className="h-4 w-4" aria-hidden /> {today}
+            </p>
+            <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+              Welcome back{user.name ? `, ${user.name.split(" ")[0]}` : ""} 👋
+            </h1>
+            <p className="mt-1 max-w-xl text-violet-100">Here&apos;s what is happening on Vouch.</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {alerts.length ? (
+                alerts.map((a) => (
+                  <Link
+                    key={a.text}
+                    href={a.href}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-sm font-medium backdrop-blur transition-colors hover:bg-white/25"
+                  >
+                    <AlertTriangle className="h-4 w-4 text-amber-200" aria-hidden /> {a.text}
+                  </Link>
+                ))
+              ) : (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-sm font-medium">
+                  <Sparkles className="h-4 w-4" aria-hidden /> All clear: nothing needs your attention
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/admin/sourced/new"
+              className={buttonClasses(
+                "outline",
+                "default",
+                "border-transparent bg-white text-violet-700 hover:bg-violet-50",
+              )}
+            >
+              <Plus className="h-4 w-4" aria-hidden /> Add a job
+            </Link>
+            <Link
+              href="/admin/jobs"
+              className={buttonClasses(
+                "outline",
+                "default",
+                "border-white/30 bg-white/10 text-white hover:bg-white/20",
+              )}
+            >
+              Moderate jobs
+            </Link>
+            <Link
+              href="/admin/users"
+              className={buttonClasses(
+                "outline",
+                "default",
+                "border-white/30 bg-white/10 text-white hover:bg-white/20",
+              )}
+            >
+              Users
+            </Link>
+          </div>
         </div>
+        <dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            ["New jobs this week", week("jobs")],
+            ["New candidates this week", week("candidates")],
+            ["New HRs this week", week("recruiters")],
+            ["New matches this week", week("matches")],
+          ].map(([k, v]) => (
+            <div key={k as string} className="rounded-2xl bg-white/10 px-4 py-3 ring-1 ring-white/15 backdrop-blur">
+              <dd className="text-2xl font-semibold tabular-nums">{(v as number).toLocaleString("en-GB")}</dd>
+              <dt className="text-xs text-violet-100">{k}</dt>
+            </div>
+          ))}
+        </dl>
       </section>
 
       {/* KPI tiles */}
@@ -209,14 +303,17 @@ export default async function AdminHome() {
         <Kpi
           href="/admin/jobs"
           icon={Briefcase}
+          accent="violet"
           label="Jobs posted"
           value={d.jobs.published}
           note={`${d.jobs.public} on the public board`}
+          delta={week("jobs")}
           trend={daily("jobs").map((x) => x.value)}
         />
         <Kpi
           href="/admin/jobs"
           icon={FileClock}
+          accent="amber"
           label="Not posted yet"
           value={notPosted}
           note={`${d.jobs.draft} drafts · ${d.jobs.paused} paused`}
@@ -224,40 +321,57 @@ export default async function AdminHome() {
         <Kpi
           href="/admin/users"
           icon={Sparkles}
+          accent="pink"
           label="Candidates matched"
           value={d.candidates.matched}
-          note={`of ${d.candidates.accounts} candidates`}
+          note={`of ${plural(d.candidates.accounts, "candidate")}`}
+          delta={week("matches")}
           trend={daily("matches").map((x) => x.value)}
         />
         <Kpi
           href="/admin/users"
           icon={UserCheck}
+          accent="teal"
           label="Candidates logged in"
           value={d.candidates.logged_in_ever}
           note={`${d.candidates.logged_in_7d} in the last 7 days`}
+          delta={d.candidates.new_7d}
         />
         <Kpi
           href="/admin/users"
           icon={LogIn}
+          accent="sky"
           label="HRs logged in"
-          className="col-span-2 lg:col-span-1"
           value={d.recruiters.logged_in_ever}
           note={`${d.recruiters.logged_in_7d} in the last 7 days`}
+          delta={d.recruiters.new_7d}
+          className="col-span-2 lg:col-span-1"
         />
       </div>
 
+      {/* Activity + job status */}
       <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
+        <Panel title="Activity" description="New on Vouch each day" className="lg:col-span-2">
+          <ActivityChart
+            series={[
+              { key: "jobs", label: "Jobs", data: daily("jobs") },
+              { key: "candidates", label: "Candidates", data: daily("candidates") },
+              { key: "recruiters", label: "HRs", data: daily("recruiters") },
+              { key: "matches", label: "Matches", data: daily("matches") },
+            ]}
+          />
+        </Panel>
         <Panel
-          title="Jobs"
-          description={`${d.jobs.total} jobs in total, by status`}
-          className="lg:col-span-2"
+          title="Jobs by status"
+          description={`${plural(d.jobs.total, "job")} in total`}
           action={
-            <Link href="/admin/jobs" className={buttonClasses("outline", "sm")}>
+            <Link href="/admin/jobs" className={buttonClasses("ghost", "sm", "text-primary")}>
               Moderate
             </Link>
           }
         >
-          <StackedBar
+          <Donut
+            label="jobs"
             parts={[
               { label: "Posted", value: d.jobs.published },
               { label: "Draft", value: d.jobs.draft },
@@ -266,22 +380,25 @@ export default async function AdminHome() {
               { label: "Removed", value: d.jobs.removed },
             ]}
           />
-          <dl className="border-border mt-6 grid grid-cols-2 gap-4 border-t pt-5 text-sm sm:grid-cols-4">
+          <dl className="border-border mt-5 grid grid-cols-2 gap-3 border-t pt-4 text-sm">
             {[
               ["Public board", d.jobs.public],
               ["Workspace only", d.jobs.workspace_only],
-              ["Posted by employers", d.jobs.employer],
-              ["From other sources", d.jobs.sourced],
+              ["By employers", d.jobs.employer],
+              ["Other sources", d.jobs.sourced],
             ].map(([k, v]) => (
               <div key={k as string}>
                 <dt className="text-muted-foreground text-xs">{k}</dt>
-                <dd className="text-xl font-semibold tabular-nums">{v}</dd>
+                <dd className="font-semibold tabular-nums">{v}</dd>
               </div>
             ))}
           </dl>
         </Panel>
+      </div>
 
-        <Panel title="Who logged in" description="People who have signed in at least once">
+      {/* People */}
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
+        <Panel title="Who logged in" description="Signed in at least once">
           <div className="space-y-5">
             <Ring
               value={d.candidates.logged_in_ever}
@@ -300,10 +417,11 @@ export default async function AdminHome() {
             </p>
           </div>
         </Panel>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
-        <Panel title="Candidate journey" description="From sign-up to applying; % of all candidate accounts">
+        <Panel
+          title="Candidate journey"
+          description="From sign-up to applying; % of all candidate accounts"
+          className="lg:col-span-2"
+        >
           <Funnel
             steps={[
               { label: "Candidate accounts", value: d.candidates.accounts },
@@ -318,12 +436,53 @@ export default async function AdminHome() {
             {d.matching.declined} declined · {d.matching.hired} hired
           </p>
         </Panel>
+      </div>
 
-        <Panel title="Most active workspaces" description="By open jobs and talent pool size">
+      {/* Recent jobs + workspaces */}
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
+        <Panel
+          title="Latest jobs"
+          description="The newest jobs added to Vouch"
+          className="lg:col-span-2"
+          action={
+            <Link href="/admin/jobs" className={buttonClasses("ghost", "sm", "text-primary")}>
+              See all
+            </Link>
+          }
+        >
+          <ul className="divide-border -my-2 divide-y">
+            {(recent ?? []).map((j) => {
+              const company =
+                (j.company as unknown as { name: string } | null)?.name ?? j.source_company_name ?? "Hiring directly";
+              return (
+                <li key={j.id} className="flex items-center gap-3 py-3">
+                  <span className="bg-primary-soft text-primary-soft-foreground flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-semibold">
+                    {company.slice(0, 2).toUpperCase()}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <Link
+                      href={`/jobs/${j.id}`}
+                      prefetch={false}
+                      className="block truncate text-sm font-medium hover:underline"
+                    >
+                      {j.title}
+                    </Link>
+                    <p className="text-muted-foreground truncate text-xs">
+                      {company} · {j.source_type === "sourced" ? "other source" : "employer"} ·{" "}
+                      {formatDate(j.created_at)}
+                    </p>
+                  </div>
+                  <Badge tone={STATUS_TONE[j.status as keyof typeof STATUS_TONE] ?? "muted"}>{j.status}</Badge>
+                </li>
+              );
+            })}
+          </ul>
+        </Panel>
+        <Panel title="Most active workspaces" description="Open jobs and talent pool size">
           {d.top_workspaces.length ? (
-            <ol className="divide-border divide-y">
+            <ol className="divide-border -my-2 divide-y">
               {d.top_workspaces.map((w, i) => (
-                <li key={w.name + i} className="flex items-center gap-3 py-2.5 text-sm first:pt-0 last:pb-0">
+                <li key={w.name + i} className="flex items-center gap-3 py-2.5 text-sm">
                   <span className="bg-primary/10 text-primary flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold">
                     {i + 1}
                   </span>
@@ -342,41 +501,27 @@ export default async function AdminHome() {
           )}
           <p className="text-muted-foreground border-border mt-5 border-t pt-4 text-xs">
             {plural(d.pool.introductions, "introduction request")} · {plural(d.pool.introduced, "person", "people")}{" "}
-            introduced · {plural(d.pool.shared, "profile")} shared anonymously
+            introduced
           </p>
         </Panel>
       </div>
 
-      <section aria-labelledby="trend-h" className="space-y-3">
-        <h2 id="trend-h" className="text-lg font-semibold tracking-tight">
-          Last 30 days
-        </h2>
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          <DailyBars label="New jobs" data={daily("jobs")} />
-          <DailyBars label="New candidates" data={daily("candidates")} />
-          <DailyBars label="New HR accounts" data={daily("recruiters")} />
-          <DailyBars label="New matches" data={daily("matches")} />
-        </div>
-      </section>
-
+      {/* Tools */}
       <section aria-labelledby="tools-h" className="space-y-3">
-        <h2 id="tools-h" className="text-lg font-semibold tracking-tight">
+        <h2 id="tools-h" className="font-semibold tracking-tight">
           Admin tools
         </h2>
-        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {TOOLS.map(({ href, label, text, icon: Icon }) => (
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {TOOLS.map(({ href, label, icon: Icon }) => (
             <li key={href}>
               <Link
                 href={href}
-                className="border-border bg-card hover:border-primary/40 group flex h-full items-center gap-3 rounded-2xl border p-4 transition-colors"
+                className="border-border bg-card hover:border-primary/40 hover:text-primary flex h-full flex-col items-center gap-2 rounded-2xl border p-4 text-center text-sm font-medium shadow-(--shadow-card) transition-colors"
               >
-                <span className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+                <span className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-xl">
                   <Icon className="h-5 w-5" aria-hidden />
                 </span>
-                <span className="min-w-0">
-                  <span className="group-hover:text-primary block font-medium">{label}</span>
-                  <span className="text-muted-foreground block text-sm">{text}</span>
-                </span>
+                {label}
               </Link>
             </li>
           ))}

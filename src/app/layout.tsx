@@ -42,7 +42,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:py-10">
           {children}
         </main>
-        <footer className="border-border bg-card mt-12 border-t">
+        <footer className="border-border bg-card/70 relative mt-16 border-t backdrop-blur before:absolute before:inset-x-0 before:-top-px before:h-px before:bg-gradient-to-r before:from-transparent before:via-violet-400/60 before:to-transparent">
           <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 text-sm sm:grid-cols-[2fr_1fr_1fr]">
             <div className="space-y-3">
               <Logo name={appName} />

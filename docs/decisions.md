@@ -539,3 +539,7 @@ the account has signed in at least once (`auth.users.last_sign_in_at`), also sho
 keeps only the last sign-in time, so we show these windows rather than a full login history. "Jobs posted" = published;
 "not posted" = draft + paused. "Candidates matched" = candidate accounts with at least one match. Admins who open `/`
 are sent to `/admin`; `/?site=1` (linked from the account menu) shows the public home page.
+
+D-040 update (2026-11-20): every signed-in, onboarded user who opens `/` goes to their own dashboard (candidate,
+recruiter or admin), and "Dashboard" is the first menu item for each role; "Vouch home page" in the account menu opens
+`/?site=1`.

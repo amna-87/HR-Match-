@@ -19,6 +19,7 @@ import { buttonClasses } from "@/components/ui/button";
 import { LogoMark } from "@/components/logo";
 import { cn } from "@/lib/utils";
 import { getSession } from "@/lib/auth/session";
+import { homeFor } from "@/lib/auth/routes";
 import { JobList, PUBLIC_JOB_COLUMNS, type PublicJob } from "@/components/job-list";
 
 export const dynamic = "force-dynamic";
@@ -106,8 +107,9 @@ const promises = [
 
 export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string>> }) {
   const { supabase, profile } = await getSession();
-  // Admins land on their dashboard; "?site=1" still shows the public home page.
-  if (profile?.role === "admin" && profile.status === "active" && (await searchParams).site !== "1") redirect("/admin");
+  // Signed-in people land on their dashboard; "?site=1" still shows the public home page.
+  if (profile?.onboarded && profile.status === "active" && (await searchParams).site !== "1")
+    redirect(homeFor(profile.role));
   const [{ data, count }, { data: companies }] = supabase
     ? await Promise.all([
         supabase
